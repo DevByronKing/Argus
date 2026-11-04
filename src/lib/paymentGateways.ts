@@ -70,11 +70,14 @@ export class PaymentGateway {
       try {
         // Suporte a agente Undici para contornar interceptação de certificados TLS locais no Windows
         let customDispatcher: any = undefined;
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          const { Agent } = require('undici');
-          customDispatcher = new Agent({ connect: { rejectUnauthorized: false } });
-        } catch {}
+        // Validação estrita de SSL/TLS por padrão (permite bypass apenas sob flag explícita de desenvolvimento)
+        if (process.env.ALLOW_INSECURE_TLS === 'true') {
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            const { Agent } = require('undici');
+            customDispatcher = new Agent({ connect: { rejectUnauthorized: false } });
+          } catch {}
+        }
 
         // Asaas exige CPF/CNPJ obrigatório em ambiente de produção para emitir Pix
         const rawCpf = params.cpfCnpj ? params.cpfCnpj.replace(/\D/g, '') : '';

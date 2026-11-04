@@ -51,6 +51,38 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+-- 2.2 Blindagem de Segurança RLS: Proteção contra Elevação de Privilégio no Perfil
+CREATE OR REPLACE FUNCTION public.protect_profile_subscription_fields()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $
+BEGIN
+  -- Se a alteração não for executada pela service_role ou postgres
+  IF (COALESCE(current_setting('request.jwt.claims', true)::json ->> 'role', '') != 'service_role')
+     AND current_user NOT IN ('postgres', 'supabase_admin') THEN
+    -- Impede alteração fraudulenta de plano, status ou contadores de IA por usuários comuns
+    IF NEW.subscription_tier IS DISTINCT FROM OLD.subscription_tier THEN
+      RAISE EXCEPTION 'Apenas o backend de pagamentos autorizado pode alterar o plano de assinatura.';
+    END IF;
+    IF NEW.subscription_status IS DISTINCT FROM OLD.subscription_status THEN
+      RAISE EXCEPTION 'Apenas o backend de pagamentos autorizado pode alterar o status da assinatura.';
+    END IF;
+    IF NEW.daily_ai_requests_count IS DISTINCT FROM OLD.daily_ai_requests_count
+       AND NEW.daily_ai_requests_reset_at = OLD.daily_ai_requests_reset_at THEN
+      RAISE EXCEPTION 'Apenas o motor autorizado de IA pode alterar os contadores diários de consumo.';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$;
+
+DROP TRIGGER IF EXISTS trg_protect_profile_subscription ON public.profiles;
+CREATE TRIGGER trg_protect_profile_subscription
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION public.protect_profile_subscription_fields();
+
 -- 3. Exam Notices (Editais) Table
 CREATE TABLE IF NOT EXISTS public.exam_notices (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -251,3 +283,7 @@ CREATE POLICY "Public anonymous insert for leads" ON public.leads
 DROP POLICY IF EXISTS "Public read for transactions polling" ON public.transactions;
 CREATE POLICY "Public read for transactions polling" ON public.transactions
   FOR SELECT USING (auth.jwt() ->> 'email' = user_email OR current_setting('request.jwt.claims', true)::json ->> 'role' = 'service_role');
+
+DROP POLICY IF EXISTS "Service role can manage transactions" ON public.transactions;
+CREATE POLICY "Service role can manage transactions" ON public.transactions
+  FOR ALL USING (current_setting('request.jwt.claims', true)::json ->> 'role' = 'service_role');

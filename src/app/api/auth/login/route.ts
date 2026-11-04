@@ -82,8 +82,15 @@ export async function POST(req: Request) {
       }
     }
 
-    // Fallback Mock Seguro / Modo Local de Desenvolvimento
-    // Gera token JWT simulado padrão para manter a UX fluida sem dependência forçada externa
+    // Em ambiente de produção, rejeita categoricamente logins mock se o Supabase não estiver configurado
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        { success: false, error: 'Serviço de autenticação temporariamente indisponível. Verifique as credenciais do provedor de autenticação.' },
+        { status: 503 }
+      );
+    }
+
+    // Fallback Mock Seguro apenas para desenvolvimento local offline
     const mockId = `usr_${Buffer.from(email).toString('base64').slice(0, 12)}`;
     const mockToken = `jwt_mock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
@@ -93,7 +100,7 @@ export async function POST(req: Request) {
         id: mockId,
         email,
         name: email.split('@')[0],
-        role: email.includes('admin') ? 'admin' : 'student',
+        role: 'student', // Nunca eleva permissão para admin automaticamente no mock
       },
       session: {
         accessToken: mockToken,

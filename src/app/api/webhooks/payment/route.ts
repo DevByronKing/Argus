@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       // Validação de Segurança Criptográfica do Token do Asaas em Produção
       const asaasToken = req.headers.get('asaas-access-token');
       const expectedToken = process.env.ASAAS_WEBHOOK_SECRET;
-      if (process.env.NODE_ENV === 'production' && expectedToken && asaasToken !== expectedToken) {
+      if (process.env.NODE_ENV === 'production' && (!expectedToken || asaasToken !== expectedToken)) {
         console.warn('[Asaas Webhook Security] Token de webhook inválido ou ausente:', asaasToken);
         return NextResponse.json({ success: false, error: 'Assinatura de webhook não autorizada.' }, { status: 401 });
       }
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     if (body.type && body.data?.object) {
       const stripeSig = req.headers.get('stripe-signature') || req.headers.get('x-stripe-webhook-secret');
       const expectedStripeSecret = process.env.STRIPE_WEBHOOK_SECRET;
-      if (process.env.NODE_ENV === 'production' && expectedStripeSecret && stripeSig !== expectedStripeSecret) {
+      if (process.env.NODE_ENV === 'production' && (!expectedStripeSecret || stripeSig !== expectedStripeSecret)) {
         return NextResponse.json({ success: false, error: 'Assinatura de webhook Stripe não autorizada.' }, { status: 401 });
       }
       const eventType = body.type;

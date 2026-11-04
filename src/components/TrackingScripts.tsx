@@ -57,7 +57,7 @@ export const TrackingScripts: React.FC = () => {
     }
   }, [pathname, gaMeasurementId]);
 
-  if (!gaMeasurementId) {
+  if (!gaMeasurementId && !metaPixelId) {
     return null;
   }
 

@@ -130,8 +130,8 @@ export async function GET(req: NextRequest) {
   // Proteção de PII (Personally Identifiable Information)
   // Apenas contagem e resumo anônimo são públicos; PII completa requer chave administrativa
   const authHeader = req.headers.get('authorization') || '';
-  const adminSecret = process.env.ADMIN_API_KEY || 'argus-admin-secret';
-  const isAdmin = authHeader === `Bearer ${adminSecret}`;
+  const adminSecret = process.env.ADMIN_API_KEY;
+  const isAdmin = Boolean(adminSecret && authHeader === `Bearer ${adminSecret}`);
 
   if (isAdmin) {
     return NextResponse.json({
