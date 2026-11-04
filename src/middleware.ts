@@ -57,7 +57,7 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(self)');
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.google.com https://*.gstatic.com https://connect.facebook.net https://*.facebook.net https://*.facebook.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-ancestors 'none';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.google.com https://*.gstatic.com https://connect.facebook.net https://*.facebook.net https://*.facebook.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline' https://vercel.live; font-src 'self' data: https://vercel.live https://assets.vercel.com; img-src 'self' data: blob: https: https://vercel.live https://vercel.com; connect-src 'self' https: wss: https://vercel.live https://*.pusher.com wss://*.pusher.com; frame-src 'self' https://vercel.live; frame-ancestors 'none';"
   );
   return response;
 }
