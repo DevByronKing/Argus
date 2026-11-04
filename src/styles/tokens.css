@@ -1,22 +1,24 @@
-/* ==========================================================================
-   ARGUS DESIGN SYSTEM — TOKENS (FONTE DA VERDADE)
-   Direção: Minimalismo Técnico de Alto Contraste (Linear + MasterClass)
-   Tipografia: Plus Jakarta Sans
-   Conformidade: WCAG 2.1 AA / AAA
-   ========================================================================== */
+/**
+ * ============================================================================
+ * DESIGN TOKENS DO LEARNING AI — SISTEMA VISUAL PEDAGÓGICO DE ALTA EFICÁCIA
+ * ============================================================================
+ * Baseado no Manual de Identidade Visual e Arquitetura Cognitiva de Cores:
+ * - Índigo Profundo (Autoridade, Foco Racional, Confiança Científica)
+ * - Esmeralda Pedagógico (Progresso, Aha Moment, Feedback Positivo Imediato)
+ * - Superfícies Neutras Balanceadas (Papel Frio e Obsidian Anti-Fadiga)
+ * Em estrita conformidade com os critérios de acessibilidade WCAG 2.1 AA / AAA.
+ * ============================================================================
+ */
 
-/* ==========================================================================
-   TEMA CLARO (LIGHT MODE) — Padrão do Sistema
-   ========================================================================== */
 :root,
 [data-theme="light"],
 html.light {
-  /* Marca e Ação Primária */
-  --brand-primary: #4338CA;             /* Índigo Elétrico profundo (Contraste 7.9:1 vs #F8FAFC) */
-  --brand-primary-hover: #3730A3;       /* Índigo escuro para hover */
-  --brand-primary-active: #312E81;      /* Índigo ativo pressionado */
-  --brand-primary-muted: rgba(67, 56, 202, 0.12); /* Fundo sutil de botões e pills */
-  --brand-primary-subtle: #EEF2FF;      /* Índigo suave para backgrounds de seleção */
+  /* Marca e Ação Primária (Luminância Calibrada para Fundo Claro) */
+  --brand-primary: #4338CA;             /* Índigo profundo (Contraste 7.8:1 vs #FFFFFF — WCAG AAA) */
+  --brand-primary-hover: #3730A3;
+  --brand-primary-active: #312E81;
+  --brand-primary-muted: rgba(67, 56, 202, 0.12);
+  --brand-primary-subtle: #EEF2FF;
 
   /* Destaque, Recompensa e Sensação de Progresso (Aha Moment) */
   --brand-accent: #047857;              /* Esmeralda pedagógico calibrado (Contraste 5.35:1 vs #FFFFFF e 4.6:1 vs #E1F2ED) */
@@ -28,7 +30,7 @@ html.light {
   --surface-bg: #F8FAFC;                /* Fundo geral da aplicação (evita ofuscamento do branco puro) */
   --surface-card: #FFFFFF;              /* Fundo de cartões de aula e modais */
   --surface-elevated: #F1F5F9;          /* Fundo de inputs, barras e containers secundários */
-  --surface-overlay: rgba(15, 23, 42, 0.65); /* Backdrop de modais */
+  --surface-overlay: rgba(8, 12, 20, 0.94); /* Backdrop de modais escuro, sólido e imersivo */
 
   /* Bordas e Delimitação */
   --border-subtle: #E2E8F0;             /* Borda padrão de cards e divisores */
@@ -79,7 +81,7 @@ html.dark {
   --surface-bg: #090D16;                /* Fundo geral escuro obsidian */
   --surface-card: #111827;              /* Cartões de aula e modais */
   --surface-elevated: #1E293B;          /* Superfície elevada para inputs e badges */
-  --surface-overlay: rgba(0, 0, 0, 0.85);
+  --surface-overlay: rgba(4, 7, 13, 0.96); /* Backdrop de modais profundo e imersivo */
 
   /* Bordas e Delimitação */
   --border-subtle: #1F2937;             /* Delimitação discreta de cards */

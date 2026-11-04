@@ -24,7 +24,6 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { Sparkles } from 'lucide-react';
 import { GlobalExamContextBar } from '@/components/GlobalExamContextBar';
 import { FloatingContactSupport } from '@/components/FloatingContactSupport';
-import { InitialLoadingScreen } from '@/components/InitialLoadingScreen';
 import { FlashChallengeModal } from '@/components/FlashChallengeModal';
 import { InactivityRecoveryBanner } from '@/components/InactivityRecoveryBanner';
 import { ReferralProgramModal } from '@/components/ReferralProgramModal';
@@ -173,31 +172,8 @@ export function ArgusApp() {
     isReferralModalOpen
   );
 
-  // Tela de Carregamento Inicial: Apenas no primeiro acesso da sessão (elimina bloqueios em navegação)
-  const [showInitialSplash, setShowInitialSplash] = useState(false);
-
+  // Abertura suave da Anamnese Cognitiva no primeiro acesso (sem splashscreen bloqueante ou piscadeiras)
   useEffect(() => {
-    try {
-      const alreadyShown = sessionStorage.getItem('argus_splash_shown') === 'true';
-      const isTestEnv = Boolean(
-        window.navigator.webdriver ||
-        window.location.search.includes('test=1') ||
-        (window as any).__E2E__
-      );
-
-      if (!alreadyShown && !isTestEnv) {
-        setShowInitialSplash(true);
-      }
-    } catch {}
-  }, []);
-
-  const handleFinishSplash = () => {
-    setShowInitialSplash(false);
-    try {
-      sessionStorage.setItem('argus_splash_shown', 'true');
-    } catch {}
-
-    // Em modo de testes automatizados (Playwright/CI), não abre modal sem clique explícito
     const isTestEnv = typeof window !== 'undefined' && Boolean(
       window.navigator.webdriver ||
       window.location.search.includes('test=1') ||
@@ -212,13 +188,14 @@ export function ArgusApp() {
           skippedAt: localStorage.getItem(ONBOARDING_SKIPPED_KEY),
         });
         if (shouldOpen) {
-          setTimeout(() => {
+          const timer = setTimeout(() => {
             setIsOnboardingTerminalOpen(true);
-          }, 1000);
+          }, 600);
+          return () => clearTimeout(timer);
         }
       } catch {}
     }
-  };
+  }, []);
 
   // Load from LocalStorage if available
   useEffect(() => {
@@ -1205,13 +1182,7 @@ export function ArgusApp() {
         }}
       />
 
-      {/* Splash: Logo surge animado e desaparece */}
-      {showInitialSplash && (
-        <InitialLoadingScreen
-          durationMs={3000}
-          onFinish={handleFinishSplash}
-        />
-      )}
+      
 
       {/* Pesquisa de PMF In-App - Sean Ellis Test */}
       <SeanEllisSurveyModal

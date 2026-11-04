@@ -585,7 +585,7 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
       aria-modal="true"
       aria-labelledby="onboarding-title"
       data-theme-mode={isDark ? 'dark' : 'light'}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 select-none overflow-hidden animate-fadeIn"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 select-none overflow-hidden animate-fadeIn bg-slate-950/95 backdrop-blur-2xl"
       style={{
         backgroundColor: 'var(--surface-overlay)'
       }}

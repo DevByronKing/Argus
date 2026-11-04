@@ -39,7 +39,7 @@ export function FloatingContactSupport({
 
   // Formatação da mensagem padrão do WhatsApp com contexto completo e qualificação do aluno
   const generateWhatsAppUrl = () => {
-    const phone = '5511999999999'; // Número oficial de suporte da operação
+    const phone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT || '5511999999999'; // Número oficial de suporte da operação
     const statusTag = isCommittedUser ? '[CLIENTE VIP • ASSINANTE / TRIAL VALIDADO]' : '[VISITANTE]';
     const text = encodeURIComponent(
       `Olá equipe de Engenharia do Argus! Sou ${studentName}.\n` +
@@ -134,11 +134,15 @@ export function FloatingContactSupport({
                   tab: currentTab,
                 });
               }}
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-900/80 hover:bg-emerald-600 text-slate-300 hover:text-white border border-slate-700/80 shadow-md transition-all flex items-center justify-center cursor-pointer backdrop-blur-md opacity-60 hover:opacity-100 hover:scale-105 active:scale-95"
-              aria-label="Abrir suporte e chat ao vivo"
-              title="Suporte"
+              className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#25D366] hover:bg-[#20ba5a] active:bg-[#1da851] text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95"
+              aria-label="Abrir suporte WhatsApp e chat"
+              title="Suporte WhatsApp"
             >
-              <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.97.53 1.769.816 2.795.816 3.182 0 5.767-2.587 5.768-5.766.001-3.182-2.585-5.803-5.768-5.803zm3.385 8.163c-.145.408-.85.762-1.18.802-.32.04-.73.064-2.14-.522-1.794-.748-2.951-2.583-3.04-2.703-.09-.12-.724-.963-.724-1.836 0-.874.457-1.303.62-1.482.163-.18.356-.225.474-.225.12 0 .239.001.344.006.11.005.258-.042.404.308.15.358.513 1.25.558 1.342.045.092.075.201.015.321-.06.12-.09.195-.18.3-.09.105-.189.234-.27.315-.09.09-.185.188-.08.368.105.18.468.772 1.005 1.25.69.614 1.272.805 1.452.895.18.09.285.075.39-.045.105-.12.45-.525.57-.705.12-.18.24-.15.405-.09.165.06 1.05.495 1.23.585.18.09.3.135.345.21.045.075.045.435-.1 1.042z" />
+                <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2.05 21.95a.75.75 0 0 0 .937.937l4.782-1.388A9.957 9.957 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm-8.5 10c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5-3.806 8.5-8.5 8.5a8.473 8.473 0 0 1-4.32-1.18.75.75 0 0 0-.586-.073l-3.327.965.965-3.327a.75.75 0 0 0-.073-.586A8.473 8.473 0 0 1 3.5 12z" />
+              </svg>
+              <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-white dark:border-slate-900 rounded-full animate-pulse" />
             </button>
           </>
         )}
