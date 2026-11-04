@@ -72,6 +72,18 @@ export const QuizSimulator: React.FC<QuizSimulatorProps> = ({
   const [simulatorMode, setSimulatorMode] = useState<'quick' | 'full_mock' | 'ai_generator'>('quick');
   const [bonusAiCredits, setBonusAiCredits] = useState<number>(0);
   const [questions, setQuestions] = useState<Question[]>(MOCK_QUESTIONS);
+
+  // Carrega questões do banco de dados PostgreSQL do Supabase (com fallback)
+  useEffect(() => {
+    fetch('/api/questions')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && Array.isArray(data?.questions) && data.questions.length > 0) {
+          setQuestions(data.questions);
+        }
+      })
+      .catch(() => {});
+  }, []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [confidence, setConfidence] = useState<'alta' | 'media' | 'chute'>('alta');

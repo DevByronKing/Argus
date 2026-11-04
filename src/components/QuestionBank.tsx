@@ -117,7 +117,20 @@ export const QuestionBank: React.FC<QuestionBankProps> = ({
   const [expandedDetails, setExpandedDetails] = useState<Record<string, boolean>>({});
   const [showTriDetails, setShowTriDetails] = useState<Record<string, boolean>>({});
   const [activeAudioTarget, setActiveAudioTarget] = useState<string | null>(null);
+  const [questionsList, setQuestionsList] = useState<Question[]>(MOCK_QUESTIONS);
   const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // Carrega questões do banco de dados PostgreSQL do Supabase (com fallback)
+  useEffect(() => {
+    fetch('/api/questions')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && Array.isArray(data?.questions) && data.questions.length > 0) {
+          setQuestionsList(data.questions);
+        }
+      })
+      .catch(() => {});
+  }, []);
   const itemsPerPage = 5;
 
   // Cleanup de áudio
@@ -160,23 +173,23 @@ export const QuestionBank: React.FC<QuestionBankProps> = ({
 
   // Extrair listas únicas para os seletores de filtros
   const availableBancas = useMemo(() => {
-    const set = new Set(MOCK_QUESTIONS.map(q => q.banca));
+    const set = new Set(questionsList.map(q => q.banca));
     return ['todas', ...Array.from(set)];
   }, []);
 
   const availableSubjects = useMemo(() => {
-    const set = new Set(MOCK_QUESTIONS.map(q => q.subjectName));
+    const set = new Set(questionsList.map(q => q.subjectName));
     return ['todas', ...Array.from(set)];
   }, []);
 
   const availableYears = useMemo(() => {
-    const set = new Set(MOCK_QUESTIONS.map(q => q.year.toString()));
+    const set = new Set(questionsList.map(q => q.year.toString()));
     return ['todos', ...Array.from(set).sort((a, b) => Number(b) - Number(a))];
   }, []);
 
   // Filtragem dinâmica das questões
   const filteredQuestions = useMemo(() => {
-    return MOCK_QUESTIONS.filter(q => {
+    return questionsList.filter(q => {
       // Busca textual
       if (filter.searchQuery.trim()) {
         const query = filter.searchQuery.toLowerCase();
@@ -234,7 +247,7 @@ export const QuestionBank: React.FC<QuestionBankProps> = ({
     const correctCount = Object.values(userAnswers).filter(a => a.confirmed && a.isCorrect).length;
     const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
     return {
-      totalQuestions: MOCK_QUESTIONS.length,
+      totalQuestions: questionsList.length,
       filteredCount: filteredQuestions.length,
       answeredCount,
       correctCount,
