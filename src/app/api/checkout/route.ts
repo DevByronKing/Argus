@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Registrar no TransactionManager
-    TransactionManager.create({
+    await TransactionManager.createAsync({
       id: pixData.transactionId,
       planId: planId as SubscriptionPlan,
       billingCycle,

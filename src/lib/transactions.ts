@@ -1,5 +1,5 @@
 import { SubscriptionPlan } from './types';
-import { getSupabase, isSupabaseConfigured } from './supabase';
+import { getSupabaseServiceRole, isSupabaseConfigured } from './supabase';
 
 export type PaymentStatus = 'pending_payment' | 'confirmed' | 'expired' | 'failed';
 
@@ -21,7 +21,7 @@ export interface Transaction {
   expiresAt: string;
 }
 
-// In-memory store para persistência rápida em runtime
+// In-memory store para cache rápido em runtime (L1)
 const globalTransactions = new Map<string, Transaction>();
 const processedWebhookEvents = new Set<string>();
 
@@ -33,34 +33,52 @@ export class TransactionManager {
   static markEventProcessed(eventId: string): void {
     processedWebhookEvents.add(eventId);
   }
-  static create(tx: Transaction): Transaction {
+
+  /**
+   * Persiste uma transação de forma síncrona no PostgreSQL do Supabase via service_role
+   * (indispensável para arquiteturas Serverless e ambientes distribuídos como Vercel).
+   */
+  static async createAsync(tx: Transaction): Promise<Transaction> {
     globalTransactions.set(tx.id, tx);
 
-    // Se Supabase estiver configurado, salva também na nuvem de forma assíncrona
     if (isSupabaseConfigured()) {
-      const client = getSupabase();
+      const client = getSupabaseServiceRole();
       if (client) {
-        client
-          .from('transactions')
-          .insert({
-            id: tx.id,
-            plan_id: tx.planId,
-            billing_cycle: tx.billingCycle,
-            amount: tx.amount,
-            payment_method: tx.paymentMethod,
-            status: tx.status,
-            pix_code: tx.pixCode,
-            provider: tx.provider,
-            user_email: tx.userEmail,
-            created_at: tx.createdAt,
-            expires_at: tx.expiresAt,
-          })
-          .then(({ error }: any) => {
-            if (error) console.warn('Aviso Supabase (transactions):', error.message);
-          });
+        try {
+          const { error } = await client
+            .from('transactions')
+            .upsert({
+              id: tx.id,
+              plan_id: tx.planId,
+              billing_cycle: tx.billingCycle,
+              amount: tx.amount,
+              payment_method: tx.paymentMethod,
+              status: tx.status,
+              pix_code: tx.pixCode,
+              provider: tx.provider,
+              user_email: tx.userEmail,
+              created_at: tx.createdAt,
+              expires_at: tx.expiresAt,
+            }, { onConflict: 'id' });
+
+          if (error) {
+            console.warn('[TransactionManager] Aviso Supabase ao inserir transação:', error.message);
+          }
+        } catch (err: any) {
+          console.warn('[TransactionManager] Falha ao persistir transação no Supabase:', err?.message || err);
+        }
       }
     }
 
+    return tx;
+  }
+
+  /**
+   * Compatibilidade com chamadas síncronas legadas (registra na memória e despacha para o banco).
+   */
+  static create(tx: Transaction): Transaction {
+    globalTransactions.set(tx.id, tx);
+    this.createAsync(tx).catch(() => {});
     return tx;
   }
 
@@ -68,19 +86,22 @@ export class TransactionManager {
     return globalTransactions.get(id);
   }
 
+  /**
+   * Busca transação com fallback síncrono no Supabase caso não esteja na memória da instância atual.
+   */
   static async getAsync(id: string): Promise<Transaction | undefined> {
     const memoryTx = globalTransactions.get(id);
     if (memoryTx) return memoryTx;
 
     if (isSupabaseConfigured()) {
-      const client = getSupabase();
+      const client = getSupabaseServiceRole();
       if (client) {
         try {
           const { data, error } = await client
             .from('transactions')
             .select('*')
             .eq('id', id)
-            .single();
+            .maybeSingle();
 
           if (!error && data) {
             const tx: Transaction = {
@@ -114,7 +135,6 @@ export class TransactionManager {
   static confirm(id: string, provider: 'asaas' | 'stripe' | 'simulated' = 'simulated', externalId?: string): Transaction | null {
     const tx = globalTransactions.get(id);
     if (!tx) {
-      // Fallback: criar transação confirmada se for id simulado
       const newTx: Transaction = {
         id,
         planId: 'pro',
@@ -131,6 +151,7 @@ export class TransactionManager {
         expiresAt: new Date().toISOString(),
       };
       globalTransactions.set(id, newTx);
+      this.confirmAsync(id, provider, externalId).catch(() => {});
       return newTx;
     }
 
@@ -140,33 +161,17 @@ export class TransactionManager {
     tx.provider = provider;
 
     globalTransactions.set(id, tx);
-
-    // Atualiza no Supabase se ativo
-    if (isSupabaseConfigured()) {
-      const client = getSupabase();
-      if (client) {
-        client
-          .from('transactions')
-          .update({
-            status: 'confirmed',
-            confirmed_at: tx.confirmedAt,
-            external_id: externalId,
-          })
-          .eq('id', id)
-          .then(({ error }: any) => {
-            if (error) console.warn('Aviso Supabase (confirm transaction):', error.message);
-          });
-      }
-    }
-
+    this.confirmAsync(id, provider, externalId).catch(() => {});
     return tx;
   }
 
+  /**
+   * Confirma transação com gravação garantida no Supabase e liberação do plano no perfil do aluno.
+   */
   static async confirmAsync(id: string, provider: 'asaas' | 'stripe' | 'simulated' = 'simulated', externalId?: string): Promise<Transaction | null> {
     let tx = await this.getAsync(id);
     
     if (!tx) {
-      // Fallback seguro se não encontrada no Supabase
       const newTx: Transaction = {
         id,
         planId: 'pro',
@@ -193,7 +198,7 @@ export class TransactionManager {
     }
 
     if (isSupabaseConfigured()) {
-      const client = getSupabase();
+      const client = getSupabaseServiceRole();
       if (client) {
         try {
           await client
@@ -210,14 +215,15 @@ export class TransactionManager {
               confirmed_at: tx.confirmedAt,
               external_id: tx.externalId,
               expires_at: tx.expiresAt,
-            });
+            }, { onConflict: 'id' });
 
-          // Atualiza automaticamente o tier do aluno na tabela profiles
+          // Atualiza automaticamente o tier e status do aluno na tabela profiles via service_role
           if (tx.userEmail) {
             await client
               .from('profiles')
               .update({
                 subscription_tier: tx.planId,
+                subscription_status: 'active',
                 updated_at: new Date().toISOString(),
               })
               .eq('email', tx.userEmail);
