@@ -56,7 +56,7 @@ CREATE OR REPLACE FUNCTION public.protect_profile_subscription_fields()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER
-AS $
+AS $$
 BEGIN
   -- Se a alteração não for executada pela service_role ou postgres
   IF (COALESCE(current_setting('request.jwt.claims', true)::json ->> 'role', '') != 'service_role')
@@ -75,7 +75,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$;
+$$;
 
 DROP TRIGGER IF EXISTS trg_protect_profile_subscription ON public.profiles;
 CREATE TRIGGER trg_protect_profile_subscription
