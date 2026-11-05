@@ -24,7 +24,6 @@ import {
   Feather,
   BookOpen
 } from 'lucide-react';
-import { Avatar, GuardianAvatarType } from '@/components/ui';
 import { analytics } from '@/lib/analytics';
 
 interface LandingHeroProps {
@@ -281,14 +280,10 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               </span>
             </div>
 
-            {/* Faixa Útil de Cobertura das Bancas & Guardiões Cognitivos */}
+            {/* Faixa Útil de Cobertura das Bancas & OAB */}
             <div className="pt-2.5 flex items-center gap-3 border-t border-slate-200/80 dark:border-slate-800/80">
-              <div className="flex items-center -space-x-1.5 shrink-0">
-                {(['onca', 'coruja', 'lobo'] as GuardianAvatarType[]).map((animal) => (
-                  <div key={animal} className="ring-2 ring-white dark:ring-slate-900 rounded-full scale-75 origin-center shadow-xs">
-                    <Avatar type={animal} size="sm" showInsignia={false} />
-                  </div>
-                ))}
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/25 ring-1 ring-indigo-500/30">
+                <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-snug">
                 <strong className="text-slate-900 dark:text-slate-200 font-bold">
@@ -475,8 +470,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800/80 shadow-sm hover:shadow-xl transition-all duration-200 hover:border-indigo-400 dark:hover:border-indigo-500 group flex flex-col justify-between">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shadow-xs">
-                    <Crosshair className="w-5 h-5" />
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30 ring-1 ring-white/20 group-hover:scale-110 group-hover:shadow-blue-500/50 transition-all duration-300">
+                    <Crosshair className="w-6 h-6 stroke-[2.2]" />
                   </div>
                   <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                     Simulador 60/40
@@ -511,8 +506,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800/80 shadow-sm hover:shadow-xl transition-all duration-200 hover:border-indigo-400 dark:hover:border-indigo-500 group flex flex-col justify-between">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold shadow-xs">
-                    <ScrollText className="w-5 h-5" />
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 ring-1 ring-white/20 group-hover:scale-110 group-hover:shadow-indigo-500/50 transition-all duration-300">
+                    <ScrollText className="w-6 h-6 stroke-[2.2]" />
                   </div>
                   <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
                     Engenharia Reversa
@@ -547,8 +542,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800/80 shadow-sm hover:shadow-xl transition-all duration-200 hover:border-rose-400 dark:hover:border-rose-500 group flex flex-col justify-between">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-800 flex items-center justify-center text-rose-600 dark:text-rose-400 font-bold shadow-xs">
-                    <ShieldAlert className="w-5 h-5" />
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 via-rose-600 to-red-600 text-white flex items-center justify-center shadow-lg shadow-rose-500/30 ring-1 ring-white/20 group-hover:scale-110 group-hover:shadow-rose-500/50 transition-all duration-300">
+                    <ShieldAlert className="w-6 h-6 stroke-[2.2]" />
                   </div>
                   <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
                     Blindagem Ativa
@@ -583,8 +578,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800/80 shadow-sm hover:shadow-xl transition-all duration-200 hover:border-amber-400 dark:hover:border-amber-500 group flex flex-col justify-between">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold shadow-xs">
-                    <Scale className="w-5 h-5" />
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/30 ring-1 ring-white/20 group-hover:scale-110 group-hover:shadow-amber-500/50 transition-all duration-300">
+                    <Scale className="w-6 h-6 stroke-[2.2]" />
                   </div>
                   <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                     Lei Seca 80/20
@@ -619,8 +614,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800/80 shadow-sm hover:shadow-xl transition-all duration-200 hover:border-cyan-400 dark:hover:border-cyan-500 group flex flex-col justify-between">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-xl bg-cyan-50 dark:bg-cyan-950/80 border border-cyan-200 dark:border-cyan-800 flex items-center justify-center text-cyan-600 dark:text-cyan-400 font-bold shadow-xs">
-                    <Feather className="w-5 h-5" />
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 via-teal-600 to-emerald-600 text-white flex items-center justify-center shadow-lg shadow-cyan-500/30 ring-1 ring-white/20 group-hover:scale-110 group-hover:shadow-cyan-500/50 transition-all duration-300">
+                    <Feather className="w-6 h-6 stroke-[2.2]" />
                   </div>
                   <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-cyan-50 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800">
                     Grade Oficial
@@ -655,8 +650,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800/80 shadow-sm hover:shadow-xl transition-all duration-200 hover:border-emerald-400 dark:hover:border-emerald-500 group flex flex-col justify-between">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold shadow-xs">
-                    <Activity className="w-5 h-5" />
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30 ring-1 ring-white/20 group-hover:scale-110 group-hover:shadow-emerald-500/50 transition-all duration-300">
+                    <Activity className="w-6 h-6 stroke-[2.2]" />
                   </div>
                   <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                     Métricas & TRI

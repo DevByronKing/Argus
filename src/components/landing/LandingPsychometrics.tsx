@@ -36,7 +36,7 @@ export const LandingPsychometrics: React.FC<LandingPsychometricsProps> = ({
         {/* Pillar 1 */}
         <div className="glass-card p-8 rounded-3xl border border-indigo-500/20 hover:border-indigo-500/40 transition-all flex flex-col justify-between shadow-sm hover:shadow-indigo-500/10">
           <div>
-            <div className="w-14 h-14 rounded-2xl bg-indigo-500/15 flex items-center justify-center text-indigo-500 dark:text-indigo-400 mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-white/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <BrainCircuit className="w-7 h-7" />
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">8 Arquétipos de Distratores</h3>
@@ -53,7 +53,7 @@ export const LandingPsychometrics: React.FC<LandingPsychometricsProps> = ({
         {/* Pillar 2 */}
         <div className="glass-card p-8 rounded-3xl border border-cyan-500/20 hover:border-cyan-500/40 transition-all flex flex-col justify-between shadow-sm hover:shadow-cyan-500/10">
           <div>
-            <div className="w-14 h-14 rounded-2xl bg-cyan-500/15 flex items-center justify-center text-cyan-500 dark:text-cyan-400 mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-teal-600 text-white shadow-lg shadow-cyan-500/30 ring-1 ring-white/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Target className="w-7 h-7" />
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Assinatura das Bancas</h3>
@@ -70,7 +70,7 @@ export const LandingPsychometrics: React.FC<LandingPsychometricsProps> = ({
         {/* Pillar 3 */}
         <div className="glass-card p-8 rounded-3xl border border-emerald-500/20 hover:border-emerald-500/40 transition-all flex flex-col justify-between shadow-sm hover:shadow-emerald-500/10">
           <div>
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 flex items-center justify-center text-emerald-500 dark:text-emerald-400 mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30 ring-1 ring-white/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <ShieldCheck className="w-7 h-7" />
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Vacinas Cognitivas (Antídotos)</h3>

@@ -29,7 +29,7 @@ export const LandingFeatures: React.FC<LandingFeaturesProps> = ({
           className="glass-card p-8 rounded-3xl flex flex-col justify-between cursor-pointer hover:border-indigo-500/50 hover:shadow-indigo-500/10 transition-all group shadow-sm"
         >
           <div>
-            <div className="w-14 h-14 rounded-2xl bg-blue-500/15 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 ring-1 ring-white/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <FileText className="w-7 h-7" />
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
@@ -51,7 +51,7 @@ export const LandingFeatures: React.FC<LandingFeaturesProps> = ({
           className="glass-card p-8 rounded-3xl flex flex-col justify-between cursor-pointer hover:border-emerald-500/50 hover:shadow-emerald-500/10 transition-all group border-emerald-500/30 glow-emerald shadow-md"
         >
           <div>
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 flex items-center justify-center text-emerald-500 dark:text-emerald-400 mb-6 group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30 ring-1 ring-white/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <PenTool className="w-7 h-7" />
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
@@ -70,7 +70,7 @@ export const LandingFeatures: React.FC<LandingFeaturesProps> = ({
         {/* Card 3: Diagnóstico de Erros */}
         <div className="glass-card p-8 rounded-3xl flex flex-col justify-between border-blue-500/30 glow-brand shadow-md">
           <div>
-            <div className="w-14 h-14 rounded-2xl bg-blue-500/15 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-white/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <BrainCircuit className="w-7 h-7" />
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Diagnóstico Cognitivo de Erro</h3>
@@ -87,7 +87,7 @@ export const LandingFeatures: React.FC<LandingFeaturesProps> = ({
         {/* Card 4: Heatmaps & SRS */}
         <div className="glass-card p-8 rounded-3xl flex flex-col justify-between shadow-sm border-slate-200 dark:border-white/5 hover:border-cyan-500/40 transition-colors">
           <div>
-            <div className="w-14 h-14 rounded-2xl bg-cyan-500/15 flex items-center justify-center text-cyan-500 dark:text-cyan-400 mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30 ring-1 ring-white/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <BarChart3 className="w-7 h-7" />
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Mapa de Calor & SRS</h3>
