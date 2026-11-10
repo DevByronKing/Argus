@@ -1,5 +1,5 @@
-import React from 'react';
-import { Crown, CheckCircle2, XCircle, Flame, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { Crown, CheckCircle2, XCircle, Flame, Sparkles, ArrowRight, ShieldCheck, Target } from 'lucide-react';
 import { SubscriptionPlan } from '@/lib/types';
 
 interface LandingPricingProps {
@@ -11,6 +11,12 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
   onSelectPlan,
   onOpenPricing
 }) => {
+  const [selectedLaunchExam, setSelectedLaunchExam] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('argus_target_exam') || 'INSS (Cebraspe)';
+    }
+    return 'INSS (Cebraspe)';
+  });
   return (
     <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" id="pricing">
       <div className="text-center mb-16">
@@ -40,13 +46,59 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
                 Restam apenas 38 vagas
               </span>
             </div>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-0.5 rounded-md bg-white/20 text-yellow-200 text-[11px] font-black uppercase tracking-wider">
+                🎯 1 Concurso à Sua Escolha • Sem Mensalidade
+              </span>
+            </div>
             <h3 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
-              Oferta Fechada: Passe Até a Prova
+              Passe Até a Prova: Acesso Total Sem Mensalidades
             </h3>
             <p className="text-orange-100 text-sm sm:text-base max-w-2xl leading-relaxed">
-              Feito para concurseiros de <strong className="text-white">Tribunais, Carreiras Policiais e OAB 1ª Fase</strong> que estão há meses estudando e se sentem travados por pegadinhas da banca. Pague uma única vez e tenha acesso total até a data da prova.
+              Pague uma única vez <strong className="text-white">R$ 97</strong> e tenha preparação cirúrgica focada no concurso que você escolher até o dia do exame. Sem mensalidades, sem renovação surpresa e com todas as ferramentas de IA ativas.
             </p>
-            <div className="flex items-center gap-4 text-xs font-bold pt-1 text-orange-200">
+            {/* Seletor Rápido do Edital-Alvo */}
+            <div className="pt-2 space-y-2">
+              <span className="text-xs font-bold text-orange-200 uppercase tracking-wide block">
+                Escolha o concurso que você vai desarmar:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: 'inss', label: 'INSS', sub: 'Cebraspe' },
+                  { id: 'oab', label: 'OAB 1ª Fase', sub: 'FGV' },
+                  { id: 'tjsp', label: 'TJ-SP Escrevente', sub: 'Vunesp' },
+                  { id: 'policial', label: 'PRF / PF', sub: 'Cebraspe' },
+                  { id: 'caixa', label: 'Caixa / BB', sub: 'Cesgranrio' },
+                  { id: 'cnu', label: 'CNU', sub: 'Blocos' },
+                ].map((item) => {
+                  const isSelected = selectedLaunchExam.startsWith(item.label);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        const examName = `${item.label} (${item.sub})`;
+                        setSelectedLaunchExam(examName);
+                        try {
+                          localStorage.setItem('argus_target_exam', examName);
+                        } catch {}
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer ${
+                        isSelected
+                          ? 'bg-white text-orange-800 border-white shadow-lg font-black scale-105'
+                          : 'bg-black/25 hover:bg-black/35 text-white border-white/20'
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      <span className={`text-[10px] font-normal ${isSelected ? 'text-orange-950 font-bold' : 'text-orange-200'}`}>
+                        • {item.sub}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex items-center gap-4 text-xs font-bold pt-2 text-orange-200">
               <div className="w-48 sm:w-60 bg-black/30 rounded-full h-3 overflow-hidden border border-white/20">
                 <div className="bg-yellow-300 h-full rounded-full transition-all duration-1000" style={{ width: '81%' }} />
               </div>
@@ -67,12 +119,15 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
             <button
               type="button"
               onClick={() => {
+                try {
+                  localStorage.setItem('argus_target_exam', selectedLaunchExam);
+                } catch {}
                 onSelectPlan('lancamento');
                 onOpenPricing();
               }}
               className="w-full lg:w-auto px-8 py-4 rounded-2xl bg-white text-orange-600 hover:bg-orange-50 font-black text-base tracking-wide shadow-xl shadow-black/25 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
-              <span>Garantir Vaga por R$ 97</span>
+              <span>Garantir Passe ({selectedLaunchExam.split(' (')[0]}) por R$ 97</span>
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
@@ -158,7 +213,7 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
             <ul className="space-y-4 text-sm font-semibold text-slate-700 dark:text-slate-200 border-t border-slate-100 dark:border-white/5 pt-8">
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-indigo-500 dark:text-indigo-400 shrink-0 mt-0.5" />
-                <span><strong className="text-slate-900 dark:text-white">Editais ilimitados:</strong> Análise verticalizada e rota 80/20</span>
+                <span><strong className="text-slate-900 dark:text-white">Editais Ilimitados em todo o Brasil:</strong> Análise verticalizada e rota 80/20 de quantos concursos quiser simultaneamente</span>
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-indigo-500 dark:text-indigo-400 shrink-0 mt-0.5" />

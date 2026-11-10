@@ -16,7 +16,8 @@ import {
   ArrowLeft,
   Lock,
   BadgeCheck,
-  Flame
+  Flame,
+  Target
 } from 'lucide-react';
 import { SubscriptionPlan } from '@/lib/types';
 import { trackConversion } from '@/components/TrackingScripts';
@@ -49,6 +50,12 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   const [paymentStatus, setPaymentStatus] = useState<'pending_payment' | 'confirmed'>('pending_payment');
   const [pixCode, setPixCode] = useState("00020126580014br.gov.bcb.pix0136argus-concursos-pix-key520400005303986540539.905802BR5925ARGUS TECNOLOGIA LTDA6009SAO PAULO62070503***6304E8A9");
   const [qrCodeImg, setQrCodeImg] = useState<string | null>("https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=00020126580014br.gov.bcb.pix0136argus-concursos-pix-key520400005303986540539.905802BR5925ARGUS");
+  const [targetExamForLaunch, setTargetExamForLaunch] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('argus_target_exam') || 'INSS — Técnico do Seguro Social';
+    }
+    return 'INSS — Técnico do Seguro Social';
+  });
 
   // Ativação do Trial com Cartão de Crédito Obrigatório (Pilar 1 - Opção b)
   const handleStartCardTrial = async () => {
@@ -107,7 +114,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           body: JSON.stringify({ 
             planId: selectedPlanToBuy, 
             billingCycle,
-            paymentMethod 
+            paymentMethod,
+            targetExam: selectedPlanToBuy === 'lancamento' ? targetExamForLaunch : undefined
           })
         });
         const data = await res.json();
@@ -208,8 +216,12 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           autoRenew: true,
           billingCycle,
           paymentMethodDesc: paymentMethod === 'pix' ? 'Pix Imediato' : 'Cartão de Crédito',
-          invoices: []
+          invoices: [],
+          targetExam: selectedPlanToBuy === 'lancamento' ? targetExamForLaunch : undefined
         }));
+        if (selectedPlanToBuy === 'lancamento') {
+          localStorage.setItem('argus_target_exam', targetExamForLaunch);
+        }
       } catch {}
 
       analytics.track('subscription_activated', {
@@ -353,12 +365,51 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                       Restam apenas 38 vagas
                     </span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-md bg-orange-500/20 text-orange-700 dark:text-orange-300 text-[10px] font-black uppercase tracking-wider">
+                      🎯 1 Edital à Sua Escolha • Sem Mensalidade
+                    </span>
+                  </div>
                   <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                     Passe Até a Prova: Acesso Irrestrito Sem Mensalidades
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-2xl">
-                    Pague uma única vez <strong className="text-orange-600 dark:text-orange-400 font-extrabold">R$ 97,00</strong> e tenha Copiloto Cognitivo, Arena de Combate 60/40, Smart Vade Mecum, Flashcards SRS 3D e Diagnóstico Psicométrico de Pegadinhas liberados até o dia do seu exame.
+                    Pague uma única vez <strong className="text-orange-600 dark:text-orange-400 font-extrabold">R$ 97,00</strong> e tenha Copiloto Cognitivo, Arena de Combate 60/40, Smart Vade Mecum, Flashcards SRS e Diagnóstico Psicométrico liberados exclusivamente para o seu edital até o dia da prova.
                   </p>
+                  <div className="pt-1 space-y-1.5">
+                    <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                      Escolha o seu concurso-alvo:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        'INSS',
+                        'OAB 1ª Fase',
+                        'TJ-SP Escrevente',
+                        'PRF / PF',
+                        'Caixa / BB',
+                        'CNU Unificado',
+                      ].map((examName) => {
+                        const isSelected = targetExamForLaunch.startsWith(examName);
+                        return (
+                          <button
+                            key={examName}
+                            type="button"
+                            onClick={() => {
+                              setTargetExamForLaunch(examName);
+                              try { localStorage.setItem('argus_target_exam', examName); } catch {}
+                            }}
+                            className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                              isSelected
+                                ? 'bg-orange-500 text-slate-950 border-orange-400 font-black shadow-sm scale-105'
+                                : 'bg-white dark:bg-dark-surface text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-orange-400/50'
+                            }`}
+                          >
+                            {examName}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                   {/* Progress Bar of Remaining Spots */}
                   <div className="pt-1 max-w-md">
                     <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
@@ -380,7 +431,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                     onClick={() => handleSelectPlanAndGoToCheckout('lancamento')}
                     className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-400 hover:to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 glow-emerald"
                   >
-                    <span>Garantir Passe por R$ 97</span>
+                    <span>Garantir Passe ({targetExamForLaunch.split(' — ')[0]}) por R$ 97</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -653,6 +704,49 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                 <span>Trocar Plano</span>
               </button>
             </div>
+
+            {/* Alvo do Passe de Lançamento */}
+            {selectedPlanToBuy === 'lancamento' && (
+              <div className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/30 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-orange-600 dark:text-orange-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Target className="w-4 h-4" /> Concurso Vinculado ao seu Passe:
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-700 dark:text-orange-300">
+                    Acesso total até a data da prova
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    'INSS — Técnico do Seguro Social',
+                    'OAB — 1ª Fase Exame de Ordem',
+                    'TJ-SP — Escrevente Técnico',
+                    'PRF / PF — Carreiras Policiais',
+                    'Caixa / BB — Técnico Bancário',
+                    'CNU — Concurso Nacional Unificado',
+                  ].map((exam) => (
+                    <button
+                      key={exam}
+                      type="button"
+                      onClick={() => {
+                        setTargetExamForLaunch(exam);
+                        try { localStorage.setItem('argus_target_exam', exam); } catch {}
+                      }}
+                      className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                        targetExamForLaunch === exam || targetExamForLaunch.startsWith(exam.split(' — ')[0])
+                          ? 'bg-orange-500 text-slate-950 border-orange-400 font-black shadow-sm scale-102'
+                          : 'bg-white dark:bg-dark-surface text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-orange-400/50'
+                      }`}
+                    >
+                      {exam.split(' — ')[0]}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                  🎯 Preparação psicométrica calibrada exclusivamente para: <strong className="text-slate-900 dark:text-white">{targetExamForLaunch}</strong>
+                </p>
+              </div>
+            )}
 
             {/* Pilar 1: Duas Opções de Compromisso Financeiro (Direta vs. Trial com Cartão) */}
             <div className="p-4 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

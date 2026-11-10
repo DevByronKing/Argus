@@ -32,6 +32,12 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({
 }) => {
   const [isAnnual, setIsAnnual] = useState(true);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [selectedTabExam, setSelectedTabExam] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('argus_target_exam') || 'INSS';
+    }
+    return 'INSS';
+  });
 
   const plans = [
     {
@@ -71,7 +77,7 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({
       description: 'Para o concurseiro que quer consistência, velocidade e diagnósticos ilimitados.',
       features: [
         'Diagnósticos Cognitivos Ilimitados (Flash)',
-        'Até 4 Editais Simultâneos mapeados',
+        'Editais Ilimitados em todo o Brasil simultaneamente',
         'Banco Completo com 25.000+ Questões',
         'Caderno de Erros com Algoritmo SM-2',
         'Exportação de Cronogramas em PDF',
@@ -277,9 +283,45 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
               Oferta Fechada de Lançamento: Passe Até a Prova
             </h2>
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-md bg-white/20 text-yellow-200 text-[10px] font-black uppercase tracking-wider">
+                🎯 1 Edital à Sua Escolha • Sem Mensalidade
+              </span>
+            </div>
             <p className="text-orange-100 text-xs sm:text-sm max-w-2xl leading-relaxed">
-              Desenvolvido cirurgicamente para quem presta <strong className="text-white">Tribunais, Carreiras Policiais ou 1ª Fase OAB</strong> e sente que bateu no teto de acertos. Elimine erros por pegadinha com o Vade Mecum Radar, IAs Especialistas e Caderno SM-2 sem pagar mensalidade.
+              Pague uma única vez <strong className="text-white">R$ 97</strong> e tenha preparação cirúrgica focada no concurso que você escolher até o dia da prova. Elimine erros por pegadinha com Vade Mecum Radar, IAs Especialistas e Caderno SM-2 sem pagar mensalidade.
             </p>
+            <div className="pt-1 space-y-1.5">
+              <span className="text-[11px] font-bold text-orange-200 uppercase tracking-wide block">
+                Escolha o concurso que você vai desarmar:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  'INSS',
+                  'OAB 1ª Fase',
+                  'TJ-SP',
+                  'PRF / PF',
+                  'Caixa / BB',
+                  'CNU',
+                ].map((exam) => (
+                  <button
+                    key={exam}
+                    type="button"
+                    onClick={() => {
+                      setSelectedTabExam(exam);
+                      try { localStorage.setItem('argus_target_exam', exam); } catch {}
+                    }}
+                    className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                      selectedTabExam.startsWith(exam)
+                        ? 'bg-white text-orange-800 border-white shadow-sm font-black scale-102'
+                        : 'bg-black/20 hover:bg-black/30 text-white border-white/20'
+                    }`}
+                  >
+                    {exam}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="flex items-center gap-4 text-xs font-bold pt-1 text-orange-200">
               <div className="w-48 bg-black/30 rounded-full h-2.5 overflow-hidden border border-white/20">
                 <div className="bg-yellow-300 h-full rounded-full transition-all duration-1000" style={{ width: '81%' }} />
@@ -303,7 +345,7 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({
               onClick={() => onSelectPlanForCheckout('lancamento')}
               className="w-full lg:w-auto px-8 py-3.5 rounded-2xl bg-white text-orange-600 hover:bg-orange-50 font-black text-sm tracking-wide shadow-xl shadow-black/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
-              <span>Garantir Vaga por R$ 97</span>
+              <span>Garantir Passe ({selectedTabExam}) por R$ 97</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
