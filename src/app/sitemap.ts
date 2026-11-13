@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { getAllEditalSlugs } from '@/lib/editaisCatalog';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://argus.app.br';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://argus-edu.vercel.app';
   const now = new Date();
 
   // Rotas estáticas

@@ -11,8 +11,10 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   variable: '--font-plus-jakarta',
 });
 
+const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://argus-edu.vercel.app';
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://argus.app.br'),
+  metadataBase: new URL(APP_BASE_URL),
   applicationName: 'Argus',
   title: {
     default: 'Argus — O Copiloto Cognitivo para Concursos, OAB e Carreiras Jurídicas',
@@ -20,8 +22,11 @@ export const metadata: Metadata = {
   },
   description: 'Desarme a banca examinadora antes da prova com a visão onisciente do Argus: diagnóstico de pegadinhas para Concursos Públicos e Exame de Ordem (OAB), psicometria TRI, repetição espaçada SM-2 e inteligência artificial.',
   keywords: ['Argus', 'Argus AI', 'concursos públicos', 'Exame de Ordem', 'OAB', 'primeira fase OAB', 'peças práticas OAB', 'edital verticalizado', 'inteligência artificial concursos', 'simulador de questões', 'diagnóstico de erros', 'Cebraspe', 'FGV', 'Vunesp', 'FCC'],
-  authors: [{ name: 'Argus Team', url: 'https://argus.app.br' }],
+  authors: [{ name: 'Argus Team', url: APP_BASE_URL }],
   manifest: '/manifest.webmanifest',
+  verification: {
+    google: 'uW-woPuYHE0OGXRGLjvuNAOnDTHKDPCxwWDsY3UPqZc',
+  },
   icons: {
     icon: [
       { url: '/argus-logo.png', sizes: '192x192', type: 'image/png' },
@@ -41,7 +46,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
-    url: 'https://argus.app.br',
+    url: APP_BASE_URL,
     siteName: 'Argus',
     title: 'Argus — Desarme a banca examinadora antes da prova',
     description: 'Diagnóstico cognitivo de pegadinhas para Concursos Públicos e Exame da OAB, ciclo adaptativo e simuladores inéditos com a visão onisciente do Argus.',
@@ -76,17 +81,17 @@ const jsonLdSchema = {
   '@graph': [
     {
       '@type': 'WebSite',
-      '@id': `${process.env.NEXT_PUBLIC_APP_URL || 'https://argus.app.br'}#website`,
+      '@id': `${APP_BASE_URL}#website`,
       name: 'Argus',
       alternateName: ['Argus AI', 'Argus Concursos', 'Argus Inteligência Cognitiva', 'Argus Copiloto Cognitivo'],
-      url: process.env.NEXT_PUBLIC_APP_URL || 'https://argus.app.br',
+      url: APP_BASE_URL,
       description: 'Copiloto Cognitivo de Alta Performance para Concursos Públicos, OAB e Carreiras Jurídicas.',
       publisher: {
         '@type': 'Organization',
         name: 'Argus',
         logo: {
           '@type': 'ImageObject',
-          url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://argus.app.br'}/argus-logo.png`,
+          url: `${APP_BASE_URL}/argus-logo.png`,
           width: 512,
           height: 512,
         },
@@ -97,7 +102,7 @@ const jsonLdSchema = {
       name: 'Argus',
       applicationCategory: 'EducationalApplication',
       operatingSystem: 'All',
-      url: process.env.NEXT_PUBLIC_APP_URL || 'https://argus.app.br',
+      url: APP_BASE_URL,
       description: 'Copiloto Cognitivo de Alta Performance para Concursos Públicos, OAB e Carreiras Jurídicas com a Inteligência do Argus.',
       offers: {
         '@type': 'Offer',
@@ -132,6 +137,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" data-theme="light" className={plusJakartaSans.variable} suppressHydrationWarning>
       <head>
+        <meta name="google-site-verification" content="uW-woPuYHE0OGXRGLjvuNAOnDTHKDPCxwWDsY3UPqZc" />
         <link rel="icon" type="image/png" sizes="192x192" href="/argus-logo.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/logo-512.png" />
         <link rel="apple-touch-icon" href="/logo-512.png" />
