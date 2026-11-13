@@ -205,7 +205,7 @@ export const FlashChallengeModal: React.FC<FlashChallengeModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-100/95 dark:bg-slate-950/90 backdrop-blur-xl animate-fade-in overflow-y-auto">
       <div 
         className="relative w-full max-w-2xl my-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden text-slate-900 dark:text-white"
         onClick={(e) => e.stopPropagation()}

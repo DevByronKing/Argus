@@ -28,7 +28,8 @@ import {
   MessageSquare,
   HelpCircle,
   Bot,
-  ShieldCheck
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
 import { ExamNotice, ExamSubject } from '@/lib/types';
 import { INITIAL_EXAMS } from '@/lib/mockData';
@@ -646,6 +647,26 @@ export const EditalParser: React.FC<EditalParserProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Banner de Bloqueio Educativo do Passe R$ 97 */}
+      {typeof window !== 'undefined' && localStorage.getItem('argus_plan') === 'lancamento' && (
+        <div className="mt-4 p-4 rounded-2xl bg-orange-500/10 border border-orange-500/30 text-orange-900 dark:text-orange-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <Lock className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-black text-sm">Passe R$ 97 Ativo: Edital Exclusivo Vinculado</p>
+              <p className="text-xs text-orange-800 dark:text-orange-300">
+                Seu plano de dose única é focado exclusivamente em <strong>{localStorage.getItem('argus_locked_exam_title') || selectedExam.title}</strong> até a prova. Para alternar entre editais ou importar PDFs, faça upgrade para o Plano PRO.
+              </p>
+            </div>
+          </div>
+          <span className="px-3 py-1 rounded-full bg-orange-500 text-white text-[10px] font-black uppercase tracking-wider shrink-0">
+            1 Edital Vinculado
+          </span>
+        </div>
+      )}
 
       {/* Selector of Pre-Analyzed Editais - Modern Aligned Card Grid */}
       <div className="mt-6 glass-panel bg-white/70 dark:bg-dark-card/60 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">

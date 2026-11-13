@@ -462,6 +462,51 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const isLight = theme === 'light';
 
+  const planMeta = (() => {
+    switch (plan) {
+      case 'lancamento':
+        return {
+          shortLabel: 'PASSE R$ 97',
+          fullLabel: 'PASSE R$ 97 (ATÉ A PROVA)',
+          badgeClass: isLight
+            ? 'bg-orange-50 text-orange-700 border-orange-300'
+            : 'bg-orange-500/20 text-orange-300 border-orange-500/40',
+        };
+      case 'pro':
+        return {
+          shortLabel: 'PRO',
+          fullLabel: 'ASSINATURA PRO ATIVA',
+          badgeClass: isLight
+            ? 'bg-blue-50 text-blue-700 border-blue-200'
+            : 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+        };
+      case 'elite':
+        return {
+          shortLabel: 'VIP',
+          fullLabel: 'ASSINATURA VIP ELITE',
+          badgeClass: isLight
+            ? 'bg-amber-50 text-amber-800 border-amber-300'
+            : 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+        };
+      case 'black':
+        return {
+          shortLabel: 'VITALÍCIO',
+          fullLabel: 'VITALÍCIO BLACK',
+          badgeClass: isLight
+            ? 'bg-slate-900 text-amber-300 border-amber-500/60'
+            : 'bg-amber-500/25 text-amber-200 border-amber-400/50',
+        };
+      default:
+        return {
+          shortLabel: 'ASPIRANTE',
+          fullLabel: 'PLANO ASPIRANTE (GRÁTIS)',
+          badgeClass: isLight
+            ? 'bg-slate-100 text-slate-700 border-slate-300'
+            : 'bg-slate-800 text-slate-300 border-slate-700',
+        };
+    }
+  })();
+
   const filteredTabs = navTabs.filter((t) => 
     t.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
     t.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -479,31 +524,27 @@ export const Navbar: React.FC<NavbarProps> = ({
           ? 'bg-white/95 border-slate-200 backdrop-blur-xl shadow-xs' 
           : 'bg-[#090D16]/95 border-slate-800 dark:border-white/10 backdrop-blur-2xl'
       }`}>
-        <div className="w-full max-w-[1700px] mx-auto px-3 sm:px-5 lg:px-6">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Header Row: Altura calibrada de 64px, zero transbordamento horizontal */}
           <div className="flex items-center justify-between h-16 gap-2 sm:gap-3 min-w-0">
             
             {/* Lado Esquerdo: Marca Argus */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <div 
-                className="flex items-center gap-2 xl:gap-2.5 cursor-pointer shrink-0 select-none" 
+                className="flex items-center gap-2 cursor-pointer shrink-0 select-none" 
                 onClick={() => handleTabClick('landing')}
                 title="Ir para o início"
               >
-                <BrandLogo size={38} showGlow />
+                <BrandLogo size={36} showGlow />
                 <div className="flex items-center gap-1.5">
-                  <span className={`text-base sm:text-lg xl:text-xl font-black tracking-tight transition-colors ${
+                  <span className={`text-base sm:text-lg font-black tracking-tight whitespace-nowrap transition-colors ${
                     isLight ? 'text-slate-900' : 'text-white'
                   }`}>
                     Argus <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400">AI</span>
                   </span>
-                  <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded border transition-colors ${
-                    isLight 
-                      ? 'bg-blue-50 text-blue-700 border-blue-200' 
-                      : 'bg-blue-500/20 text-blue-300 border-blue-500/30'
-                  }`}>
-                    PRO
+                  <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded border whitespace-nowrap transition-colors ${planMeta.badgeClass}`}>
+                    {planMeta.shortLabel}
                   </span>
                 </div>
               </div>
@@ -720,30 +761,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="whitespace-nowrap">{streakDays}d</span>
               </div>
 
-              {/* Botão Indicar Colega (Member-Get-Member: +7d PRO) - Apenas telas ultrawide */}
-              {onOpenReferral && (
-                <button
-                  onClick={onOpenReferral}
-                  className={`hidden 2xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer ${
-                    isLight 
-                      ? 'bg-emerald-50 hover:bg-emerald-100 border-emerald-300 text-emerald-900' 
-                      : 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 text-emerald-300'
-                  }`}
-                  title="Indique um colega e ganhe 7 dias de PRO para ambos"
-                >
-                  <Gift className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                  <span className="whitespace-nowrap">Indicar Colega</span>
-                  <span className="text-[10px] font-black px-1.5 py-0.2 rounded-md bg-emerald-200/80 dark:bg-emerald-500/30 text-emerald-900 dark:text-emerald-200">
-                    +7d PRO
-                  </span>
-                </button>
-              )}
-
               {/* Menu da Conta & Perfil do Estudante */}
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-xs group shrink-0 cursor-pointer ${
+                  className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-xs group shrink-0 cursor-pointer ${
                     isLight
                       ? 'bg-white hover:bg-slate-50 border-slate-300/80 text-slate-900 shadow-xs'
                       : 'bg-white/5 hover:bg-white/10 border-white/10 text-white'
@@ -781,8 +803,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <div className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">
                         {user?.email || 'concurseiro@argus.app.br'}
                       </div>
-                      <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30">
-                        <span>PLANO {plan.toUpperCase()}</span>
+                      <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-black border ${planMeta.badgeClass}`}>
+                        <span>{planMeta.fullLabel}</span>
                       </div>
                     </div>
 
@@ -877,7 +899,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         }`}
                       >
                         <HelpCircle className="w-4 h-4 text-slate-400" />
-                        <span>Ajuda & Suporte</span>
+                        <span>Suporte & Central de Chamados</span>
                       </button>
                     </div>
 
@@ -900,26 +922,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* Botão de Conexão / Login Google (Exibido em telas amplas 2xl) */}
-              {!isGoogleConnected && (
-                <button
-                  onClick={() => {
-                    if (onOpenAuth) onOpenAuth();
-                    else window.dispatchEvent(new CustomEvent('open-auth-modal'));
-                  }}
-                  className={`hidden 2xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer ${
-                    isLight
-                      ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
-                      : 'bg-slate-900/80 hover:bg-slate-800 border-slate-700 text-slate-200 hover:border-slate-600'
-                  }`}
-                  title="Fazer Login com Google ou E-mail"
-                  aria-label="Fazer Login com Google"
-                >
-                  <GoogleIcon className="w-3.5 h-3.5" />
-                  <span>Entrar com Google</span>
-                </button>
-              )}
-
               {/* Botão de Assinatura */}
               {plan === 'aspirante' ? (
                 <button
@@ -935,15 +937,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               ) : (
                 <button
                   onClick={onOpenPricing}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-extrabold whitespace-nowrap shrink-0 cursor-pointer ${
-                    isLight 
-                      ? 'bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-800' 
-                      : 'bg-blue-500/20 border-blue-500/40 text-blue-300'
-                  }`}
-                  aria-label={`Plano ativo: ${plan.toUpperCase()}`}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-extrabold whitespace-nowrap shrink-0 cursor-pointer ${planMeta.badgeClass}`}
+                  aria-label={`Plano ativo: ${planMeta.shortLabel}`}
                 >
-                  <Zap className={`w-3.5 h-3.5 shrink-0 ${isLight ? 'text-blue-600 fill-blue-600/40' : 'text-blue-400 fill-blue-400/40'}`} />
-                  <span>{plan.toUpperCase()}</span>
+                  <Zap className="w-3.5 h-3.5 shrink-0" />
+                  <span>{planMeta.shortLabel}</span>
                 </button>
               )}
 

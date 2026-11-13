@@ -133,6 +133,8 @@ export function ArgusApp() {
   const [flashcards, setFlashcards] = useState<Flashcard[]>(INITIAL_FLASHCARDS);
   const [mistakes, setMistakes] = useState<MistakeEntry[]>(INITIAL_MISTAKES);
   const [plan, setPlan] = useState<SubscriptionPlan>('aspirante');
+  const [pendingCheckoutPlan, setPendingCheckoutPlan] = useState<SubscriptionPlan>('pro');
+  const [pricingModalInitialTab, setPricingModalInitialTab] = useState<'plans' | 'checkout'>('plans');
   const [theme, setTheme] = useState<'dark' | 'light'>('light');
   const [isPricingOpen, setIsPricingOpen] = useState(false);
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
@@ -483,11 +485,33 @@ export function ArgusApp() {
   };
 
   const handleSelectExam = (exam: ExamNotice) => {
+    if (plan === 'lancamento') {
+      const lockedTitle = typeof window !== 'undefined' ? localStorage.getItem('argus_locked_exam_title') : null;
+      const lockedId = typeof window !== 'undefined' ? localStorage.getItem('argus_locked_exam_id') : null;
+      if (lockedTitle && exam.title !== lockedTitle && exam.id !== lockedId) {
+        showToast(`🔒 Seu Passe de R$ 97 é exclusivo para "${lockedTitle}". Para estudar múltiplos editais, faça upgrade para o Plano PRO, ELITE ou BLACK.`);
+        setPendingCheckoutPlan('pro');
+        setPricingModalInitialTab('plans');
+        setIsPricingOpen(true);
+        return;
+      }
+    }
     setSelectedExam(exam);
     showToast(`Edital selecionado: ${exam.title}`);
   };
 
   const handleSetDefaultExam = (exam: ExamNotice) => {
+    if (plan === 'lancamento') {
+      const lockedTitle = typeof window !== 'undefined' ? localStorage.getItem('argus_locked_exam_title') : null;
+      const lockedId = typeof window !== 'undefined' ? localStorage.getItem('argus_locked_exam_id') : null;
+      if (lockedTitle && exam.title !== lockedTitle && exam.id !== lockedId) {
+        showToast(`🔒 Seu Passe de R$ 97 é exclusivo para "${lockedTitle}". Faça upgrade para alterar o edital padrão.`);
+        setPendingCheckoutPlan('pro');
+        setPricingModalInitialTab('plans');
+        setIsPricingOpen(true);
+        return;
+      }
+    }
     setSelectedExam(exam);
     setDefaultExamId(exam.id);
     try {
@@ -541,6 +565,20 @@ export function ArgusApp() {
   };
 
   const handleAddCustomExam = (newExam: ExamNotice) => {
+    if (plan === 'aspirante') {
+      showToast('🔒 A importação de editais customizados em PDF requer o Plano PRO, ELITE ou BLACK.');
+      setPendingCheckoutPlan('pro');
+      setPricingModalInitialTab('checkout');
+      setIsPricingOpen(true);
+      return;
+    }
+    if (plan === 'lancamento') {
+      showToast('🔒 O Passe de R$ 97 é exclusivo para o edital vinculado. Faça upgrade para o Plano PRO para importar outros editais.');
+      setPendingCheckoutPlan('pro');
+      setPricingModalInitialTab('checkout');
+      setIsPricingOpen(true);
+      return;
+    }
     setExams((prev) => {
       const updated = [newExam, ...prev.filter(e => e.id !== newExam.id)];
       try {
@@ -759,6 +797,18 @@ export function ArgusApp() {
     try {
       localStorage.setItem('argus_plan', newPlan);
     } catch {}
+    if (newPlan === 'lancamento') {
+      const savedTarget = typeof window !== 'undefined' ? localStorage.getItem('argus_target_exam') : null;
+      const matched = INITIAL_EXAMS.find(e => e.title === savedTarget) || INITIAL_EXAMS[0];
+      try {
+        localStorage.setItem('argus_locked_exam_id', matched.id);
+        localStorage.setItem('argus_locked_exam_title', matched.title);
+      } catch {}
+      setSelectedExam(matched);
+      setDefaultExamId(matched.id);
+      showToast(`🎯 Passe de R$ 97 ativado! Acesso total liberado para o concurso ${matched.title}.`);
+      return;
+    }
     showToast(`🎉 Parabéns! Plano ${newPlan.toUpperCase()} ativado com sucesso!`);
   };
 
@@ -849,10 +899,18 @@ export function ArgusApp() {
               setIsOnboardingTerminalOpen(true);
             }}
             onStartDiscursivas={() => setActiveTab('discursivas')}
-            onOpenPricing={() => setIsPricingOpen(true)}
-            onSelectPlan={(p) => {
-              setPlan(p);
+            onOpenPricing={() => {
+              setPricingModalInitialTab('plans');
               setIsPricingOpen(true);
+            }}
+            onSelectPlan={(p) => {
+              if (p === 'aspirante') {
+                handleUpgradePlan('aspirante');
+              } else {
+                setPendingCheckoutPlan(p);
+                setPricingModalInitialTab('checkout');
+                setIsPricingOpen(true);
+              }
             }}
             onOpenPsychometrics={() => setActiveTab('psychometrics')}
             onNavigateTab={(tab) => setActiveTab(tab)}
@@ -1025,7 +1083,7 @@ export function ArgusApp() {
               currentPlan={plan}
               onOpenPricing={() => setActiveTab('pricing-plans')}
               onOpenCheckout={(p) => {
-                setPlan(p);
+                setPendingCheckoutPlan(p);
                 setActiveTab('checkout');
               }}
               onRestartOnboarding={() => setIsOnboardingTerminalOpen(true)}
@@ -1035,9 +1093,9 @@ export function ArgusApp() {
 
           {activeTab === 'checkout' && (
             <CheckoutCartTab
-              initialPlan={plan}
+              initialPlan={pendingCheckoutPlan}
               onPaymentSuccess={(newPlan) => {
-                setPlan(newPlan);
+                handleUpgradePlan(newPlan);
                 setActiveTab('subscription');
               }}
               onGoBack={() => setActiveTab('pricing-plans')}
@@ -1049,7 +1107,7 @@ export function ArgusApp() {
             <SubscriptionManagementTab
               currentPlan={plan}
               onUpgradePlan={(newPlan) => {
-                setPlan(newPlan);
+                setPendingCheckoutPlan(newPlan);
                 setActiveTab('checkout');
               }}
               onOpenPricing={() => setActiveTab('pricing-plans')}
@@ -1067,7 +1125,7 @@ export function ArgusApp() {
             <PricingPlansTab
               currentPlan={plan}
               onSelectPlanForCheckout={(selected) => {
-                setPlan(selected);
+                setPendingCheckoutPlan(selected);
                 setActiveTab('checkout');
               }}
               showToast={showToast}
@@ -1092,6 +1150,8 @@ export function ArgusApp() {
         isOpen={isPricingOpen}
         onClose={() => setIsPricingOpen(false)}
         currentPlan={plan}
+        initialSelectedPlan={pendingCheckoutPlan}
+        initialTab={pricingModalInitialTab}
         onUpgradePlan={handleUpgradePlan}
       />
 

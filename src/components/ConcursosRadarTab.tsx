@@ -214,9 +214,10 @@ export const ConcursosRadarTab: React.FC<ConcursosRadarTabProps> = ({
               <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto custom-scrollbar">
                 {[
                   { id: 'todos', label: 'Todos os Status' },
-                  { id: 'publicado', label: '🟢 Edital Lançado' },
-                  { id: 'previsto', label: '🟡 Previsto' },
-                  { id: 'rumor', label: '🟣 Rumor Quente' }
+                  { id: 'publicado', label: '🟢 Abertos / Edital Lançado' },
+                  { id: 'confirmado', label: '🔵 Confirmados / Autorizados' },
+                  { id: 'previsto', label: '🟡 Previstos 2026' },
+                  { id: 'rumor', label: '🟣 Rumores Quentes' }
                 ].map((s) => (
                   <button
                     key={s.id}
@@ -298,12 +299,21 @@ export const ConcursosRadarTab: React.FC<ConcursosRadarTabProps> = ({
                           <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1 ${
                             item.status === 'publicado'
                               ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                              : item.status === 'confirmado'
+                              ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
                               : item.status === 'previsto'
                               ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
                               : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20'
                           }`}>
                             {item.status === 'publicado' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
-                            {item.status === 'publicado' ? 'Edital Publicado' : item.status === 'previsto' ? 'Previsto' : 'Rumor'}
+                            {item.status === 'confirmado' && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
+                            {item.status === 'publicado'
+                              ? 'Edital Aberto'
+                              : item.status === 'confirmado'
+                              ? 'Confirmado'
+                              : item.status === 'previsto'
+                              ? 'Previsto'
+                              : 'Rumor'}
                           </span>
                           <p className="text-xs text-slate-400 mt-1 font-bold flex items-center gap-1 w-full">
                             <MapPin className="w-3 h-3 text-slate-400" />

@@ -2,12 +2,13 @@ export type ExamNotice = {
   id: string;
   title: string;
   institution: string;
-  banca: 'FGV' | 'Cebraspe' | 'FCC' | 'Vunesp' | 'Outra';
+  banca: 'FGV' | 'Cebraspe' | 'FCC' | 'Vunesp' | 'Cesgranrio' | 'Outra' | string;
   role: string;
   salary: string;
   vacancies: number;
   examDate: string;
   daysRemaining: number;
+  status?: ConcursoStatus;
   pdfFileName?: string;
   uploadedAt: string;
   subjects: ExamSubject[];
@@ -539,7 +540,7 @@ export interface ExamIngestionResult {
 // TIPAGENS DO RADAR DE CONCURSOS, OAB, ENEM E GESTÃO DE ASSINATURA
 // ==============================================================================
 
-export type ConcursoStatus = 'publicado' | 'previsto' | 'rumor';
+export type ConcursoStatus = 'publicado' | 'confirmado' | 'previsto' | 'rumor';
 
 export type ConcursoCategory = 
   | 'juridica' 
@@ -630,6 +631,8 @@ export interface SubscriptionDetail {
   paymentMethodDesc: string;
   trialEndsAt?: string;
   isPayingOrCommitted?: boolean;
+  lockedExamTitle?: string;
+  lockedExamId?: string;
   invoices: InvoiceEntry[];
 }
 

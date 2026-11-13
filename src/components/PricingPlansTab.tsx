@@ -15,9 +15,11 @@ import {
   CreditCard,
   ChevronDown,
   Gift,
-  Flame
+  Flame,
+  QrCode
 } from 'lucide-react';
 import { SubscriptionPlan } from '@/lib/types';
+import { INITIAL_EXAMS } from '@/lib/mockData';
 
 interface PricingPlansTabProps {
   currentPlan: SubscriptionPlan;
@@ -34,10 +36,18 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [selectedTabExam, setSelectedTabExam] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('argus_target_exam') || 'INSS';
+      const saved = localStorage.getItem('argus_target_exam');
+      if (saved && INITIAL_EXAMS.some((e) => e.title === saved)) return saved;
     }
-    return 'INSS';
+    return INITIAL_EXAMS[0]?.title || 'INSS - Técnico do Seguro Social';
   });
+
+  const groupedExams = React.useMemo(() => ({
+    publicado: INITIAL_EXAMS.filter((e) => e.status === 'publicado'),
+    confirmado: INITIAL_EXAMS.filter((e) => e.status === 'confirmado'),
+    previsto: INITIAL_EXAMS.filter((e) => e.status === 'previsto' || !e.status),
+    rumor: INITIAL_EXAMS.filter((e) => e.status === 'rumor'),
+  }), []);
 
   const plans = [
     {
@@ -289,38 +299,59 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({
               </span>
             </div>
             <p className="text-orange-100 text-xs sm:text-sm max-w-2xl leading-relaxed">
-              Pague uma única vez <strong className="text-white">R$ 97</strong> e tenha preparação cirúrgica focada no concurso que você escolher até o dia da prova. Elimine erros por pegadinha com Vade Mecum Radar, IAs Especialistas e Caderno SM-2 sem pagar mensalidade.
+              Pague uma única vez <strong className="text-white">R$ 97,00</strong> e tenha preparação cirúrgica focada no concurso que você escolher até o dia da prova. Elimine erros por pegadinha com Vade Mecum Radar, IAs Especialistas e Caderno SM-2 sem pagar mensalidade.
             </p>
-            <div className="pt-1 space-y-1.5">
-              <span className="text-[11px] font-bold text-orange-200 uppercase tracking-wide block">
-                Escolha o concurso que você vai desarmar:
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  'INSS',
-                  'OAB 1ª Fase',
-                  'TJ-SP',
-                  'PRF / PF',
-                  'Caixa / BB',
-                  'CNU',
-                ].map((exam) => (
-                  <button
-                    key={exam}
-                    type="button"
-                    onClick={() => {
-                      setSelectedTabExam(exam);
-                      try { localStorage.setItem('argus_target_exam', exam); } catch {}
-                    }}
-                    className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                      selectedTabExam.startsWith(exam)
-                        ? 'bg-white text-orange-800 border-white shadow-sm font-black scale-102'
-                        : 'bg-black/20 hover:bg-black/30 text-white border-white/20'
-                    }`}
-                  >
-                    {exam}
-                  </button>
-                ))}
+            {/* Seletor Menu Suspenso de Concurso */}
+            <div className="pt-1 space-y-1.5 max-w-xl">
+              <label htmlFor="pricing-pass-exam-select" className="text-[11px] font-bold text-orange-100 uppercase tracking-wide block">
+                Selecione o concurso exclusivo do seu Passe de R$ 97:
+              </label>
+              <div className="relative">
+                <select
+                  id="pricing-pass-exam-select"
+                  value={selectedTabExam}
+                  onChange={(e) => {
+                    setSelectedTabExam(e.target.value);
+                    try { localStorage.setItem('argus_target_exam', e.target.value); } catch {}
+                  }}
+                  aria-label="Selecione o concurso para o Passe de R$ 97"
+                  className="w-full appearance-none pl-3 pr-8 py-2.5 rounded-xl bg-white text-slate-900 font-extrabold text-xs shadow-md border-2 border-yellow-300 focus:outline-none focus:ring-2 focus:ring-white cursor-pointer"
+                >
+                  <optgroup label="🟢 Editais Abertos / Publicados">
+                    {groupedExams.publicado.map((exam) => (
+                      <option key={exam.id} value={exam.title}>
+                        {exam.title} ({exam.banca})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="🔵 Concursos Confirmados & Autorizados">
+                    {groupedExams.confirmado.map((exam) => (
+                      <option key={exam.id} value={exam.title}>
+                        {exam.title} ({exam.banca})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="🟡 Concursos Previstos 2026">
+                    {groupedExams.previsto.map((exam) => (
+                      <option key={exam.id} value={exam.title}>
+                        {exam.title} ({exam.banca})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="🟣 Rumores Quentes & Comissões">
+                    {groupedExams.rumor.map((exam) => (
+                      <option key={exam.id} value={exam.title}>
+                        {exam.title} ({exam.banca})
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+                <ChevronDown className="w-4 h-4 text-orange-700 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
+              <p className="text-[11px] text-orange-100/90 flex items-center gap-1 font-medium">
+                <Lock className="w-3 h-3 text-yellow-300 shrink-0" />
+                <span>Vinculado exclusivamente a este edital. Para todos os editais, escolha o Plano PRO, ELITE ou BLACK.</span>
+              </p>
             </div>
             <div className="flex items-center gap-4 text-xs font-bold pt-1 text-orange-200">
               <div className="w-48 bg-black/30 rounded-full h-2.5 overflow-hidden border border-white/20">
@@ -334,18 +365,24 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({
             <div>
               <p className="text-xs uppercase font-extrabold tracking-wider text-orange-200">Pagamento Único • Sem Mensalidades</p>
               <div className="flex items-baseline lg:justify-end gap-1">
-                <span className="text-4xl sm:text-5xl font-black text-white">R$ 97</span>
+                <span className="text-4xl sm:text-5xl font-black text-white">R$ 97,00</span>
                 <span className="text-xs font-bold text-orange-200">/ dose única</span>
               </div>
-              <p className="text-[11px] text-orange-200 font-medium">Acesso total irrestrito até o dia da sua prova</p>
+              <p className="text-xs text-orange-100 font-bold flex items-center lg:justify-end gap-2 mt-1">
+                <span className="inline-flex items-center gap-1 bg-black/25 px-2 py-0.5 rounded-md"><QrCode className="w-3 h-3 text-emerald-300" /> Pix Imediato</span>
+                <span className="inline-flex items-center gap-1 bg-black/25 px-2 py-0.5 rounded-md"><CreditCard className="w-3 h-3 text-yellow-300" /> Cartão</span>
+              </p>
             </div>
 
             <button
               type="button"
-              onClick={() => onSelectPlanForCheckout('lancamento')}
+              onClick={() => {
+                try { localStorage.setItem('argus_target_exam', selectedTabExam); } catch {}
+                onSelectPlanForCheckout('lancamento');
+              }}
               className="w-full lg:w-auto px-8 py-3.5 rounded-2xl bg-white text-orange-600 hover:bg-orange-50 font-black text-sm tracking-wide shadow-xl shadow-black/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
-              <span>Garantir Passe ({selectedTabExam}) por R$ 97</span>
+              <span>Garantir Passe ({selectedTabExam.split(' - ')[0]}) por R$ 97</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

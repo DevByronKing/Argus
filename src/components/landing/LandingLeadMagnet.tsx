@@ -9,7 +9,7 @@ interface LandingLeadMagnetProps {
 }
 
 export const LandingLeadMagnet: React.FC<LandingLeadMagnetProps> = ({ onStartEdital }) => {
-  const [leadInput, setLeadInput] = useState('INSS 2026');
+  const [selectedExamId, setSelectedExamId] = useState<string>(INITIAL_EXAMS[0]?.id || 'exam-inss-2026');
   const [dailyHours, setDailyHours] = useState<number>(4);
   const [isCalculating, setIsCalculating] = useState(false);
   const [leadResult, setLeadResult] = useState<{
@@ -22,13 +22,19 @@ export const LandingLeadMagnet: React.FC<LandingLeadMagnetProps> = ({ onStartEdi
     bancaTrapIndex: string;
   } | null>(null);
 
-  const calculateFor = (examQuery: string, hoursPerDay: number) => {
+  const openExams = INITIAL_EXAMS.filter((e) => !e.status || e.status === 'publicado');
+  const confirmedExams = INITIAL_EXAMS.filter((e) => e.status === 'confirmado');
+  const predictedExams = INITIAL_EXAMS.filter((e) => e.status === 'previsto');
+  const rumorExams = INITIAL_EXAMS.filter((e) => e.status === 'rumor');
+
+  const calculateFor = (examIdOrQuery: string, hoursPerDay: number) => {
     setIsCalculating(true);
     setTimeout(() => {
       setIsCalculating(false);
 
-      const searchTerms = examQuery.toLowerCase().trim();
+      const searchTerms = examIdOrQuery.toLowerCase().trim();
       const matchedExam = INITIAL_EXAMS.find(exam => 
+        exam.id === examIdOrQuery ||
         exam.title.toLowerCase().includes(searchTerms) ||
         exam.role.toLowerCase().includes(searchTerms) ||
         exam.banca.toLowerCase().includes(searchTerms)
@@ -55,6 +61,8 @@ export const LandingLeadMagnet: React.FC<LandingLeadMagnetProps> = ({ onStartEdi
         trapDescription = 'A Vunesp privilegia a letra fria da lei com troca cirúrgica de prazos e conjunções. Erros ocorrem por leitura apressada da lei seca.';
       } else if (matchedExam.banca === 'FCC') {
         trapDescription = 'A FCC equilibra letra da lei com súmulas consolidadas, utilizando alternativas com semelhança sintática para confundir o candidato.';
+      } else if (matchedExam.banca === 'Cesgranrio') {
+        trapDescription = 'A Cesgranrio exige interpretação aplicada a cenários bancários/administrativos reais, regulação do SFN/BACEN e cálculos financeiros sob pressão de tempo.';
       }
 
       setLeadResult({
@@ -66,22 +74,22 @@ export const LandingLeadMagnet: React.FC<LandingLeadMagnetProps> = ({ onStartEdi
         topSubjectsWithHours,
         bancaTrapIndex: trapDescription
       });
-    }, 600);
+    }, 350);
   };
 
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
-    calculateFor(leadInput || 'INSS 2026', dailyHours);
+    calculateFor(selectedExamId, dailyHours);
   };
 
-  const handlePresetSelect = (preset: string) => {
-    setLeadInput(preset);
-    calculateFor(preset, dailyHours);
+  const handleSelectChange = (newExamId: string) => {
+    setSelectedExamId(newExamId);
+    calculateFor(newExamId, dailyHours);
   };
 
   const handleHoursChange = (hours: number) => {
     setDailyHours(hours);
-    calculateFor(leadInput || 'INSS 2026', hours);
+    calculateFor(selectedExamId, hours);
   };
 
   return (
@@ -107,16 +115,44 @@ export const LandingLeadMagnet: React.FC<LandingLeadMagnetProps> = ({ onStartEdi
         <form onSubmit={handleCalculate} className="mt-8 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
             <div className="sm:col-span-8">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                Concurso ou Cargo Alvo:
+              <label htmlFor="calculator-exam-select" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                Selecione o Concurso ou Cargo Alvo (Menu Oficial 2026):
               </label>
-              <input
-                type="text"
-                placeholder="Ex: Técnico do Seguro Social - INSS ou Escrevente TJ-SP"
-                value={leadInput}
-                onChange={(e) => setLeadInput(e.target.value)}
-                className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 dark:bg-dark-card border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 font-medium focus:outline-none focus:border-indigo-500 transition-colors"
-              />
+              <select
+                id="calculator-exam-select"
+                value={selectedExamId}
+                onChange={(e) => handleSelectChange(e.target.value)}
+                className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 dark:bg-dark-card border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white font-bold focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+              >
+                <optgroup label="🟢 Concursos Abertos / Edital Publicado">
+                  {openExams.map((exam) => (
+                    <option key={exam.id} value={exam.id}>
+                      {exam.title} ({exam.banca} • {exam.salary})
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="🔵 Concursos Confirmados & Autorizados">
+                  {confirmedExams.map((exam) => (
+                    <option key={exam.id} value={exam.id}>
+                      {exam.title} ({exam.banca} • {exam.salary})
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="🟡 Concursos Previstos no Orçamento 2026">
+                  {predictedExams.map((exam) => (
+                    <option key={exam.id} value={exam.id}>
+                      {exam.title} ({exam.banca} • {exam.salary})
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="🟣 Rumores Quentes & Comissões em Estudo">
+                  {rumorExams.map((exam) => (
+                    <option key={exam.id} value={exam.id}>
+                      {exam.title} ({exam.banca} • {exam.salary})
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
             </div>
 
             <div className="sm:col-span-4 flex flex-col justify-end">
@@ -164,15 +200,27 @@ export const LandingLeadMagnet: React.FC<LandingLeadMagnetProps> = ({ onStartEdi
 
           {/* Quick Presets */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Sugestões rápidas:</span>
-            {['INSS 2026', 'TJ-SP Escrevente', 'Polícia Federal Agente', 'Receita Federal Auditor'].map((preset) => (
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Acesso rápido:</span>
+            {[
+              { id: 'exam-inss-2026', label: 'INSS 2026' },
+              { id: 'exam-oab-43', label: 'OAB 43º Exame' },
+              { id: 'exam-tjsp-2026', label: 'TJ-SP Escrevente' },
+              { id: 'exam-pf-2026', label: 'Polícia Federal' },
+              { id: 'exam-pcpa-2026', label: 'PC-PA 2026' },
+              { id: 'exam-receita-2026', label: 'Receita Federal' },
+              { id: 'exam-bb-2026', label: 'Banco do Brasil' },
+            ].map((preset) => (
               <button
-                key={preset}
+                key={preset.id}
                 type="button"
-                onClick={() => handlePresetSelect(preset)}
-                className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-dark-card border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium transition-colors"
+                onClick={() => handleSelectChange(preset.id)}
+                className={`px-3 py-1 rounded-lg border text-xs font-bold transition-colors cursor-pointer ${
+                  selectedExamId === preset.id
+                    ? 'bg-emerald-600 text-white border-emerald-600'
+                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-dark-card border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                }`}
               >
-                {preset}
+                {preset.label}
               </button>
             ))}
           </div>

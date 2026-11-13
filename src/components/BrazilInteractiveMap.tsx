@@ -105,7 +105,7 @@ export const BrazilInteractiveMap: React.FC<BrazilInteractiveMapProps> = ({
   const getRegionStats = (regionName: BrazilRegion) => {
     const directList = concursos.filter(c => c.region === regionName);
     const abertos = directList.filter(c => c.status === 'publicado').length;
-    const previstos = directList.filter(c => c.status === 'previsto').length;
+    const previstos = directList.filter(c => c.status === 'previsto' || c.status === 'confirmado').length;
     
     return {
       total: directList.length,

@@ -18,17 +18,28 @@ export async function POST(req: NextRequest) {
       customerCpf,
     } = body;
 
-    // Cálculo de preços baseado em ciclo (Estratégia do Plano Isca / Âncora de Preço)
-    const prices: Record<string, { name: string; monthly: number; annual: number }> = {
-      aspirante: { name: 'Aspirante (Gratuito)', monthly: 0, annual: 0 },
-      pro: { name: 'Concurseiro PRO (Copiloto Cognitivo)', monthly: 99.00, annual: 588.00 }, // R$ 49/mês no anual (R$ 588/ano)
-      elite: { name: 'Carreiras Elite & Discursivas com IA', monthly: 189.00, annual: 1068.00 }, // R$ 89/mês no anual (R$ 1.068/ano)
-      black: { name: 'Black Vitalício (Até a Posse)', monthly: 249.00, annual: 1497.00 },
-      lancamento: { name: 'Oferta Fechada: Passe Até a Prova (Lote 1)', monthly: 97.00, annual: 97.00 },
+    // Tabela de Preços Unificada e Blindada
+    const prices: Record<string, { name: string; monthly: number; trimestral: number; annual: number; vitalicio: number }> = {
+      aspirante: { name: 'Aspirante (Gratuito)', monthly: 0, trimestral: 0, annual: 0, vitalicio: 0 },
+      lancamento: { name: 'Oferta Fechada: Passe Até a Prova (Lote 1)', monthly: 97.00, trimestral: 97.00, annual: 97.00, vitalicio: 97.00 },
+      pro: { name: 'Concurseiro PRO (Copiloto Cognitivo)', monthly: 99.00, trimestral: 252.45, annual: 588.00, vitalicio: 588.00 },
+      elite: { name: 'Carreiras Elite & Discursivas com IA', monthly: 189.00, trimestral: 481.95, annual: 1068.00, vitalicio: 1068.00 },
+      black: { name: 'Black Vitalício (Até a Posse)', monthly: 197.00, trimestral: 502.35, annual: 1497.00, vitalicio: 1497.00 },
     };
 
     const planConfig = prices[planId] || prices.pro;
-    const amount = billingCycle === 'annual' ? planConfig.annual : planConfig.monthly;
+    let amount = planConfig.monthly;
+    if (planId === 'lancamento') {
+      amount = 97.00;
+    } else if (billingCycle === 'annual' || billingCycle === 'anual') {
+      amount = planConfig.annual;
+    } else if (billingCycle === 'trimestral') {
+      amount = planConfig.trimestral;
+    } else if (billingCycle === 'vitalicio') {
+      amount = planConfig.vitalicio;
+    } else {
+      amount = planConfig.monthly;
+    }
 
     if (amount === 0) {
       return NextResponse.json({

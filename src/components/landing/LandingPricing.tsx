@@ -1,22 +1,33 @@
-import React, { useState } from 'react';
-import { Crown, CheckCircle2, XCircle, Flame, Sparkles, ArrowRight, ShieldCheck, Target } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Crown, CheckCircle2, XCircle, Flame, Sparkles, ArrowRight, ShieldCheck, Target, ChevronDown, QrCode, CreditCard, Lock } from 'lucide-react';
 import { SubscriptionPlan } from '@/lib/types';
+import { INITIAL_EXAMS } from '@/lib/mockData';
 
 interface LandingPricingProps {
   onSelectPlan: (plan: SubscriptionPlan) => void;
-  onOpenPricing: () => void;
+  onOpenPricing?: () => void;
 }
 
 export const LandingPricing: React.FC<LandingPricingProps> = ({
   onSelectPlan,
-  onOpenPricing
+  onOpenPricing,
 }) => {
   const [selectedLaunchExam, setSelectedLaunchExam] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('argus_target_exam') || 'INSS (Cebraspe)';
+      const saved = localStorage.getItem('argus_target_exam');
+      if (saved && INITIAL_EXAMS.some((e) => e.title === saved)) return saved;
     }
-    return 'INSS (Cebraspe)';
+    return INITIAL_EXAMS[0]?.title || 'INSS - Técnico do Seguro Social';
   });
+
+  const groupedExams = useMemo(() => {
+    return {
+      publicado: INITIAL_EXAMS.filter((e) => e.status === 'publicado'),
+      confirmado: INITIAL_EXAMS.filter((e) => e.status === 'confirmado'),
+      previsto: INITIAL_EXAMS.filter((e) => e.status === 'previsto' || !e.status),
+      rumor: INITIAL_EXAMS.filter((e) => e.status === 'rumor'),
+    };
+  }, []);
   return (
     <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" id="pricing">
       <div className="text-center mb-16">
@@ -57,46 +68,60 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
             <p className="text-orange-100 text-sm sm:text-base max-w-2xl leading-relaxed">
               Pague uma única vez <strong className="text-white">R$ 97</strong> e tenha preparação cirúrgica focada no concurso que você escolher até o dia do exame. Sem mensalidades, sem renovação surpresa e com todas as ferramentas de IA ativas.
             </p>
-            {/* Seletor Rápido do Edital-Alvo */}
-            <div className="pt-2 space-y-2">
-              <span className="text-xs font-bold text-orange-200 uppercase tracking-wide block">
-                Escolha o concurso que você vai desarmar:
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { id: 'inss', label: 'INSS', sub: 'Cebraspe' },
-                  { id: 'oab', label: 'OAB 1ª Fase', sub: 'FGV' },
-                  { id: 'tjsp', label: 'TJ-SP Escrevente', sub: 'Vunesp' },
-                  { id: 'policial', label: 'PRF / PF', sub: 'Cebraspe' },
-                  { id: 'caixa', label: 'Caixa / BB', sub: 'Cesgranrio' },
-                  { id: 'cnu', label: 'CNU', sub: 'Blocos' },
-                ].map((item) => {
-                  const isSelected = selectedLaunchExam.startsWith(item.label);
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => {
-                        const examName = `${item.label} (${item.sub})`;
-                        setSelectedLaunchExam(examName);
-                        try {
-                          localStorage.setItem('argus_target_exam', examName);
-                        } catch {}
-                      }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer ${
-                        isSelected
-                          ? 'bg-white text-orange-800 border-white shadow-lg font-black scale-105'
-                          : 'bg-black/25 hover:bg-black/35 text-white border-white/20'
-                      }`}
-                    >
-                      <span>{item.label}</span>
-                      <span className={`text-[10px] font-normal ${isSelected ? 'text-orange-950 font-bold' : 'text-orange-200'}`}>
-                        • {item.sub}
-                      </span>
-                    </button>
-                  );
-                })}
+            {/* Seletor Menu Suspenso do Edital-Alvo */}
+            <div className="pt-2 space-y-2 max-w-xl">
+              <label htmlFor="landing-pass-exam-select" className="text-xs font-bold text-orange-100 uppercase tracking-wide flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-yellow-300" />
+                <span>Selecione o concurso exclusivo do seu Passe de R$ 97:</span>
+              </label>
+              <div className="relative">
+                <select
+                  id="landing-pass-exam-select"
+                  value={selectedLaunchExam}
+                  onChange={(e) => {
+                    setSelectedLaunchExam(e.target.value);
+                    try {
+                      localStorage.setItem('argus_target_exam', e.target.value);
+                    } catch {}
+                  }}
+                  aria-label="Selecione o concurso para o Passe de R$ 97"
+                  className="w-full appearance-none pl-4 pr-10 py-3 rounded-xl bg-white text-slate-900 font-extrabold text-sm shadow-lg border-2 border-yellow-300 focus:outline-none focus:ring-2 focus:ring-white cursor-pointer"
+                >
+                  <optgroup label="🟢 Editais Abertos / Publicados">
+                    {groupedExams.publicado.map((exam) => (
+                      <option key={exam.id} value={exam.title}>
+                        {exam.title} ({exam.banca})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="🔵 Concursos Confirmados & Autorizados">
+                    {groupedExams.confirmado.map((exam) => (
+                      <option key={exam.id} value={exam.title}>
+                        {exam.title} ({exam.banca})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="🟡 Concursos Previstos 2026">
+                    {groupedExams.previsto.map((exam) => (
+                      <option key={exam.id} value={exam.title}>
+                        {exam.title} ({exam.banca})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="🟣 Rumores Quentes & Comissões">
+                    {groupedExams.rumor.map((exam) => (
+                      <option key={exam.id} value={exam.title}>
+                        {exam.title} ({exam.banca})
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+                <ChevronDown className="w-5 h-5 text-orange-700 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
+              <p className="text-[11px] text-orange-100/95 flex items-center gap-1.5 font-medium">
+                <Lock className="w-3.5 h-3.5 text-yellow-300 shrink-0" />
+                <span>O Passe R$ 97 fica vinculado exclusivamente ao concurso escolhido acima. Para múltiplos concursos simultâneos, escolha o Plano PRO, VIP ou Vitalício.</span>
+              </p>
             </div>
             <div className="flex items-center gap-4 text-xs font-bold pt-2 text-orange-200">
               <div className="w-48 sm:w-60 bg-black/30 rounded-full h-3 overflow-hidden border border-white/20">
@@ -110,10 +135,13 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
             <div>
               <p className="text-xs font-bold text-orange-200">Taxa única sem mensalidade</p>
               <div className="flex items-baseline lg:justify-end gap-1">
-                <span className="text-5xl font-black text-white">R$ 97</span>
+                <span className="text-5xl font-black text-white">R$ 97,00</span>
                 <span className="text-xs font-bold text-orange-200">/ dose única</span>
               </div>
-              <p className="text-xs text-orange-200 font-medium">Acesso total irrestrito até o dia da sua prova</p>
+              <p className="text-xs text-orange-100 font-bold flex items-center lg:justify-end gap-2 mt-1">
+                <span className="inline-flex items-center gap-1 bg-black/25 px-2 py-0.5 rounded-md"><QrCode className="w-3 h-3 text-emerald-300" /> Pix Imediato</span>
+                <span className="inline-flex items-center gap-1 bg-black/25 px-2 py-0.5 rounded-md"><CreditCard className="w-3 h-3 text-yellow-300" /> Cartão</span>
+              </p>
             </div>
 
             <button
@@ -123,11 +151,10 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
                   localStorage.setItem('argus_target_exam', selectedLaunchExam);
                 } catch {}
                 onSelectPlan('lancamento');
-                onOpenPricing();
               }}
               className="w-full lg:w-auto px-8 py-4 rounded-2xl bg-white text-orange-600 hover:bg-orange-50 font-black text-base tracking-wide shadow-xl shadow-black/25 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
-              <span>Garantir Passe ({selectedLaunchExam.split(' (')[0]}) por R$ 97</span>
+              <span>Garantir Passe ({selectedLaunchExam.split(' - ')[0]}) por R$ 97</span>
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
@@ -237,7 +264,7 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
           <button
             onClick={() => {
               onSelectPlan('pro');
-              onOpenPricing();
+              onOpenPricing?.();
             }}
             className="mt-10 w-full py-4 rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 hover:from-indigo-500 hover:via-blue-500 hover:to-cyan-400 text-white font-black text-base tracking-wide transition-all duration-300 shadow-[0_10px_30px_-10px_rgba(99,102,241,0.6)] hover:shadow-[0_15px_40px_-10px_rgba(99,102,241,0.8)] transform hover:scale-[1.02]"
           >
@@ -291,7 +318,7 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
           <button
             onClick={() => {
               onSelectPlan('elite');
-              onOpenPricing();
+              onOpenPricing?.();
             }}
             className="mt-10 w-full py-4 rounded-xl bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 font-extrabold text-base transition-all duration-300 group-hover:border-amber-400 dark:group-hover:border-amber-500/50 group-hover:text-amber-600 dark:group-hover:text-amber-400 shadow-sm group-hover:shadow-md"
           >
@@ -331,7 +358,7 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
               type="button"
               onClick={() => {
                 onSelectPlan('black');
-                onOpenPricing();
+                onOpenPricing?.();
               }}
               className="w-full lg:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-amber-500/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
             >

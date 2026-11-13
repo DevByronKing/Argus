@@ -11,6 +11,7 @@ export const INITIAL_EXAMS: ExamNotice[] = [
     vacancies: 1500,
     examDate: '2026-11-15',
     daysRemaining: 75,
+    status: 'publicado',
     pdfFileName: 'Edital_Abertura_INSS_2026_Consolidado.pdf',
     uploadedAt: '2026-08-20',
     subjects: [
@@ -79,6 +80,7 @@ export const INITIAL_EXAMS: ExamNotice[] = [
     vacancies: 9999,
     examDate: '2026-10-25',
     daysRemaining: 54,
+    status: 'publicado',
     pdfFileName: 'Edital_OAB_43_Exame.pdf',
     uploadedAt: '2026-08-15',
     subjects: [
@@ -117,6 +119,7 @@ export const INITIAL_EXAMS: ExamNotice[] = [
     vacancies: 1800,
     examDate: '2026-12-10',
     daysRemaining: 102,
+    status: 'confirmado',
     pdfFileName: 'Edital_Abertura_PF_2026.pdf',
     uploadedAt: '2026-08-25',
     subjects: [
@@ -188,6 +191,7 @@ export const INITIAL_EXAMS: ExamNotice[] = [
     vacancies: 1200,
     examDate: '2026-11-20',
     daysRemaining: 85,
+    status: 'publicado',
     pdfFileName: 'Edital_Abertura_PRF_2026.pdf',
     uploadedAt: '2026-08-22',
     subjects: [
@@ -246,6 +250,7 @@ export const INITIAL_EXAMS: ExamNotice[] = [
     vacancies: 699,
     examDate: '2026-12-05',
     daysRemaining: 98,
+    status: 'previsto',
     pdfFileName: 'Edital_Auditor_Receita_Federal_2026.pdf',
     uploadedAt: '2026-08-20',
     subjects: [
@@ -304,6 +309,7 @@ export const INITIAL_EXAMS: ExamNotice[] = [
     vacancies: 572,
     examDate: '2026-10-18',
     daysRemaining: 48,
+    status: 'publicado',
     pdfFileName: 'Edital_TJSP_Escrevente_2026.pdf',
     uploadedAt: '2026-08-10',
     subjects: [
@@ -354,14 +360,15 @@ export const INITIAL_EXAMS: ExamNotice[] = [
   },
   {
     id: 'exam-cnu-2026',
-    title: 'CNU - Concurso Nacional Unificado',
+    title: 'CNU 2ª Edição - Concurso Nacional Unificado',
     institution: 'Ministério da Gestão e Inovação em Serviços Públicos',
-    banca: 'Outra',
+    banca: 'Cesgranrio',
     role: 'Analista de Gestão Pública e Carreiras Federais',
-    salary: 'R$ 9.800,00',
+    salary: 'R$ 11.400,00',
     vacancies: 6640,
     examDate: '2026-11-28',
     daysRemaining: 92,
+    status: 'previsto',
     pdfFileName: 'Edital_CNU_Bloco_Consolidado.pdf',
     uploadedAt: '2026-08-24',
     subjects: [
@@ -405,6 +412,524 @@ export const INITIAL_EXAMS: ExamNotice[] = [
         totalTopics: 1,
         topics: [
           { id: 'top-cnu-real-1', name: 'Desenvolvimento Socioeconômico e Dinâmica Demográfica', frequencyInBanca: 'Alta', accuracyRate: 62, status: 'Instável' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'exam-mpu-2026',
+    title: 'MPU 2026 - Técnico e Analista do Ministério Público da União',
+    institution: 'Ministério Público da União (MPU)',
+    banca: 'FGV',
+    role: 'Técnico e Analista do MPU',
+    salary: 'R$ 13.994,78',
+    vacancies: 420,
+    examDate: '2026-10-11',
+    daysRemaining: 68,
+    status: 'publicado',
+    pdfFileName: 'Edital_Abertura_MPU_2026_FGV.pdf',
+    uploadedAt: '2026-08-25',
+    subjects: [
+      {
+        id: 'sub-mpu-const',
+        name: 'Direito Constitucional & Legislação Aplicada ao MPU',
+        weight: 3,
+        relevancePercentage: 36.0,
+        totalTopics: 3,
+        topics: [
+          { id: 'top-mpu-1', name: 'Funções Essenciais à Justiça e Lei Complementar nº 75/93', frequencyInBanca: 'Alta', accuracyRate: 52, status: 'Ponto Cego', articlesOrLaws: ['LC 75/93', 'Arts. 127 a 130-A da CF/88'] },
+          { id: 'top-mpu-2', name: 'Controle de Constitucionalidade e Direitos Fundamentais', frequencyInBanca: 'Alta', accuracyRate: 66, status: 'Instável' }
+        ]
+      },
+      {
+        id: 'sub-mpu-adm',
+        name: 'Direito Administrativo & Licitações 14.133/21',
+        weight: 3,
+        relevancePercentage: 30.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-mpu-adm-1', name: 'Improbidade Administrativa (Lei 14.230/21) e Processo Administrativo', frequencyInBanca: 'Alta', accuracyRate: 59, status: 'Instável', articlesOrLaws: ['Lei 9.784/99', 'Lei 14.230/21'] }
+        ]
+      },
+      {
+        id: 'sub-mpu-penal',
+        name: 'Direito Penal & Processual Penal',
+        weight: 2,
+        relevancePercentage: 20.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-mpu-pen-1', name: 'Ação Penal, Acordo de Não Persecução Penal (ANPP) e Juiz das Garantias', frequencyInBanca: 'Alta', accuracyRate: 48, status: 'Ponto Cego', articlesOrLaws: ['Art. 28-A do CPP'] }
+        ]
+      },
+      {
+        id: 'sub-mpu-port',
+        name: 'Língua Portuguesa FGV',
+        weight: 2,
+        relevancePercentage: 14.0,
+        totalTopics: 1,
+        topics: [
+          { id: 'top-mpu-port-1', name: 'Reescrita de Frases, Paralelismo Sintático e Argumentação FGV', frequencyInBanca: 'Alta', accuracyRate: 55, status: 'Ponto Cego' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'exam-sefaz-sp-2026',
+    title: 'SEFAZ-SP 2026 - Auditor Fiscal da Receita Estadual',
+    institution: 'Secretaria da Fazenda e Planejamento de SP',
+    banca: 'FGV',
+    role: 'Auditor Fiscal da Receita Estadual (ICMS-SP)',
+    salary: 'R$ 26.850,00',
+    vacancies: 200,
+    examDate: '2026-11-08',
+    daysRemaining: 84,
+    status: 'publicado',
+    pdfFileName: 'Edital_SEFAZ_SP_Auditor_FGV.pdf',
+    uploadedAt: '2026-08-25',
+    subjects: [
+      {
+        id: 'sub-sefaz-trib',
+        name: 'Direito Tributário & Legislação Tributária Estadual (ICMS/IPVA/ITCMD)',
+        weight: 3,
+        relevancePercentage: 38.0,
+        totalTopics: 3,
+        topics: [
+          { id: 'top-sef-1', name: 'Lei Kandir (LC 87/96), Substituição Tributária e IBS Estadual (EC 132/23)', frequencyInBanca: 'Alta', accuracyRate: 49, status: 'Ponto Cego' }
+        ]
+      },
+      {
+        id: 'sub-sefaz-cont',
+        name: 'Contabilidade Geral, Avançada & Auditoria Fiscal',
+        weight: 3,
+        relevancePercentage: 32.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-sef-2', name: 'Escrituração Fiscal Digital (EFD/SPED) e CPCs', frequencyInBanca: 'Alta', accuracyRate: 58, status: 'Instável' }
+        ]
+      },
+      {
+        id: 'sub-sefaz-ti',
+        name: 'Tecnologia da Informação & Ciência de Dados',
+        weight: 2,
+        relevancePercentage: 30.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-sef-3', name: 'Banco de Dados Relacional, SQL e Segurança da Informação', frequencyInBanca: 'Alta', accuracyRate: 62, status: 'Instável' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'exam-pcpa-2026',
+    title: 'PC-PA 2026 - Investigador e Escrivão da Polícia Civil do Pará',
+    institution: 'Polícia Civil do Estado do Pará',
+    banca: 'FGV',
+    role: 'Investigador e Escrivão de Polícia Civil',
+    salary: 'R$ 9.850,00',
+    vacancies: 650,
+    examDate: '2026-10-25',
+    daysRemaining: 70,
+    status: 'publicado',
+    pdfFileName: 'Edital_PCPA_2026_FGV.pdf',
+    uploadedAt: '2026-08-26',
+    subjects: [
+      {
+        id: 'sub-pcpa-penal',
+        name: 'Direito Penal, Processual Penal & Legislação Especial',
+        weight: 3,
+        relevancePercentage: 40.0,
+        totalTopics: 3,
+        topics: [
+          { id: 'top-pcpa-1', name: 'Inquérito Policial, Prisões Cautelares e Cadeia de Custódia', frequencyInBanca: 'Alta', accuracyRate: 60, status: 'Instável' },
+          { id: 'top-pcpa-2', name: 'Crimes Contra o Patrimônio, Administração e Lei de Drogas', frequencyInBanca: 'Alta', accuracyRate: 54, status: 'Ponto Cego' }
+        ]
+      },
+      {
+        id: 'sub-pcpa-adm',
+        name: 'Direito Administrativo, Constitucional & Lei Orgânica da PC-PA',
+        weight: 2,
+        relevancePercentage: 30.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-pcpa-3', name: 'Estatuto da Polícia Civil do Pará (LC 22/94) e Poder de Polícia', frequencyInBanca: 'Alta', accuracyRate: 51, status: 'Ponto Cego' }
+        ]
+      },
+      {
+        id: 'sub-pcpa-ti',
+        name: 'Noções de Informática, Contabilidade & Língua Portuguesa',
+        weight: 2,
+        relevancePercentage: 30.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-pcpa-4', name: 'Investigação Digital, Redes e Interpretação Textual FGV', frequencyInBanca: 'Alta', accuracyRate: 65, status: 'Instável' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'exam-pcdf-2026',
+    title: 'PCDF 2026 - Delegado e Agente de Polícia Civil do DF',
+    institution: 'Polícia Civil do Distrito Federal',
+    banca: 'Cebraspe',
+    role: 'Delegado e Agente de Polícia Civil',
+    salary: 'R$ 19.745,00',
+    vacancies: 450,
+    examDate: '2026-10-18',
+    daysRemaining: 62,
+    status: 'publicado',
+    pdfFileName: 'Edital_PCDF_2026_Cebraspe.pdf',
+    uploadedAt: '2026-08-26',
+    subjects: [
+      {
+        id: 'sub-pcdf-penal',
+        name: 'Direito Penal, Processo Penal & Criminologia',
+        weight: 3,
+        relevancePercentage: 45.0,
+        totalTopics: 3,
+        topics: [
+          { id: 'top-pcdf-1', name: 'Teoria do Crime, Tipicidade Conglobante e Jurisprudência STJ/STF', frequencyInBanca: 'Alta', accuracyRate: 57, status: 'Ponto Cego' }
+        ]
+      },
+      {
+        id: 'sub-pcdf-const',
+        name: 'Direito Constitucional, Administrativo & Direitos Humanos',
+        weight: 2,
+        relevancePercentage: 30.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-pcdf-2', name: 'Garantias Constitucionais do Inquérito e Responsabilidade Civil do Estado', frequencyInBanca: 'Alta', accuracyRate: 69, status: 'Instável' }
+        ]
+      },
+      {
+        id: 'sub-pcdf-ti',
+        name: 'Informática Forense & Contabilidade Aplicada',
+        weight: 2,
+        relevancePercentage: 25.0,
+        totalTopics: 1,
+        topics: [
+          { id: 'top-pcdf-3', name: 'Segurança Cibernética, Perícia Digital e Rastreamento de Ativos', frequencyInBanca: 'Alta', accuracyRate: 50, status: 'Ponto Cego' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'exam-bb-2026',
+    title: 'Banco do Brasil 2026 - Escriturário (Agente Comercial & TI)',
+    institution: 'Banco do Brasil S.A.',
+    banca: 'Cesgranrio',
+    role: 'Escriturário - Agente Comercial e Agente de Tecnologia',
+    salary: 'R$ 5.864,00 + PLR',
+    vacancies: 4000,
+    examDate: '2026-11-22',
+    daysRemaining: 88,
+    status: 'confirmado',
+    pdfFileName: 'Matriz_Banco_do_Brasil_2026_Cesgranrio.pdf',
+    uploadedAt: '2026-08-26',
+    subjects: [
+      {
+        id: 'sub-bb-vendas',
+        name: 'Vendas e Negociação & Atendimento Bancário Digital',
+        weight: 3,
+        relevancePercentage: 35.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-bb-1', name: 'Marketing de Relacionamento, Experiência do Cliente e CDC Bancário', frequencyInBanca: 'Alta', accuracyRate: 64, status: 'Instável' }
+        ]
+      },
+      {
+        id: 'sub-bb-bancarios',
+        name: 'Conhecimentos Bancários & Sistema Financeiro Nacional',
+        weight: 3,
+        relevancePercentage: 35.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-bb-2', name: 'CMN, BACEN, Pix, Open Finance, Drex e Prevenção à Lavagem de Dinheiro', frequencyInBanca: 'Alta', accuracyRate: 53, status: 'Ponto Cego' }
+        ]
+      },
+      {
+        id: 'sub-bb-ti-mat',
+        name: 'Informática, Matemática Financeira & Português',
+        weight: 2,
+        relevancePercentage: 30.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-bb-3', name: 'Juros Compostos, Sistemas SAC/Price e Segurança Digital', frequencyInBanca: 'Alta', accuracyRate: 58, status: 'Instável' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'exam-caixa-2026',
+    title: 'Caixa Econômica Federal 2026 - Técnico Bancário Novo',
+    institution: 'Caixa Econômica Federal (CEF)',
+    banca: 'Cesgranrio',
+    role: 'Técnico Bancário Novo (Geral e TI)',
+    salary: 'R$ 5.798,00 + Benefícios',
+    vacancies: 3200,
+    examDate: '2026-12-06',
+    daysRemaining: 100,
+    status: 'confirmado',
+    pdfFileName: 'Matriz_Caixa_TBN_2026_Cesgranrio.pdf',
+    uploadedAt: '2026-08-26',
+    subjects: [
+      {
+        id: 'sub-cef-banc',
+        name: 'Conhecimentos Bancários, FGTS & Programas Sociais',
+        weight: 3,
+        relevancePercentage: 38.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-cef-1', name: 'Sistema Financeiro da Habitação, FGTS e Operações de Crédito', frequencyInBanca: 'Alta', accuracyRate: 60, status: 'Instável' }
+        ]
+      },
+      {
+        id: 'sub-cef-ti',
+        name: 'Tecnologia da Informação & Comportamentos Digitais',
+        weight: 3,
+        relevancePercentage: 32.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-cef-2', name: 'Cibersegurança, LGPD, Inteligência Artificial Generativa e Agilidade', frequencyInBanca: 'Alta', accuracyRate: 55, status: 'Ponto Cego' }
+        ]
+      },
+      {
+        id: 'sub-cef-mat',
+        name: 'Matemática Financeira, Probabilidade & Português',
+        weight: 2,
+        relevancePercentage: 30.0,
+        totalTopics: 1,
+        topics: [
+          { id: 'top-cef-3', name: 'Equivalência de Capitais, Taxas Efetivas e Interpretação Cesgranrio', frequencyInBanca: 'Alta', accuracyRate: 63, status: 'Instável' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'exam-ibama-2026',
+    title: 'IBAMA & ICMBio 2026 - Analista Ambiental e Administrativo',
+    institution: 'IBAMA / Ministério do Meio Ambiente',
+    banca: 'Cebraspe',
+    role: 'Analista Ambiental e Analista Administrativo',
+    salary: 'R$ 10.850,00',
+    vacancies: 810,
+    examDate: '2026-11-29',
+    daysRemaining: 94,
+    status: 'confirmado',
+    pdfFileName: 'Edital_IBAMA_ICMBio_2026_Cebraspe.pdf',
+    uploadedAt: '2026-08-26',
+    subjects: [
+      {
+        id: 'sub-ibama-amb',
+        name: 'Legislação Ambiental, Licenciamento & SNUC',
+        weight: 3,
+        relevancePercentage: 45.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-iba-1', name: 'Lei de Crimes Ambientais (Lei 9.605/98), Código Florestal e CONAMA', frequencyInBanca: 'Alta', accuracyRate: 54, status: 'Ponto Cego' }
+        ]
+      },
+      {
+        id: 'sub-ibama-adm',
+        name: 'Direito Administrativo, Constitucional & Gestão Pública',
+        weight: 2,
+        relevancePercentage: 30.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-iba-2', name: 'Poder de Polícia Ambiental, Processo Sancionador e Licitações', frequencyInBanca: 'Alta', accuracyRate: 66, status: 'Instável' }
+        ]
+      },
+      {
+        id: 'sub-ibama-geo',
+        name: 'Geoprocessamento, Ecologia & Língua Portuguesa',
+        weight: 2,
+        relevancePercentage: 25.0,
+        totalTopics: 1,
+        topics: [
+          { id: 'top-iba-3', name: 'Sensoriamento Remoto da Amazônia, Biomas e Monitoramento via Satélite', frequencyInBanca: 'Alta', accuracyRate: 59, status: 'Instável' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'exam-tse-2026',
+    title: 'TSE Unificado & TREs 2026 - Técnico e Analista Judiciário',
+    institution: 'Tribunal Superior Eleitoral & TREs',
+    banca: 'Cebraspe',
+    role: 'Técnico e Analista Judiciário',
+    salary: 'R$ 13.994,78',
+    vacancies: 412,
+    examDate: '2026-12-13',
+    daysRemaining: 108,
+    status: 'previsto',
+    pdfFileName: 'Edital_TSE_Unificado_Cebraspe.pdf',
+    uploadedAt: '2026-08-26',
+    subjects: [
+      {
+        id: 'sub-tse-eleitoral',
+        name: 'Direito Eleitoral & Resoluções do TSE',
+        weight: 3,
+        relevancePercentage: 40.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-tse-1', name: 'Inelegibilidades (LC 64/90), Partidos Políticos e Eleições (Lei 9.504/97)', frequencyInBanca: 'Alta', accuracyRate: 51, status: 'Ponto Cego' }
+        ]
+      },
+      {
+        id: 'sub-tse-adm-const',
+        name: 'Direito Administrativo & Constitucional',
+        weight: 3,
+        relevancePercentage: 35.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-tse-2', name: 'Poder Judiciário na CF/88, Lei 8.112/90 e Licitações 14.133/21', frequencyInBanca: 'Alta', accuracyRate: 70, status: 'Instável' }
+        ]
+      },
+      {
+        id: 'sub-tse-port',
+        name: 'Língua Portuguesa & Noções de Arquivologia/TI',
+        weight: 2,
+        relevancePercentage: 25.0,
+        totalTopics: 1,
+        topics: [
+          { id: 'top-tse-3', name: 'Compreensão Textual Cebraspe e Gestão Documental', frequencyInBanca: 'Alta', accuracyRate: 64, status: 'Instável' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'exam-tcu-2026',
+    title: 'TCU 2026 - Auditor Federal de Controle Externo',
+    institution: 'Tribunal de Contas da União',
+    banca: 'FGV',
+    role: 'Auditor Federal de Controle Externo (AUFC)',
+    salary: 'R$ 26.159,00',
+    vacancies: 100,
+    examDate: '2026-12-20',
+    daysRemaining: 115,
+    status: 'previsto',
+    pdfFileName: 'Matriz_TCU_Auditor_FGV.pdf',
+    uploadedAt: '2026-08-26',
+    subjects: [
+      {
+        id: 'sub-tcu-controle',
+        name: 'Controle Externo & Auditoria Governamental (NBASP)',
+        weight: 3,
+        relevancePercentage: 38.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-tcu-1', name: 'Competências Constitucionais do TCU (Art. 71 CF), Lei Orgânica e Normas ISSAI', frequencyInBanca: 'Alta', accuracyRate: 53, status: 'Ponto Cego' }
+        ]
+      },
+      {
+        id: 'sub-tcu-afo',
+        name: 'Administração Financeira e Orçamentária (AFO) & Contabilidade Pública',
+        weight: 3,
+        relevancePercentage: 32.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-tcu-2', name: 'Lei de Responsabilidade Fiscal (LC 101/00), Novo Arcabouço Fiscal e MCASP', frequencyInBanca: 'Alta', accuracyRate: 58, status: 'Instável' }
+        ]
+      },
+      {
+        id: 'sub-tcu-dados',
+        name: 'Análise de Dados, Estatística & Direito Administrativo',
+        weight: 2,
+        relevancePercentage: 30.0,
+        totalTopics: 1,
+        topics: [
+          { id: 'top-tcu-3', name: 'Auditoria de Contratos (Lei 14.133/21) e Mineração de Dados Públicos', frequencyInBanca: 'Alta', accuracyRate: 61, status: 'Instável' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'exam-bacen-2026',
+    title: 'BACEN 2026 - Analista do Banco Central do Brasil',
+    institution: 'Banco Central do Brasil',
+    banca: 'Cebraspe',
+    role: 'Analista do Banco Central (Economia, Finanças & TI)',
+    salary: 'R$ 22.920,00',
+    vacancies: 300,
+    examDate: '2027-01-24',
+    daysRemaining: 140,
+    status: 'rumor',
+    pdfFileName: 'Matriz_BACEN_Analista_Cebraspe.pdf',
+    uploadedAt: '2026-08-26',
+    subjects: [
+      {
+        id: 'sub-bacen-econ',
+        name: 'Economia, Macroeconomia & Sistema Financeiro Nacional',
+        weight: 3,
+        relevancePercentage: 40.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-bac-1', name: 'Política Monetária, Metas de Inflação, Basileia III e Regulação Prudencial', frequencyInBanca: 'Alta', accuracyRate: 50, status: 'Ponto Cego' }
+        ]
+      },
+      {
+        id: 'sub-bacen-cont',
+        name: 'Contabilidade de Instituições Financeiras (COSIF) & Finanças',
+        weight: 3,
+        relevancePercentage: 32.0,
+        totalTopics: 1,
+        topics: [
+          { id: 'top-bac-2', name: 'Derivativos, Risco de Crédito, Mercado de Capitais e COSIF', frequencyInBanca: 'Alta', accuracyRate: 55, status: 'Ponto Cego' }
+        ]
+      },
+      {
+        id: 'sub-bacen-dir',
+        name: 'Direito Constitucional, Administrativo & TI Aplicada',
+        weight: 2,
+        relevancePercentage: 28.0,
+        totalTopics: 1,
+        topics: [
+          { id: 'top-bac-3', name: 'Autonomia do Banco Central (LC 179/21) e Infraestrutura de Pagamentos', frequencyInBanca: 'Alta', accuracyRate: 67, status: 'Instável' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'exam-cgu-2026',
+    title: 'CGU 2026 - Auditor Federal de Finanças e Controle',
+    institution: 'Controladoria-Geral da União',
+    banca: 'FGV',
+    role: 'Auditor Federal de Finanças e Controle (AFFC)',
+    salary: 'R$ 23.504,96',
+    vacancies: 375,
+    examDate: '2027-02-14',
+    daysRemaining: 160,
+    status: 'rumor',
+    pdfFileName: 'Matriz_CGU_Auditor_FGV.pdf',
+    uploadedAt: '2026-08-26',
+    subjects: [
+      {
+        id: 'sub-cgu-aud',
+        name: 'Auditoria Interna Governamental, Corregedoria & Ouvidoria',
+        weight: 3,
+        relevancePercentage: 38.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-cgu-1', name: 'Lei Anticorrupção (Lei 12.846/13), Acordos de Leniência e Compliance Público', frequencyInBanca: 'Alta', accuracyRate: 56, status: 'Ponto Cego' }
+        ]
+      },
+      {
+        id: 'sub-cgu-afo',
+        name: 'AFO, Finanças Públicas & Contabilidade Aplicada ao Setor Público',
+        weight: 3,
+        relevancePercentage: 34.0,
+        totalTopics: 1,
+        topics: [
+          { id: 'top-cgu-2', name: 'Execução Orçamentária e Financeira, SIAFI e Demonstrações Contábeis (MCASP)', frequencyInBanca: 'Alta', accuracyRate: 60, status: 'Instável' }
+        ]
+      },
+      {
+        id: 'sub-cgu-adm',
+        name: 'Direito Administrativo, Constitucional & Língua Portuguesa FGV',
+        weight: 2,
+        relevancePercentage: 28.0,
+        totalTopics: 1,
+        topics: [
+          { id: 'top-cgu-3', name: 'Sindicância, PAD, Improbidade (Lei 14.230/21) e Licitações (Lei 14.133/21)', frequencyInBanca: 'Alta', accuracyRate: 65, status: 'Instável' }
         ]
       }
     ]

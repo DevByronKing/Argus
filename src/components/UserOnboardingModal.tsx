@@ -198,7 +198,11 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
   const [tacticalLogs, setTacticalLogs] = useState<string[]>([]);
 
   // Detecção ativa de Tema Claro vs Escuro
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(() => {
+    if (theme) return theme === 'dark';
+    if (typeof document !== 'undefined') return document.documentElement.classList.contains('dark');
+    return false;
+  });
 
   const { variant: authPlacementVariant } = useExperiment('auth_placement');
 
@@ -585,9 +589,11 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
       aria-modal="true"
       aria-labelledby="onboarding-title"
       data-theme-mode={isDark ? 'dark' : 'light'}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 select-none overflow-hidden animate-fadeIn bg-slate-950/95 backdrop-blur-2xl"
+      className={`fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 select-none overflow-hidden animate-fadeIn backdrop-blur-2xl ${
+        isDark ? 'bg-slate-950/95 text-white' : 'bg-slate-100/95 text-slate-900'
+      }`}
       style={{
-        backgroundColor: 'var(--surface-overlay)'
+        backgroundColor: isDark ? 'rgba(4, 7, 13, 0.96)' : 'rgba(241, 245, 249, 0.96)'
       }}
     >
       {/* Halo de iluminação focal volumétrica sutil com a cor de assinatura do guardião */}
@@ -1220,7 +1226,11 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
                   </div>
 
                   {/* O CARTÃO DE PASSAPORTE HOLOGRÁFICO TITÂNIO & OURO */}
-                  <div className="passport-card relative rounded-[var(--radius-xl)] p-5 sm:p-6 bg-gradient-to-br from-[#070b14] via-[#0d1426] to-[#080d1a] border border-cyan-500/40 shadow-2xl overflow-hidden text-white">
+                  <div className={`passport-card relative rounded-[var(--radius-xl)] p-5 sm:p-6 border shadow-2xl overflow-hidden ${
+                    isDark
+                      ? 'bg-gradient-to-br from-[#070b14] via-[#0d1426] to-[#080d1a] border-cyan-500/40 text-white'
+                      : 'bg-gradient-to-br from-white via-indigo-50/70 to-blue-50/80 border-indigo-200 text-slate-900'
+                  }`}>
                     <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4">
                       <div className="flex items-center sm:items-start gap-4">
                         <Avatar
@@ -1231,13 +1241,17 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
                         />
 
                         <div className="space-y-1 text-center sm:text-left">
-                          <span className="px-2 py-0.5 rounded-full bg-amber-400/20 border border-amber-400/40 text-[10px] font-mono font-black uppercase tracking-wider text-amber-300 inline-block">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-black uppercase tracking-wider inline-block border ${
+                            isDark
+                              ? 'bg-amber-400/20 border-amber-400/40 text-amber-300'
+                              : 'bg-amber-100 border-amber-300 text-amber-800'
+                          }`}>
                             ★ CREDENCIAL OFICIAL
                           </span>
-                          <h4 className="text-xl sm:text-2xl font-black tracking-tight text-white break-words">
+                          <h4 className={`text-xl sm:text-2xl font-black tracking-tight break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             {warName.trim() || 'Concurseiro(a)'}
                           </h4>
-                          <p className="text-xs font-semibold text-indigo-300">
+                          <p className={`text-xs font-semibold ${isDark ? 'text-indigo-300' : 'text-indigo-700'}`}>
                             Guardião: {selectedGuardian.name} ({selectedGuardian.archetype})
                           </p>
                         </div>
@@ -1245,52 +1259,51 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
 
                       <div className="text-center sm:text-right font-mono text-[10px] shrink-0">
                         <div
-                          className="px-3 py-1.5 rounded-[var(--radius-md)] border"
-                          style={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                            borderColor: 'rgba(255, 255, 255, 0.14)'
-                          }}
+                          className={`px-3 py-1.5 rounded-[var(--radius-md)] border ${
+                            isDark ? 'bg-white/5 border-white/15' : 'bg-white/90 border-indigo-200 shadow-sm'
+                          }`}
                         >
-                          <span className="text-cyan-300 font-bold block">LAI-2026-CERTIFIED</span>
-                          <span className="text-slate-400 text-[9px] block">PADRÃO SHA-256</span>
+                          <span className={`font-bold block ${isDark ? 'text-cyan-300' : 'text-indigo-700'}`}>ARGUS-2026-CERTIFIED</span>
+                          <span className={`text-[9px] block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>PADRÃO SHA-256</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Metas do Passaporte */}
                     <div
-                      className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 mt-4 border-t text-left"
-                      style={{ borderColor: 'rgba(255, 255, 255, 0.12)' }}
+                      className={`grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 mt-4 border-t text-left ${
+                        isDark ? 'border-white/15' : 'border-indigo-200/80'
+                      }`}
                     >
                       <div className="min-w-0">
-                        <span className="text-[10px] uppercase font-mono block text-slate-400">
+                        <span className={`text-[10px] uppercase font-mono block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                           Edital Alvo
                         </span>
-                        <span className="text-xs font-bold truncate block text-white" title={targetExamTitle}>
+                        <span className={`text-xs font-bold truncate block ${isDark ? 'text-white' : 'text-slate-900'}`} title={targetExamTitle}>
                           {targetExamTitle}
                         </span>
                       </div>
                       <div className="min-w-0">
-                        <span className="text-[10px] uppercase font-mono block text-slate-400">
+                        <span className={`text-[10px] uppercase font-mono block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                           Banca
                         </span>
-                        <span className="text-xs font-black text-cyan-400 block truncate">
+                        <span className={`text-xs font-black block truncate ${isDark ? 'text-cyan-400' : 'text-blue-700'}`}>
                           {detectedBanca}
                         </span>
                       </div>
                       <div className="min-w-0">
-                        <span className="text-[10px] uppercase font-mono block text-slate-400">
+                        <span className={`text-[10px] uppercase font-mono block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                           Meta Diária
                         </span>
-                        <span className="text-xs font-black text-emerald-400 block">
+                        <span className={`text-xs font-black block ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
                           {dailyHoursGoal}h líquidas/dia
                         </span>
                       </div>
                       <div className="min-w-0">
-                        <span className="text-[10px] uppercase font-mono block text-slate-400">
+                        <span className={`text-[10px] uppercase font-mono block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                           Alvo de Ataque
                         </span>
-                        <span className="text-xs font-black text-amber-300 truncate block" title={weakSubject}>
+                        <span className={`text-xs font-black truncate block ${isDark ? 'text-amber-300' : 'text-amber-700'}`} title={weakSubject}>
                           {weakSubject}
                         </span>
                       </div>

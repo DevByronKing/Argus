@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { SubscriptionPlan } from '@/lib/types';
 import { AVAILABLE_COUPONS } from '@/lib/concursosData';
+import { INITIAL_EXAMS } from '@/lib/mockData';
 import { trackConversion } from '@/components/TrackingScripts';
 import { useAuthStore } from '@/store/useAuthStore';
 import { GoogleIcon } from './GoogleSignInButton';
@@ -49,6 +50,20 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
     initialPlan === 'black' ? 'vitalicio' : 'anual'
   );
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'cartao'>('pix');
+  const [targetExam, setTargetExam] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('argus_target_exam');
+      if (saved && INITIAL_EXAMS.some((e) => e.title === saved)) return saved;
+    }
+    return INITIAL_EXAMS[0]?.title || 'INSS - Técnico do Seguro Social';
+  });
+
+  const groupedExams = React.useMemo(() => ({
+    publicado: INITIAL_EXAMS.filter((e) => e.status === 'publicado'),
+    confirmado: INITIAL_EXAMS.filter((e) => e.status === 'confirmado'),
+    previsto: INITIAL_EXAMS.filter((e) => e.status === 'previsto' || !e.status),
+    rumor: INITIAL_EXAMS.filter((e) => e.status === 'rumor'),
+  }), []);
   
   // Coupon State
   const [couponCode, setCouponCode] = useState('');
@@ -212,6 +227,10 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
     setCouponError(null);
+    if (selectedPlan === 'lancamento') {
+      setCouponError('O Passe de R$ 97,00 já possui valor promocional de custo fixo e não aceita cupom adicional.');
+      return;
+    }
     const clean = couponCode.trim().toUpperCase();
     if (!clean) return;
 
@@ -252,6 +271,14 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
     setTimeout(() => {
       setIsProcessing(false);
       setIsPaymentConfirmed(true);
+      if (selectedPlan === 'lancamento') {
+        const matched = INITIAL_EXAMS.find((e) => e.title === targetExam) || INITIAL_EXAMS[0];
+        try {
+          localStorage.setItem('argus_locked_exam_id', matched.id);
+          localStorage.setItem('argus_locked_exam_title', matched.title);
+          localStorage.setItem('argus_target_exam', matched.title);
+        } catch {}
+      }
       trackConversion.purchase(`tx_asaas_${Date.now()}`, finalPrice, selectedPlan);
       showToast(`Pagamento do ${planName} confirmado! Bem-vindo(a) ao topo.`);
       onPaymentSuccess(selectedPlan);
@@ -337,6 +364,58 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
                     <p className="text-[10px] text-slate-500 uppercase font-bold">Dose Única • Sem Mensalidade</p>
                   </div>
                 </div>
+
+                {/* Seletor do Edital Vinculado ao Passe R$ 97 */}
+                {selectedPlan === 'lancamento' && (
+                  <div className="mt-3 pt-3 border-t border-orange-200/60 dark:border-orange-500/20 space-y-1.5" onClick={(e) => e.stopPropagation()}>
+                    <label htmlFor="checkout-pass-exam-select" className="text-xs font-bold text-orange-900 dark:text-orange-200 flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+                      <span>Concurso Exclusivo Vinculado ao seu Passe:</span>
+                    </label>
+                    <select
+                      id="checkout-pass-exam-select"
+                      value={targetExam}
+                      onChange={(e) => {
+                        setTargetExam(e.target.value);
+                        try { localStorage.setItem('argus_target_exam', e.target.value); } catch {}
+                      }}
+                      aria-label="Concurso vinculado ao Passe de R$ 97"
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-orange-300 dark:border-orange-500/40 text-slate-900 dark:text-white font-bold text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer shadow-sm"
+                    >
+                      <optgroup label="🟢 Editais Abertos / Publicados">
+                        {groupedExams.publicado.map((exam) => (
+                          <option key={exam.id} value={exam.title}>
+                            {exam.title} ({exam.banca})
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="🔵 Concursos Confirmados & Autorizados">
+                        {groupedExams.confirmado.map((exam) => (
+                          <option key={exam.id} value={exam.title}>
+                            {exam.title} ({exam.banca})
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="🟡 Concursos Previstos 2026">
+                        {groupedExams.previsto.map((exam) => (
+                          <option key={exam.id} value={exam.title}>
+                            {exam.title} ({exam.banca})
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="🟣 Rumores Quentes & Comissões">
+                        {groupedExams.rumor.map((exam) => (
+                          <option key={exam.id} value={exam.title}>
+                            {exam.title} ({exam.banca})
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                    <p className="text-[11px] text-orange-800 dark:text-orange-300 font-medium">
+                      🔒 O Passe de R$ 97 dá direito a 1 edital completo até o dia da prova. Para ter acesso irrestrito a todos os concursos do Brasil ao mesmo tempo, selecione os planos PRO, ELITE ou BLACK.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* DEMAIS PLANOS CONTÍNUOS */}

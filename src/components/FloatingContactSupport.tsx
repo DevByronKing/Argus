@@ -39,10 +39,10 @@ export function FloatingContactSupport({
 
   // Formatação da mensagem padrão do WhatsApp com contexto completo e qualificação do aluno
   const generateWhatsAppUrl = () => {
-    const phone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT || '5511999999999'; // Número oficial de suporte da operação
+    const phone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT || '5591981646532'; // Número oficial de suporte WhatsApp: (91) 98164-6532
     const statusTag = isCommittedUser ? '[CLIENTE VIP • ASSINANTE / TRIAL VALIDADO]' : '[VISITANTE]';
     const text = encodeURIComponent(
-      `Olá equipe de Engenharia do Argus! Sou ${studentName}.\n` +
+      `Olá equipe do Argus! Sou ${studentName}.\n` +
       `${statusTag}\n` +
       `Estou na aba "${currentTab}" me preparando para: ${targetExam}.\n` +
       `Preciso de ajuda com o seguinte ponto:`
@@ -78,21 +78,40 @@ export function FloatingContactSupport({
     });
 
     // Salva no log local de feedback para triagem priorizada do time de produto
+    const newTicketData = {
+      id: `ticket_${Date.now()}`,
+      date: new Date().toISOString(),
+      studentName,
+      targetExam,
+      currentTab,
+      category: feedbackCategory,
+      rating: feedbackRating,
+      message: feedbackMessage,
+      is_paying_or_committed: isCommittedUser,
+      prioritySla: isCommittedUser ? 'alta_prioridade_1h' : 'normal_48h',
+    };
+
     try {
       const existing = JSON.parse(localStorage.getItem('learning_ai_support_tickets') || '[]');
-      existing.push({
-        id: `ticket_${Date.now()}`,
-        date: new Date().toISOString(),
-        studentName,
-        targetExam,
-        currentTab,
-        category: feedbackCategory,
-        rating: feedbackRating,
-        message: feedbackMessage,
-        is_paying_or_committed: isCommittedUser,
-        prioritySla: isCommittedUser ? 'alta_prioridade_1h' : 'normal_48h',
-      });
+      existing.unshift(newTicketData);
       localStorage.setItem('learning_ai_support_tickets', JSON.stringify(existing));
+    } catch {}
+
+    // Envia para o painel de chamados da API /api/support
+    try {
+      fetch('/api/support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentName,
+          category: feedbackCategory,
+          message: feedbackMessage,
+          rating: feedbackRating,
+          currentTab,
+          targetExam,
+          isPayingOrCommitted: isCommittedUser,
+        }),
+      }).catch(() => {});
     } catch {}
 
     setIsSubmitted(true);
@@ -212,7 +231,7 @@ export function FloatingContactSupport({
                       </div>
                       <div className="text-left">
                         <p className="font-bold text-xs sm:text-sm">Chamar no WhatsApp</p>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400">Resposta média: &lt; 5 min</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">(91) 98164-6532 • Online</p>
                       </div>
                     </div>
                     <ExternalLink className="w-4 h-4 text-emerald-500 transition-transform group-hover:translate-x-0.5" />

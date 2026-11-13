@@ -30,7 +30,7 @@ html.light {
   --surface-bg: #F8FAFC;                /* Fundo geral da aplicação (evita ofuscamento do branco puro) */
   --surface-card: #FFFFFF;              /* Fundo de cartões de aula e modais */
   --surface-elevated: #F1F5F9;          /* Fundo de inputs, barras e containers secundários */
-  --surface-overlay: rgba(8, 12, 20, 0.94); /* Backdrop de modais escuro, sólido e imersivo */
+  --surface-overlay: rgba(241, 245, 249, 0.96); /* Backdrop claro e limpo para o modo claro */
 
   /* Bordas e Delimitação */
   --border-subtle: #E2E8F0;             /* Borda padrão de cards e divisores */
