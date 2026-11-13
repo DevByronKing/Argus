@@ -375,7 +375,9 @@ export const HelpAndAboutTab: React.FC<HelpAndAboutTabProps> = ({
             <div className="bg-white dark:bg-dark-surface border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-sm space-y-3 text-xs">
               <p className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Mail className="w-4 h-4 text-blue-500" />
-                <span>suporte@argus.app.br</span>
+                <a href="mailto:argus.education.tech@gmail.com" className="hover:underline text-blue-600 dark:text-blue-400">
+                  argus.education.tech@gmail.com
+                </a>
               </p>
               <p className="text-slate-500 dark:text-slate-400">
                 Horário de Atendimento: Segunda a Sábado das 08h às 22h (Horário de Brasília).
@@ -592,24 +594,46 @@ export const HelpAndAboutTab: React.FC<HelpAndAboutTabProps> = ({
               Acompanhe novidades de editais, resoluções comentadas e eventos ao vivo com nossos professores e especialistas.
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
               
               {/* Instagram */}
               <a
-                href="https://instagram.com"
+                href="https://instagram.com/argus_education"
                 target="_blank"
                 rel="noreferrer"
-                className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/10 via-purple-500/5 to-transparent border border-pink-500/20 hover:border-pink-500/50 transition-all space-y-3 group"
+                className="p-5 rounded-2xl bg-gradient-to-br from-pink-500/10 via-purple-500/5 to-transparent border border-pink-500/20 hover:border-pink-500/50 transition-all space-y-3 group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-pink-500/20 text-pink-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Instagram className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-2xl bg-pink-500/20 text-pink-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Instagram className="w-5 h-5" />
                 </div>
-                <h3 className="font-black text-base text-slate-900 dark:text-white">Instagram Oficial</h3>
+                <h3 className="font-black text-sm text-slate-900 dark:text-white">Instagram Oficial</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Dicas rápidas de pegadinhas de bancas, enquetes diárias e motivação para os estudos.
+                  Dicas de pegadinhas, alertas de editais e bastidores da IA.
                 </p>
                 <span className="text-xs font-bold text-pink-600 dark:text-pink-400 inline-flex items-center gap-1">
-                  <span>@argus.oficial</span>
+                  <span>@argus_education</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </span>
+              </a>
+
+              {/* TikTok */}
+              <a
+                href="https://tiktok.com/@argus.app"
+                target="_blank"
+                rel="noreferrer"
+                className="p-5 rounded-2xl bg-gradient-to-br from-slate-900/10 via-cyan-500/5 to-rose-500/5 border border-slate-300 dark:border-white/10 hover:border-cyan-500/50 transition-all space-y-3 group"
+              >
+                <div className="w-11 h-11 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center group-hover:scale-110 transition-transform font-black text-base">
+                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.86.11V9.32a6.34 6.34 0 0 0-.86-.06 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.71a8.18 8.18 0 0 0 4.77 1.52V6.78c-.34 0-.68-.03-1-.09z" />
+                  </svg>
+                </div>
+                <h3 className="font-black text-sm text-slate-900 dark:text-white">TikTok Oficial</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Vídeos dinâmicos de pegadinhas Cebraspe, FGV e técnicas de memorização.
+                </p>
+                <span className="text-xs font-bold text-slate-900 dark:text-white inline-flex items-center gap-1">
+                  <span>@argus.app</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </span>
               </a>
@@ -619,14 +643,14 @@ export const HelpAndAboutTab: React.FC<HelpAndAboutTabProps> = ({
                 href="https://youtube.com"
                 target="_blank"
                 rel="noreferrer"
-                className="p-6 rounded-2xl bg-gradient-to-br from-red-500/10 via-rose-500/5 to-transparent border border-red-500/20 hover:border-red-500/50 transition-all space-y-3 group"
+                className="p-5 rounded-2xl bg-gradient-to-br from-red-500/10 via-rose-500/5 to-transparent border border-red-500/20 hover:border-red-500/50 transition-all space-y-3 group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-red-500/20 text-red-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Youtube className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-2xl bg-red-500/20 text-red-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Youtube className="w-5 h-5" />
                 </div>
-                <h3 className="font-black text-base text-slate-900 dark:text-white">Canal no YouTube</h3>
+                <h3 className="font-black text-sm text-slate-900 dark:text-white">Canal no YouTube</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Aulas ao vivo de desconstrução de editais e engenharia reversa das bancas Cebraspe e FGV.
+                  Aulas ao vivo de desconstrução de editais e engenharia reversa.
                 </p>
                 <span className="text-xs font-bold text-red-600 dark:text-red-400 inline-flex items-center gap-1">
                   <span>Inscrever-se no Canal</span>
@@ -639,14 +663,14 @@ export const HelpAndAboutTab: React.FC<HelpAndAboutTabProps> = ({
                 href="https://telegram.org"
                 target="_blank"
                 rel="noreferrer"
-                className="p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent border border-cyan-500/20 hover:border-cyan-500/50 transition-all space-y-3 group"
+                className="p-5 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent border border-cyan-500/20 hover:border-cyan-500/50 transition-all space-y-3 group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Send className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-2xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Send className="w-5 h-5" />
                 </div>
-                <h3 className="font-black text-base text-slate-900 dark:text-white">Comunidade Telegram</h3>
+                <h3 className="font-black text-sm text-slate-900 dark:text-white">Comunidade Telegram</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Alertas em tempo real assim que um novo edital é publicado no Diário Oficial.
+                  Alertas em tempo real assim que um novo edital sai no Diário Oficial.
                 </p>
                 <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400 inline-flex items-center gap-1">
                   <span>Entrar no Grupo Grátis</span>

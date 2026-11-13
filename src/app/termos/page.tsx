@@ -120,7 +120,7 @@ export default function TermosPage() {
                 <span>7. Canal de Atendimento e Suporte ao Aluno</span>
               </h2>
               <p>
-                Para dúvidas jurídicas, cancelamentos, estornos ou suporte técnico, disponibilizamos atendimento através do email oficial: <strong className="text-indigo-600 dark:text-indigo-400">contato@argusconcursos.com.br</strong> com tempo de resposta em até 24 horas úteis.
+                Para dúvidas jurídicas, cancelamentos, estornos ou suporte técnico, disponibilizamos atendimento através do email oficial: <strong className="text-indigo-600 dark:text-indigo-400">argus.education.tech@gmail.com</strong> com tempo de resposta em até 24 horas úteis.
               </p>
             </section>
           </div>

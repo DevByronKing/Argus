@@ -99,6 +99,10 @@ const SmartSubjectSummaries = dynamic(
   () => import('@/components/SmartSubjectSummaries').then((m) => m.SmartSubjectSummaries),
   { loading: () => <TabLoadingSkeleton />, ssr: false }
 );
+const PostPaymentWelcomeTab = dynamic(
+  () => import('@/components/PostPaymentWelcomeTab').then((m) => m.PostPaymentWelcomeTab),
+  { loading: () => <TabLoadingSkeleton />, ssr: false }
+);
 const AdminQuestionIngestModal = dynamic(
   () => import('@/components/AdminQuestionIngestModal').then((m) => m.AdminQuestionIngestModal),
   { ssr: false }
@@ -270,9 +274,12 @@ export function ArgusApp() {
         const params = new URLSearchParams(window.location.search);
         const editalSlug = params.get('edital');
         const tabParam = params.get('tab');
+        const checkoutSuccess = params.get('checkout') === 'success' || params.get('payment') === 'success' || params.get('status') === 'approved';
 
         if (tabParam) {
           setActiveTab(tabParam);
+        } else if (checkoutSuccess) {
+          setActiveTab('welcome-success');
         }
 
         if (editalSlug) {
@@ -426,6 +433,7 @@ export function ArgusApp() {
         'pricing-plans': 'Planos & Assinaturas | Argus',
         settings: 'Configurações do Aluno | Argus',
         checkout: 'Checkout Seguro | Argus',
+        'welcome-success': 'Bem-vindo(a) ao Argus! Matrícula Confirmada',
         subscription: 'Gerenciar Assinatura | Argus',
         help: 'Ajuda & Suporte | Argus',
       };
@@ -792,10 +800,11 @@ export function ArgusApp() {
     showToast(`Flashcard revisado! Próxima revisão em dias calibrados.`);
   };
 
-  const handleUpgradePlan = (newPlan: SubscriptionPlan) => {
+  const handleUpgradePlan = (newPlan: SubscriptionPlan, openWelcome: boolean = true) => {
     setPlan(newPlan);
     try {
       localStorage.setItem('argus_plan', newPlan);
+      localStorage.setItem('argus_last_order_id', `ARG-${Math.floor(100000 + Math.random() * 900000)}`);
     } catch {}
     if (newPlan === 'lancamento') {
       const savedTarget = typeof window !== 'undefined' ? localStorage.getItem('argus_target_exam') : null;
@@ -806,10 +815,14 @@ export function ArgusApp() {
       } catch {}
       setSelectedExam(matched);
       setDefaultExamId(matched.id);
-      showToast(`🎯 Passe de R$ 97 ativado! Acesso total liberado para o concurso ${matched.title}.`);
-      return;
     }
-    showToast(`🎉 Parabéns! Plano ${newPlan.toUpperCase()} ativado com sucesso!`);
+    if (openWelcome && newPlan !== 'aspirante') {
+      setIsPricingOpen(false);
+      setActiveTab('welcome-success');
+      showToast(`🎉 Matrícula confirmada no plano ${newPlan.toUpperCase()}!`);
+    } else {
+      showToast(`🎉 Parabéns! Plano ${newPlan.toUpperCase()} ativado com sucesso!`);
+    }
   };
 
   const pendingMistakesCount = mistakes.filter((m) => !m.isOvercome).length;
@@ -1095,10 +1108,17 @@ export function ArgusApp() {
             <CheckoutCartTab
               initialPlan={pendingCheckoutPlan}
               onPaymentSuccess={(newPlan) => {
-                handleUpgradePlan(newPlan);
-                setActiveTab('subscription');
+                handleUpgradePlan(newPlan, true);
               }}
               onGoBack={() => setActiveTab('pricing-plans')}
+              showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'welcome-success' && (
+            <PostPaymentWelcomeTab
+              plan={plan}
+              onNavigateTab={(tab) => setActiveTab(tab)}
               showToast={showToast}
             />
           )}

@@ -134,7 +134,7 @@ export default function PrivacidadePage() {
                 <span>7. Encarregado de Proteção de Dados (DPO)</span>
               </h2>
               <p>
-                Para exercer qualquer dos seus direitos previstos na LGPD ou esclarecer dúvidas sobre esta política, entre em contato diretamente com o nosso Encarregado de Dados pelo email: <strong className="text-indigo-600 dark:text-indigo-400">dpo@argus.app.br</strong> ou <strong className="text-indigo-600 dark:text-indigo-400">privacidade@argus.app.br</strong>.
+                Para exercer qualquer dos seus direitos previstos na LGPD ou esclarecer dúvidas sobre esta política, entre em contato diretamente com o nosso Encarregado de Dados pelo email: <strong className="text-indigo-600 dark:text-indigo-400">argus.education.tech@gmail.com</strong>.
               </p>
             </section>
           </div>

@@ -45,10 +45,28 @@ export const LandingFooter: React.FC = () => {
             </button>
             <span className="text-slate-300 dark:text-slate-700">•</span>
             <a 
-              href="mailto:contato@argus.app.br" 
+              href="mailto:argus.education.tech@gmail.com" 
               className="hover:text-indigo-600 dark:hover:text-white transition-colors"
             >
-              Suporte: contato@argus.app.br
+              Suporte: argus.education.tech@gmail.com
+            </a>
+            <span className="text-slate-300 dark:text-slate-700">•</span>
+            <a 
+              href="https://instagram.com/argus_education" 
+              target="_blank" 
+              rel="noreferrer"
+              className="hover:text-pink-500 transition-colors font-bold text-pink-600 dark:text-pink-400"
+            >
+              Instagram: @argus_education
+            </a>
+            <span className="text-slate-300 dark:text-slate-700">•</span>
+            <a 
+              href="https://tiktok.com/@argus.app" 
+              target="_blank" 
+              rel="noreferrer"
+              className="hover:text-cyan-500 transition-colors font-bold text-slate-800 dark:text-slate-200"
+            >
+              TikTok: @argus.app
             </a>
           </div>
         </div>
@@ -59,7 +77,7 @@ export const LandingFooter: React.FC = () => {
             ARGUS TECNOLOGIA EDUCACIONAL LTDA. &bull; CNPJ nº 52.040.000/0001-98
           </p>
           <p>
-            Av. Paulista, 1374, Bela Vista, São Paulo - SP, CEP 01310-100 &bull; DPO / Encarregado LGPD: dpo@argus.app.br
+            Av. Paulista, 1374, Bela Vista, São Paulo - SP, CEP 01310-100 &bull; DPO / Encarregado LGPD: argus.education.tech@gmail.com
           </p>
         </div>
 
