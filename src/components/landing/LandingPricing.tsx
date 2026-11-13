@@ -152,10 +152,10 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
                 } catch {}
                 onSelectPlan('lancamento');
               }}
-              className="w-full lg:w-auto px-8 py-4 rounded-2xl bg-white text-orange-600 hover:bg-orange-50 font-black text-base tracking-wide shadow-xl shadow-black/25 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
+              className="w-full lg:w-auto px-5 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-white text-orange-600 hover:bg-orange-50 font-black text-sm sm:text-base tracking-wide shadow-xl shadow-black/25 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
-              <span>Garantir Passe ({selectedLaunchExam.split(' - ')[0]}) por R$ 97</span>
-              <ArrowRight className="w-5 h-5" />
+              <span className="truncate max-w-[260px] sm:max-w-none">Garantir Passe ({selectedLaunchExam.split(' - ')[0]}) por R$ 97</span>
+              <ArrowRight className="w-5 h-5 shrink-0" />
             </button>
           </div>
         </div>

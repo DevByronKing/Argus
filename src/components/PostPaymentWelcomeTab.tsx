@@ -416,11 +416,11 @@ export const PostPaymentWelcomeTab: React.FC<PostPaymentWelcomeTabProps> = ({
         <button
           type="button"
           onClick={() => onNavigateTab('dashboard')}
-          className="px-10 py-5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:via-indigo-500 hover:to-cyan-400 text-white font-black text-base sm:text-lg tracking-wide shadow-2xl shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-3 cursor-pointer"
+          className="w-full sm:w-auto px-6 sm:px-10 py-4 sm:py-5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:via-indigo-500 hover:to-cyan-400 text-white font-black text-sm sm:text-lg tracking-wide shadow-2xl shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all inline-flex items-center justify-center gap-2.5 sm:gap-3 cursor-pointer"
         >
-          <Sparkles className="w-5 h-5 fill-white" />
+          <Sparkles className="w-5 h-5 fill-white shrink-0" />
           <span>Acessar Meu Cockpit de Estudos Agora</span>
-          <ArrowRight className="w-5 h-5" />
+          <ArrowRight className="w-5 h-5 shrink-0" />
         </button>
       </div>
 

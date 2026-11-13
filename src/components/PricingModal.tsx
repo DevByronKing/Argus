@@ -343,25 +343,25 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[110] bg-slate-900/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fadeIn">
-      <div className="glass-panel w-full max-w-5xl rounded-3xl border border-slate-200 dark:border-indigo-500/30 relative shadow-2xl my-auto overflow-hidden bg-white/95 dark:bg-dark-surface/95 transition-all">
+    <div className="fixed inset-0 z-[110] bg-slate-900/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 overflow-hidden animate-fadeIn">
+      <div className="glass-panel w-full max-w-5xl max-h-[calc(100dvh-1rem)] sm:max-h-[92dvh] rounded-3xl border border-slate-200 dark:border-indigo-500/30 relative shadow-2xl my-auto overflow-hidden flex flex-col bg-white/95 dark:bg-dark-surface/95 transition-all">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-slate-800 dark:hover:text-white p-2 rounded-xl bg-slate-100 dark:bg-dark-card border border-slate-200 dark:border-white/5 transition-colors z-20 cursor-pointer"
+          className="absolute top-4 sm:top-5 right-4 sm:right-5 text-slate-400 hover:text-slate-800 dark:hover:text-white p-2 rounded-xl bg-slate-100 dark:bg-dark-card border border-slate-200 dark:border-white/5 transition-colors z-20 cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Modal Top Header with Segmented Navigation Tabs */}
-        <div className="px-6 pt-6 pb-4 border-b border-slate-200 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pr-16">
+        <div className="px-4 sm:px-6 pt-5 pb-4 border-b border-slate-200 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pr-14 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400">
               <Crown className="w-5 h-5 fill-amber-500" />
             </div>
             <div>
-              <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+              <h2 className="text-base sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
                 Planos & Checkout Oficial (R$ BRL)
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -375,7 +375,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
             <div className="inline-flex p-1 rounded-2xl bg-slate-100 dark:bg-dark-card border border-slate-200 dark:border-white/10">
               <button
                 onClick={() => setActiveTab('plans')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeTab === 'plans'
                     ? 'bg-indigo-600 text-white shadow-md'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -386,14 +386,14 @@ export const PricingModal: React.FC<PricingModalProps> = ({
               </button>
               <button
                 onClick={() => setActiveTab('checkout')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeTab === 'checkout'
                     ? 'bg-indigo-600 text-white shadow-md'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <BadgeCheck className="w-3.5 h-3.5" />
-                <span>2. Pagamento (Pix / Cartão)</span>
+                <span>2. Pagamento</span>
                 {selectedPlanToBuy !== 'aspirante' && (
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 )}
@@ -404,7 +404,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
         {/* TAB 1: COMPARADOR DE PLANOS */}
         {activeTab === 'plans' && (
-          <div className="p-6 sm:p-8 animate-fadeIn space-y-6">
+          <div className="p-4 sm:p-8 animate-fadeIn space-y-6 overflow-y-auto overscroll-contain flex-1">
             
             {/* VIP Banner: Oferta Fechada de Lançamento (Passe Até a Prova - R$ 97) */}
             <div className="relative p-6 sm:p-7 rounded-3xl bg-gradient-to-r from-orange-500/15 via-amber-500/15 to-emerald-500/15 border-2 border-orange-500/60 shadow-xl overflow-hidden animate-fadeIn">
@@ -729,7 +729,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
         {/* TAB 2: CHECKLIST DE PAGAMENTO & CHECKOUT (PIX E CARTÃO) */}
         {activeTab === 'checkout' && (
-          <div className="p-6 sm:p-8 animate-fadeIn space-y-6">
+          <div className="p-4 sm:p-8 animate-fadeIn space-y-6 overflow-y-auto overscroll-contain flex-1">
             
             {/* Selected Plan Summary Banner */}
             <div className="p-4 sm:p-5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">

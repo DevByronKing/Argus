@@ -205,13 +205,13 @@ export const FlashChallengeModal: React.FC<FlashChallengeModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-100/95 dark:bg-slate-950/90 backdrop-blur-xl animate-fade-in overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-100/95 dark:bg-slate-950/90 backdrop-blur-xl animate-fade-in overflow-hidden">
       <div 
-        className="relative w-full max-w-2xl my-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden text-slate-900 dark:text-white"
+        className="relative w-full max-w-2xl max-h-[calc(100dvh-1rem)] sm:max-h-[92dvh] flex flex-col my-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden text-slate-900 dark:text-white"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header com Gradiente Temático */}
-        <div className="relative p-5 sm:p-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white">
+        <div className="relative p-4 sm:p-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
@@ -271,7 +271,7 @@ export const FlashChallengeModal: React.FC<FlashChallengeModalProps> = ({
         {/* ETAPA 02: MICRO-COMPROMISSO (SELEÇÃO DE CONCURSO EM ALTA & BANCA FOCO)    */}
         {/* ========================================================================= */}
         {phase === 'target' && (
-          <div className="p-5 sm:p-7 space-y-4 animate-fadeIn">
+          <div className="p-4 sm:p-7 space-y-4 animate-fadeIn overflow-y-auto overscroll-contain flex-1">
             <div className="text-center space-y-1 mb-2">
               <span className="text-[10px] font-black uppercase tracking-wider text-blue-600 dark:text-cyan-400 bg-blue-50 dark:bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-500/20">
                 Micro-Compromisso Instantâneo
@@ -335,7 +335,7 @@ export const FlashChallengeModal: React.FC<FlashChallengeModalProps> = ({
         {/* ETAPA 03 & 04: O TESTE DE FOGO & O CHOQUE COGNITIVO                       */}
         {/* ========================================================================= */}
         {phase === 'quiz' && currentQ && (
-          <div className="p-5 sm:p-7 space-y-5 animate-fadeIn">
+          <div className="p-4 sm:p-7 space-y-5 animate-fadeIn overflow-y-auto overscroll-contain flex-1">
             {/* Tag da Disciplina, Banca & Cronômetro */}
             <div className="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
               <div className="flex items-center gap-2">
@@ -466,7 +466,7 @@ export const FlashChallengeModal: React.FC<FlashChallengeModalProps> = ({
         {/* ETAPA 05: PAYWALL SUAVE (REPETIÇÃO ESPAÇADA SM-2 & CHECKOUT 1-CLICK)      */}
         {/* ========================================================================= */}
         {phase === 'completed' && (
-          <div className="p-6 sm:p-8 text-center space-y-5 animate-fadeIn">
+          <div className="p-4 sm:p-8 text-center space-y-5 animate-fadeIn overflow-y-auto overscroll-contain flex-1">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-3xl bg-gradient-to-tr from-amber-400 via-indigo-600 to-cyan-500 text-white shadow-xl shadow-cyan-500/20 animate-bounce">
               <Flame className="w-8 h-8" />
             </div>

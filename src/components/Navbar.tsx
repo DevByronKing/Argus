@@ -543,7 +543,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }`}>
                     Argus <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400">AI</span>
                   </span>
-                  <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded border whitespace-nowrap transition-colors ${planMeta.badgeClass}`}>
+                  <span className={`hidden sm:inline-block text-[10px] font-extrabold px-1.5 py-0.5 rounded border whitespace-nowrap transition-colors ${planMeta.badgeClass}`}>
                     {planMeta.shortLabel}
                   </span>
                 </div>
@@ -1105,7 +1105,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               {/* Módulos Estruturados nos 4 Pilares da Aprovação */}
               <div className="space-y-4">
-                {['Praticar', 'Conteúdo', 'Planejar', 'Evolução', 'Conta & Sistema'].map((pillar) => {
+                {['Geral', 'Praticar', 'Conteúdo', 'Planejar', 'Evolução', 'Conta & Sistema'].map((pillar) => {
                   const itemsInPillar = navTabs.filter(t => t.category === pillar);
                   if (itemsInPillar.length === 0) return null;
                   return (
@@ -1113,6 +1113,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <span className={`text-[10px] font-bold px-2 block ${
                         isLight ? 'text-slate-500' : 'text-slate-400'
                       }`}>
+                        {pillar === 'Geral' && '🏠 '}
                         {pillar === 'Praticar' && '🎯 '}
                         {pillar === 'Conteúdo' && '📚 '}
                         {pillar === 'Planejar' && '🗺️ '}
@@ -1215,6 +1216,19 @@ export const Navbar: React.FC<NavbarProps> = ({
       >
         <button
           type="button"
+          onClick={() => handleTabClick('landing')}
+          className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl active:scale-95 transition-all cursor-pointer ${
+            activeTab === 'landing' 
+              ? 'text-blue-600 dark:text-blue-400 font-black' 
+              : 'hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Compass className={`w-5 h-5 ${activeTab === 'landing' ? 'text-blue-600 dark:text-blue-400 scale-110' : ''}`} />
+          <span className="text-[10px] tracking-tight">Início</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => handleTabClick('simulator')}
           className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl active:scale-95 transition-all cursor-pointer ${
             activeTab === 'simulator' 
@@ -1237,19 +1251,6 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <BookOpen className={`w-5 h-5 ${activeTab === 'flashcards' ? 'text-blue-600 dark:text-blue-400 scale-110' : ''}`} />
           <span className="text-[10px] tracking-tight">Flashcards</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleTabClick('vademecum')}
-          className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl active:scale-95 transition-all cursor-pointer ${
-            activeTab === 'vademecum' 
-              ? 'text-amber-600 dark:text-amber-400 font-black' 
-              : 'hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <Scale className={`w-5 h-5 ${activeTab === 'vademecum' ? 'text-amber-600 dark:text-amber-400 scale-110' : ''}`} />
-          <span className="text-[10px] tracking-tight">Vade Mecum</span>
         </button>
 
         <button
