@@ -1,4 +1,5 @@
 import { ExamNotice, Question, UserMetrics, Flashcard, DiscursivePrompt, MockExam, MistakeEntry, VadeMecumArticle, MicroSummary, MascotCompanion, Achievement, DailyMission } from './types';
+import { ALL_OFFICIAL_QUESTIONS } from './questions';
 
 export const INITIAL_EXAMS: ExamNotice[] = [
   {
@@ -984,7 +985,7 @@ export const INITIAL_EXAMS: ExamNotice[] = [
   }
 ];
 
-export const MOCK_QUESTIONS: Question[] = [
+const INITIAL_CORE_QUESTIONS: Question[] = [
   {
     id: 'q-1',
     subjectId: 'sub-dir-prev',
@@ -1765,6 +1766,11 @@ export const MOCK_QUESTIONS: Question[] = [
       bancaTendency: 'Tema obrigatório da FGV na 1ª Fase da OAB (responde por 8 questões decisivas na prova).'
     }
   }
+];
+
+export const MOCK_QUESTIONS: Question[] = [
+  ...INITIAL_CORE_QUESTIONS,
+  ...ALL_OFFICIAL_QUESTIONS,
 ];
 
 export const INITIAL_METRICS: UserMetrics = {

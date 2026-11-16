@@ -10,22 +10,7 @@ fs.mkdirSync(VIDEOS_DIR, { recursive: true });
 const FFMPEG_PATH = 'C:\\Users\\jovap\\AppData\\Local\\ms-playwright\\ffmpeg-1011\\ffmpeg-win64.exe';
 
 function convertWebmToMp4(webmPath, mp4Path) {
-  if (!fs.existsSync(FFMPEG_PATH)) {
-    console.log('FFmpeg binary not found at expected path, keeping webm:', webmPath);
-    return;
-  }
-  execFileSync(FFMPEG_PATH, [
-    '-y',
-    '-i', webmPath,
-    '-vf', 'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black',
-    '-c:v', 'libx264',
-    '-pix_fmt', 'yuv420p',
-    '-preset', 'fast',
-    '-crf', '22',
-    '-movflags', '+faststart',
-    mp4Path,
-  ]);
-  console.log(`✓ Convertido para MP4 (Instagram-ready): ${path.basename(mp4Path)}`);
+  console.log(`✓ Vídeo 9:16 gravado: ${path.basename(webmPath)}`);
 }
 
 async function setupStorage(page) {

@@ -43,6 +43,7 @@ import { MobileAppModal } from './MobileAppModal';
 import { BrandLogo } from './BrandLogo';
 import { GoogleIcon } from './GoogleSignInButton';
 import { useAuthStore } from '@/store/useAuthStore';
+import { GoogleAIEngineBadge } from './GoogleAIEngineBadge';
 
 interface NavbarProps {
   activeTab: string;
@@ -498,8 +499,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         };
       default:
         return {
-          shortLabel: 'ASPIRANTE',
-          fullLabel: 'PLANO ASPIRANTE (GRÁTIS)',
+          shortLabel: 'VISITANTE',
+          fullLabel: 'SELECIONE SEU PLANO',
           badgeClass: isLight
             ? 'bg-slate-100 text-slate-700 border-slate-300'
             : 'bg-slate-800 text-slate-300 border-slate-700',
@@ -546,6 +547,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span className={`hidden sm:inline-block text-[10px] font-extrabold px-1.5 py-0.5 rounded border whitespace-nowrap transition-colors ${planMeta.badgeClass}`}>
                     {planMeta.shortLabel}
                   </span>
+                  <div className="hidden xl:block ml-1">
+                    <GoogleAIEngineBadge variant="compact" />
+                  </div>
                 </div>
               </div>
             </div>

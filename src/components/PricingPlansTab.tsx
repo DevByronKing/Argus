@@ -51,30 +51,28 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({
 
   const plans = [
     {
-      id: 'aspirante' as SubscriptionPlan,
-      name: 'Aspirante',
-      badge: 'Gratuito',
-      badgeColor: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-700',
-      priceMonthly: 0,
-      priceAnnualPerMonth: 0,
-      description: 'Ideal para conhecer o método e resolver baterias iniciais de questões.',
+      id: 'lancamento' as SubscriptionPlan,
+      name: 'Passe 30 Dias',
+      badge: 'Até a Prova',
+      badgeColor: 'bg-orange-500/20 text-orange-600 dark:text-orange-300 border-orange-500/30',
+      priceMonthly: 97.00,
+      priceAnnualPerMonth: 97.00,
+      description: 'Acesso único e focado até o dia da prova para 1 concurso à sua escolha.',
       features: [
-        '5 Diagnósticos de IA por dia',
-        '1 Edital Verticalizado pré-carregado',
-        '20 Questões / dia no simulador',
-        'Caderno de Erros (modo leitura)',
-        'Radar de Concursos Nacional & Mapa',
-        'Vade Mecum com 3 consultas / dia',
-        '1 Correção de Peça/Redação de teste'
+        '1 Concurso Exclusivo com Edital Travado',
+        'Banco de 260+ Questões Oficiais com gabaritos',
+        'Diagnósticos de Pegadinhas com IA',
+        'Edital Verticalizado 80/20 & Rota de Horas',
+        'Caderno de Erros com Algoritmo SM-2',
+        'Vade Mecum com Artigos Quentes da Banca',
+        'Sem mensalidade ou renovação surpresa'
       ],
       notIncluded: [
-        'Caderno de Erros com repetição espaçada SM-2',
-        'Exportação de Cronograma em PDF',
-        'Módulo de Psicometria TRI da Banca',
-        'Correções de Peças OAB regulares',
-        'Suporte Prioritário VIP'
+        'Troca ilimitada de editais',
+        'Correção de Peças OAB & Discursivas com espelho',
+        'Simulador de Prova Oral com IA'
       ],
-      ctaText: 'Plano Gratuito Ativo',
+      ctaText: 'Garantir Passe por R$ 97',
       isPopular: false
     },
     {
@@ -584,7 +582,7 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase font-black">
                 <th className="py-4 px-4 w-2/5">Funcionalidade</th>
-                <th className="py-4 px-3 text-center">Aspirante</th>
+                <th className="py-4 px-3 text-center text-orange-600 dark:text-orange-400">PASSE R$ 97</th>
                 <th className="py-4 px-3 text-center text-blue-600 dark:text-blue-400">PRO</th>
                 <th className="py-4 px-3 text-center text-amber-500">ELITE VIP</th>
                 <th className="py-4 px-3 text-center text-amber-400 bg-amber-500/10 rounded-t-xl font-black">👑 BLACK</th>

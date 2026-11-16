@@ -48,7 +48,7 @@ export const PostPaymentWelcomeTab: React.FC<PostPaymentWelcomeTabProps> = ({
     : 'ARG-2026';
 
   const planTitles: Record<SubscriptionPlan, { name: string; tag: string; badgeColor: string }> = {
-    aspirante: { name: 'Aspirante Gratuito', tag: 'Acesso Básico', badgeColor: 'bg-slate-100 dark:bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-300 dark:border-slate-500/20' },
+    aspirante: { name: 'Passe de 30 Dias (Edital Travado)', tag: 'Acesso Direto até a Prova', badgeColor: 'bg-orange-50 dark:bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-500/30' },
     lancamento: { name: 'Passe Até a Prova (Lote 1)', tag: 'Acesso Exclusivo sem Mensalidade', badgeColor: 'bg-orange-50 dark:bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-500/30' },
     pro: { name: 'Gabarito PRO (Copiloto Cognitivo)', tag: 'Mais Escolhido • Acesso Ilimitado', badgeColor: 'bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/30' },
     elite: { name: 'ELITE VIP & Discursivas', tag: 'Carreiras Jurídicas & Tribunais', badgeColor: 'bg-amber-50 dark:bg-amber-500/15 text-amber-800 dark:text-amber-400 border-amber-200 dark:border-amber-500/30' },
@@ -73,7 +73,7 @@ export const PostPaymentWelcomeTab: React.FC<PostPaymentWelcomeTabProps> = ({
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10 animate-fadeIn">
       
       {/* HERO COM EFEITO DE CELEBRAÇÃO & BOAS-VINDAS (CARD ESCURO PREMIUM COM CONTRASTE ABSOLUTO) */}
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 border border-indigo-500/30 text-white p-8 sm:p-12 shadow-2xl shadow-indigo-950/50">
+      <div className="preserve-dark relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 border border-indigo-500/30 text-white p-8 sm:p-12 shadow-2xl shadow-indigo-950/50">
         
         {/* Glows Decorativos de Fundo */}
         <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
@@ -86,7 +86,7 @@ export const PostPaymentWelcomeTab: React.FC<PostPaymentWelcomeTabProps> = ({
             <span>Matrícula Confirmada com Sucesso</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white !text-white leading-tight">
             Parabéns, Guerreiro(a)! <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
               Sua jornada rumo à posse começou.

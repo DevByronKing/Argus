@@ -133,17 +133,11 @@ export function assignVariant(visitorId: string, experimentKey: ExperimentKey): 
 }
 
 /**
- * Helper para validar se o acesso Freemium está permitido na plataforma.
- * Retorna sempre false enquanto a trava de escala estiver bloqueada no início da monetização.
+ * O modelo Freemium / Teste Grátis foi 100% desativado do sistema.
+ * Todo acesso exige plano pago ativo (Passe R$ 97, PRO, Elite ou Black).
  */
 export function isFreemiumAllowed(): boolean {
-  if (typeof window === 'undefined') return false;
-  try {
-    const flags = parseExperimentCookie(document.cookie);
-    return flags.freemium_vs_paid_experiment === 'variant_b';
-  } catch {
-    return false;
-  }
+  return false;
 }
 
 /**

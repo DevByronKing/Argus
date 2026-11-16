@@ -206,12 +206,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       billingCycle,
       source: 'pricing_modal',
     });
-    if (plan === 'aspirante') {
-      onUpgradePlan('aspirante');
-      onClose();
-    } else {
-      setActiveTab('checkout');
-    }
+    setActiveTab('checkout');
   };
 
   // Confirmação de Pagamento (Pix ou Cartão) com Trava Antifraude
@@ -311,10 +306,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
   const planPrices: Record<SubscriptionPlan, { name: string; price: string; period: string; annualTotal: string }> = {
     aspirante: {
-      name: 'ASPIRANTE (GRÁTIS)',
-      price: formatPrice(0),
-      period: '/ sempre',
-      annualTotal: 'Totalmente gratuito (10 questões/dia)'
+      name: 'PASSE ATÉ A PROVA (EDITAL TRAVADO)',
+      price: formatPrice(97),
+      period: 'dose única',
+      annualTotal: `Pagamento único de R$ 97,00 • Vinculado a 1 Concurso (${targetExamForLaunch})`
     },
     lancamento: {
       name: 'PASSE ATÉ A PROVA (1 CONCURSO)',
@@ -713,17 +708,6 @@ export const PricingModal: React.FC<PricingModalProps> = ({
               </div>
 
             </div>
-
-            {isFreemiumAllowed() && (
-              <div className="text-center pt-2">
-                <button
-                  onClick={() => handleSelectPlanAndGoToCheckout('aspirante')}
-                  className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 underline font-medium cursor-pointer"
-                >
-                  Prefere apenas testar? Continuar com o Plano Gratuito Aspirante (10 questões/dia)
-                </button>
-              </div>
-            )}
           </div>
         )}
 

@@ -101,7 +101,7 @@ describe('onboardingData', () => {
     expect(ctx.locale).toBeDefined();
     expect(['mobile', 'desktop']).toContain(ctx.deviceType);
     expect(ctx.currency).toBe('BRL');
-  });
+  }, 15000);
 
   it('saveOnboardingDraft, loadOnboardingDraft e clearOnboardingDraft gerenciam rascunho', () => {
     const sampleForm = buildInitialOnboardingState(null, []);

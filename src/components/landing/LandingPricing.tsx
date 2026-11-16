@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Crown, CheckCircle2, XCircle, Flame, Sparkles, ArrowRight, ShieldCheck, Target, ChevronDown, QrCode, CreditCard, Lock } from 'lucide-react';
+import { Crown, CheckCircle2, XCircle, Flame, Sparkles, ArrowRight, ShieldCheck, Target, ChevronDown, QrCode, CreditCard, Lock, Zap } from 'lucide-react';
 import { SubscriptionPlan } from '@/lib/types';
 import { INITIAL_EXAMS } from '@/lib/mockData';
+import { GoogleAIEngineBadge } from '@/components/GoogleAIEngineBadge';
 
 interface LandingPricingProps {
   onSelectPlan: (plan: SubscriptionPlan) => void;
@@ -166,42 +167,54 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
         {/* Glow de Fundo (Atrás dos cards) */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-blue-500/10 dark:bg-indigo-500/10 blur-[120px] rounded-full -z-10 pointer-events-none" />
 
-        {/* Plano Aspirante (Free) */}
-        <div className="group bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl p-8 sm:p-10 rounded-[2rem] flex flex-col justify-between border border-slate-200/60 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-slate-200/50 dark:hover:shadow-black/50">
+        {/* Card 1: Passe 30 Dias (Desafio 30 Dias / Edital Travado) */}
+        <div className="group bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl p-8 sm:p-10 rounded-[2rem] flex flex-col justify-between border border-slate-200/60 dark:border-white/5 hover:border-orange-400 dark:hover:border-orange-500/40 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/10">
           <div>
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Aspirante</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">Para quem está conhecendo o método</p>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 text-xs font-black uppercase tracking-wider mb-3">
+              <Zap className="w-3.5 h-3.5 fill-current" />
+              <span>Acesso Até a Prova</span>
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+              Passe 30 Dias
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">
+              Foco cirúrgico em 1 concurso específico até a prova
+            </p>
             
             <div className="mt-8 mb-8 flex items-baseline gap-2">
-              <span className="text-5xl font-black text-slate-900 dark:text-white">R$ 0</span>
-              <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">/ sempre grátis</span>
+              <span className="text-5xl font-black text-slate-900 dark:text-white">R$ 97</span>
+              <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">/ taxa única</span>
             </div>
 
             <ul className="space-y-4 text-sm font-medium text-slate-700 dark:text-slate-300 border-t border-slate-200/60 dark:border-white/5 pt-8">
               <li className="flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-slate-400 shrink-0" />
-                <span>1 Edital processado por mês</span>
+                <CheckCircle2 className="w-5 h-5 text-orange-500 shrink-0" />
+                <span><strong>1 Edital Travado</strong> de sua escolha até a prova</span>
               </li>
               <li className="flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-slate-400 shrink-0" />
-                <span>15 Questões diárias (gabarito simples)</span>
+                <CheckCircle2 className="w-5 h-5 text-orange-500 shrink-0" />
+                <span>Banco de 260+ Questões Oficiais com gabaritos</span>
               </li>
               <li className="flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-slate-400 shrink-0" />
-                <span>Cronograma estático básico</span>
+                <CheckCircle2 className="w-5 h-5 text-orange-500 shrink-0" />
+                <span>Diagnósticos de Pegadinhas com IA</span>
               </li>
-              <li className="flex items-center gap-3 text-slate-500 dark:text-slate-500/60">
-                <XCircle className="w-5 h-5 text-slate-300/50 dark:text-slate-600/50 shrink-0" />
-                <span className="line-through decoration-slate-300/50 dark:decoration-slate-600/50">Diagnóstico Cognitivo de Erros</span>
+              <li className="flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-orange-500 shrink-0" />
+                <span>Edital Verticalizado 80/20 &amp; Rota de Carga Horária</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-orange-500 shrink-0" />
+                <span>Caderno de Erros com Repetição Espaçada SM-2</span>
               </li>
             </ul>
           </div>
 
           <button
-            onClick={() => onSelectPlan('aspirante')}
-            className="mt-10 w-full py-4 rounded-xl bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 font-extrabold text-base transition-all duration-300 group-hover:border-indigo-200 dark:group-hover:border-indigo-500/30 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 shadow-sm group-hover:shadow-md"
+            onClick={() => onSelectPlan('lancamento')}
+            className="mt-10 w-full py-4 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-black text-base transition-all duration-300 shadow-lg shadow-orange-600/25 hover:shadow-orange-600/40 transform hover:scale-[1.02] cursor-pointer"
           >
-            Começar Gratuitamente
+            Garantir Passe por R$ 97
           </button>
         </div>
 
@@ -222,7 +235,10 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
             <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500 dark:from-indigo-400 dark:to-cyan-300">
               Gabarito Pro
             </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 font-semibold">O Copiloto Cognitivo de Alta Performance</p>
+            <div className="pt-1 pb-1">
+              <GoogleAIEngineBadge variant="card" />
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-semibold">O Copiloto Cognitivo de Alta Performance</p>
             
             <div className="mt-8 mb-8">
               <div className="flex items-baseline gap-2">
@@ -276,7 +292,10 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
         <div className="group bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl p-8 sm:p-10 rounded-[2rem] flex flex-col justify-between border border-slate-200/60 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-slate-200/50 dark:hover:shadow-black/50">
           <div>
             <h3 className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors">Elite & Discursivas</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">Carreiras Jurídicas, Fiscais, OAB e Tribunais</p>
+            <div className="pt-1 pb-1">
+              <GoogleAIEngineBadge variant="card" />
+            </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Carreiras Jurídicas, Fiscais, OAB e Tribunais</p>
             
             <div className="mt-8 mb-8">
               <div className="flex items-baseline gap-2">

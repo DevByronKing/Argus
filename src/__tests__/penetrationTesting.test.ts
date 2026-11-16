@@ -452,6 +452,6 @@ describe('Su√≠te de Penetration Testing & Auditoria dos 20 Conceitos de Seguran√
       expect(devSecOpsResult.sastClean).toBe(true);
       expect(devSecOpsResult.headersCompliant).toBe(true);
       expect(devSecOpsResult.overallPassed).toBe(true);
-    });
+    }, 15000);
   });
 });

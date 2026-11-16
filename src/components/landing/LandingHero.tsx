@@ -25,6 +25,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { analytics } from '@/lib/analytics';
+import { GoogleAIEngineBadge } from '@/components/GoogleAIEngineBadge';
 
 interface LandingHeroProps {
   onStartEdital: () => void;
@@ -166,20 +167,23 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           {/* Coluna Esquerda (5 ou 6 colunas): Mensagem Principal & Conversão */}
           <div className="lg:col-span-6 xl:col-span-5 text-left space-y-5">
             
-            {/* Posicionamento & Selo de Precisão */}
+            {/* Posicionamento & Selos Oficiais */}
             <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50/90 dark:bg-indigo-950/80 border border-indigo-200/90 dark:border-indigo-800 text-xs shadow-xs backdrop-blur-md">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span className="font-bold text-[11px] text-indigo-700 dark:text-indigo-300">
-                  Acelerador Cognitivo de Precisão
-                </span>
-                <span className="text-slate-300 dark:text-slate-700">•</span>
-                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                  Bancas 2026
-                </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <GoogleAIEngineBadge variant="hero" />
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50/90 dark:bg-indigo-950/80 border border-indigo-200/90 dark:border-indigo-800 text-xs shadow-xs backdrop-blur-md">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span className="font-bold text-[11px] text-indigo-700 dark:text-indigo-300">
+                    Acelerador de Precisão
+                  </span>
+                  <span className="text-slate-300 dark:text-slate-700">•</span>
+                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                    Bancas 2026
+                  </span>
+                </div>
               </div>
 
               <div className="flex items-center gap-2.5">
@@ -218,7 +222,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-black text-sm sm:text-base shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2.5 transition-all transform hover:-translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0"
               >
                 <BrainCircuit className="w-5 h-5 text-emerald-300 shrink-0" />
-                <span>Fazer Diagnóstico Grátis</span>
+                <span>Desarmar Meu Edital</span>
                 <ArrowRight className="w-4 h-4 shrink-0" />
               </button>
               
@@ -248,35 +252,35 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 <button
                   onClick={() => {
                     analytics.track('cta_clicked', {
-                      location: 'landing_hero_flash_challenge',
-                      cta_label: 'Desafio 3 Pegadinhas',
-                    });
-                    onOpenFlashChallenge();
-                  }}
-                  className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-500/15 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/30 hover:border-amber-500/50 text-amber-900 dark:text-amber-200 font-bold text-xs sm:text-sm whitespace-nowrap transition-all cursor-pointer shadow-xs group"
-                >
-                  <div className="flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-amber-500 fill-amber-500 animate-pulse shrink-0 group-hover:scale-110 transition-transform" />
-                    <span>Desafio 3 Pegadinhas (2 min)</span>
-                  </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300">
-                    Grátis &amp; Instantâneo
-                  </span>
-                  <ArrowRight className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                </button>
-              </div>
+                    location: 'landing_hero_flash_challenge',
+                    cta_label: 'Desafio 3 Pegadinhas',
+                  });
+                  onOpenFlashChallenge();
+                }}
+                className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-500/15 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/30 hover:border-amber-500/50 text-amber-900 dark:text-amber-200 font-bold text-xs sm:text-sm whitespace-nowrap transition-all cursor-pointer shadow-xs group"
+              >
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-amber-500 fill-amber-500 animate-pulse shrink-0 group-hover:scale-110 transition-transform" />
+                  <span>Desafio 3 Pegadinhas (2 min)</span>
+                </div>
+                <span className="text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                  Teste de Nivelamento
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
             )}
 
             {/* Micro-trust indicators */}
             <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 dark:text-slate-400 font-semibold pt-1">
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" /> Sem cartão
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" /> Acesso Imediato
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" /> Diagnóstico &lt; 20s
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" /> Garantia 7 Dias (CDC)
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" /> Gabaritos 2026
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" /> Gabaritos &amp; TRI 2026
               </span>
             </div>
 
