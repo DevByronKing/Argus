@@ -29,18 +29,18 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.ico?v=argus_iris_2026_v5', sizes: 'any' },
-      { url: '/favicon-32x32.png?v=argus_iris_2026_v5', sizes: '32x32', type: 'image/png' },
-      { url: '/favicon-16x16.png?v=argus_iris_2026_v5', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon.svg?v=argus_iris_2026_v5', type: 'image/svg+xml' },
-      { url: '/app-icon.png?v=argus_iris_2026_v5', sizes: '192x192', type: 'image/png' },
-      { url: '/logo-512.png?v=argus_iris_2026_v5', sizes: '512x512', type: 'image/png' },
+      { url: '/favicon.ico?v=argus_iris_circle_v6', sizes: 'any' },
+      { url: '/favicon-32x32.png?v=argus_iris_circle_v6', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png?v=argus_iris_circle_v6', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon.svg?v=argus_iris_circle_v6', type: 'image/svg+xml' },
+      { url: '/app-icon.png?v=argus_iris_circle_v6', sizes: '192x192', type: 'image/png' },
+      { url: '/logo-512.png?v=argus_iris_circle_v6', sizes: '512x512', type: 'image/png' },
     ],
     apple: [
-      { url: '/apple-touch-icon.png?v=argus_iris_2026_v5', sizes: '180x180', type: 'image/png' },
-      { url: '/app-icon.png?v=argus_iris_2026_v5', sizes: '192x192', type: 'image/png' },
+      { url: '/apple-touch-icon.png?v=argus_iris_circle_v6', sizes: '180x180', type: 'image/png' },
+      { url: '/app-icon.png?v=argus_iris_circle_v6', sizes: '192x192', type: 'image/png' },
     ],
-    shortcut: '/favicon.ico?v=argus_iris_2026_v5',
+    shortcut: '/favicon.ico?v=argus_iris_circle_v6',
   },
   alternates: {
     canonical: '/',

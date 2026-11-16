@@ -24,7 +24,8 @@ import {
   Zap,
   Check,
   X,
-  Crosshair
+  Crosshair,
+  Star
 } from 'lucide-react';
 import { VadeMecumArticle, ExamNotice, StudentProfile } from '@/lib/types';
 import { INITIAL_VADE_MECUM } from '@/lib/mockData';
@@ -666,8 +667,8 @@ export const SmartVadeMecum: React.FC<SmartVadeMecumProps> = ({
                   : 'bg-white dark:bg-dark-surface text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-white/10 hover:border-amber-400'
               }`}
             >
-              <span>⭐</span>
-              <span>{filterOnlyActiveExam ? 'Exibindo apenas Leis do seu Edital (Ativo ✓)' : 'Filtrar Leis Cobradas no seu Edital'}</span>
+              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+              <span>{filterOnlyActiveExam ? 'Exibindo apenas Leis do seu Edital (Ativo)' : 'Filtrar Leis Cobradas no seu Edital'}</span>
             </button>
           </div>
         )}

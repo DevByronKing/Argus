@@ -17,7 +17,8 @@ import {
   Zap,
   Award,
   Calendar,
-  Trophy
+  Trophy,
+  FileText
 } from 'lucide-react';
 import { UserMetrics, ExamNotice, Flashcard, StudentProfile } from '@/lib/types';
 import { GUARDIAN_ANIMALS } from '@/lib/guardianAnimals';
@@ -492,8 +493,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                         </div>
 
                         {topic.articlesOrLaws && topic.articlesOrLaws.length > 0 && (
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-2 truncate">
-                            📜 {topic.articlesOrLaws[0]}
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-2 truncate flex items-center gap-1">
+                            <FileText className="w-3 h-3 text-indigo-500 shrink-0 inline" />
+                            <span>{topic.articlesOrLaws[0]}</span>
                           </p>
                         )}
                       </div>

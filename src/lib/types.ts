@@ -1,3 +1,68 @@
+export const CANONICAL_MODULES = {
+  edital: {
+    id: 'edital',
+    title: 'Edital Verticalizado 80/20',
+    shortName: 'Edital 80/20',
+    description: 'Mapeamento matemático do conteúdo e pesos da banca examinadora',
+  },
+  simulator: {
+    id: 'simulator',
+    title: 'Arena de Combate 60/40',
+    shortName: 'Arena de Combate',
+    description: 'Baterias cirúrgicas com 25.000+ questões oficiais comentadas por IA',
+  },
+  mistakes: {
+    id: 'mistakes',
+    title: 'Caderno de Erros & Revanche',
+    shortName: 'Caderno de Erros',
+    description: 'Repetição espaçada com algoritmo SM-2 e classificação de armadilhas',
+  },
+  vademecum: {
+    id: 'vademecum',
+    title: 'Smart Vade Mecum (Radar 80/20)',
+    shortName: 'Smart Vade Mecum',
+    description: 'Artigos de lei seca com 80% de incidência real cobrados em prova',
+  },
+  discursivas: {
+    id: 'discursivas',
+    title: 'Estúdio de Discursivas & Peças',
+    shortName: 'Estúdio Discursivas',
+    description: 'Simulação e correção com critérios de espelhos oficiais Cebraspe/FGV/OAB',
+  },
+  cycle: {
+    id: 'cycle',
+    title: 'Ciclo Adaptativo (Meirelles)',
+    shortName: 'Ciclo Adaptativo',
+    description: 'Cronograma dinâmico que recalibra sua carga horária conforme sua precisão',
+  },
+  flashcards: {
+    id: 'flashcards',
+    title: 'Flashcards SRS (Repetição Espaçada)',
+    shortName: 'Flashcards SRS',
+    description: 'Baralhos inteligentes para fixação de prazos, súmulas e artigos quentes',
+  },
+  radar: {
+    id: 'radar',
+    title: 'Radar de Concursos & Tribunais',
+    shortName: 'Radar de Concursos',
+    description: 'Mapeamento de certames abertos, previstos e com comissões formadas',
+  },
+  analytics: {
+    id: 'analytics',
+    title: 'Cockpit de Desempenho (TRI)',
+    shortName: 'Cockpit TRI',
+    description: 'Estatísticas psicométricas preditivas de probabilidade de posse',
+  },
+  copilot: {
+    id: 'copilot',
+    title: 'Copiloto Cognitivo Argus',
+    shortName: 'Copiloto IA',
+    description: 'IA onisciente com domínio completo de todos os editais e bancas',
+  }
+} as const;
+
+export type CanonicalModuleKey = keyof typeof CANONICAL_MODULES;
+
 export type ExamNotice = {
   id: string;
   title: string;

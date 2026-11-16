@@ -165,22 +165,22 @@ export const FloatingDockNavigation: React.FC<FloatingDockNavigationProps> = ({
     };
   }, []);
 
-  // Catálogo simplificado e intuitivo estruturado nos 4 Pilares da Aprovação
+  // Catálogo com Nomes Padronizados Oficiais
   const dockGroups: { groupName: string; items: DockItem[] }[] = [
     {
       groupName: 'Praticar',
       items: [
         {
           id: 'simulator',
-          label: 'Arena',
-          fullName: 'Arena de Questões & Provas',
+          label: 'Arena 60/40',
+          fullName: 'Arena de Combate 60/40',
           category: 'Praticar',
           icon: Crosshair,
           badge: null
         },
         {
           id: 'mistakes',
-          label: 'Erros',
+          label: 'Caderno de Erros',
           fullName: 'Caderno de Erros & Revanche',
           category: 'Praticar',
           icon: ShieldAlert,
@@ -190,7 +190,7 @@ export const FloatingDockNavigation: React.FC<FloatingDockNavigationProps> = ({
         {
           id: 'flashcards',
           label: 'Flashcards',
-          fullName: 'Repetição Espaçada (SRS)',
+          fullName: 'Flashcards SRS (Repetição Espaçada)',
           category: 'Praticar',
           icon: Layers,
           badge: null
@@ -202,15 +202,15 @@ export const FloatingDockNavigation: React.FC<FloatingDockNavigationProps> = ({
       items: [
         {
           id: 'vademecum',
-          label: 'Vade Mecum',
-          fullName: 'Smart Vade Mecum & Leis',
+          label: 'Smart Vade Mecum',
+          fullName: 'Smart Vade Mecum (Radar 80/20)',
           category: 'Conteúdo',
           icon: Scale,
           badge: null
         },
         {
           id: 'summaries',
-          label: 'Resumos',
+          label: 'Resumos 80/20',
           fullName: 'Resumos Inteligentes 80/20',
           category: 'Conteúdo',
           icon: BookOpen,
@@ -218,8 +218,8 @@ export const FloatingDockNavigation: React.FC<FloatingDockNavigationProps> = ({
         },
         {
           id: 'discursivas',
-          label: 'Redação',
-          fullName: 'Estúdio Discursivo & Peças',
+          label: 'Estúdio Discursivas',
+          fullName: 'Estúdio de Discursivas & Peças',
           category: 'Conteúdo',
           icon: Feather,
           badge: null
@@ -231,16 +231,16 @@ export const FloatingDockNavigation: React.FC<FloatingDockNavigationProps> = ({
       items: [
         {
           id: 'edital',
-          label: 'Edital IA',
-          fullName: 'Edital Verticalizado & Radar',
+          label: 'Edital 80/20',
+          fullName: 'Edital Verticalizado 80/20',
           category: 'Planejar',
           icon: ScrollText,
           badge: null
         },
         {
           id: 'cycle',
-          label: 'Ciclos',
-          fullName: 'Ciclo de Estudos Meirelles',
+          label: 'Ciclo Adaptativo',
+          fullName: 'Ciclo Adaptativo (Meirelles)',
           category: 'Planejar',
           icon: CalendarClock,
           badge: null
@@ -252,8 +252,8 @@ export const FloatingDockNavigation: React.FC<FloatingDockNavigationProps> = ({
       items: [
         {
           id: 'dashboard',
-          label: 'Cockpit',
-          fullName: 'Cockpit de Dados & Heatmap',
+          label: 'Cockpit TRI',
+          fullName: 'Cockpit de Desempenho (TRI)',
           category: 'Evolução',
           icon: Activity,
           badge: null

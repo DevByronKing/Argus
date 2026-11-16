@@ -125,8 +125,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     // Pilar 1: Praticar
     {
       id: 'simulator',
-      label: 'Arena de Combate',
-      shortLabel: 'Arena',
+      label: 'Arena de Combate 60/40',
+      shortLabel: 'Arena 60/40',
       icon: Crosshair,
       desc: 'Simulador 60/40 com Atalhos de Teclado & Modo Zen',
       badge: null,
@@ -136,10 +136,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'mistakes',
-      label: 'Caderno de Erros',
-      shortLabel: 'Erros',
+      label: 'Caderno de Erros & Revanche',
+      shortLabel: 'Caderno de Erros',
       icon: ShieldAlert,
-      desc: 'Mapeamento de Armadilhas da Banca & Revanche',
+      desc: 'Mapeamento de Armadilhas da Banca & Revanche SM-2',
       badge: pendingMistakesCount > 0 ? `${pendingMistakesCount}` : null,
       badgeColor: 'bg-rose-500 text-white',
       category: 'Praticar',
@@ -147,7 +147,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'flashcards',
-      label: 'SRS Flashcards',
+      label: 'Flashcards SRS (Repetição Espaçada)',
       shortLabel: 'Flashcards',
       icon: Layers,
       desc: 'Repetição Espaçada com Flip 3D (SM-2)',
@@ -170,8 +170,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     // Pilar 2: Conteúdo
     {
       id: 'vademecum',
-      label: 'Smart Vade Mecum',
-      shortLabel: 'Vade Mecum',
+      label: 'Smart Vade Mecum (Radar 80/20)',
+      shortLabel: 'Smart Vade Mecum',
       icon: Scale,
       desc: 'Lei Seca com Backlinks para Caderno de Erros',
       badge: null,
@@ -181,8 +181,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'summaries',
-      label: 'Resumos Inteligentes',
-      shortLabel: 'Resumos',
+      label: 'Resumos Inteligentes 80/20',
+      shortLabel: 'Resumos 80/20',
       icon: BookOpen,
       desc: 'Sínteses 80/20 com Mnemônicos e Áudio IA',
       badge: null,
@@ -192,8 +192,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'discursivas',
-      label: 'Discursivas & Peças',
-      shortLabel: 'Redação',
+      label: 'Estúdio de Discursivas & Peças',
+      shortLabel: 'Estúdio Discursivas',
       icon: Feather,
       desc: 'Correção de Redações & Peças OAB com IA',
       badge: null,
@@ -204,10 +204,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     // Pilar 3: Planejar
     {
       id: 'edital',
-      label: 'Edital IA',
-      shortLabel: 'Edital',
+      label: 'Edital Verticalizado 80/20',
+      shortLabel: 'Edital 80/20',
       icon: ScrollText,
-      desc: 'Edital Verticalizado & Matriz de Pesos',
+      desc: 'Edital Verticalizado & Matriz de Pesos 80/20',
       badge: null,
       badgeColor: '',
       category: 'Planejar',
@@ -215,10 +215,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'cycle',
-      label: 'Ciclos Meirelles',
-      shortLabel: 'Ciclos',
+      label: 'Ciclo Adaptativo (Meirelles)',
+      shortLabel: 'Ciclo Adaptativo',
       icon: CalendarClock,
-      desc: 'Cronograma Adaptativo de Estudos',
+      desc: 'Cronograma Adaptativo de Estudos Meirelles',
       badge: null,
       badgeColor: '',
       category: 'Planejar',
@@ -226,8 +226,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'radar',
-      label: 'Radar Concursos',
-      shortLabel: 'Radar',
+      label: 'Radar de Concursos & Tribunais',
+      shortLabel: 'Radar de Concursos',
       icon: Radar,
       desc: 'Concursos Abertos, Previstos, OAB & ENEM',
       badge: null,
@@ -317,20 +317,20 @@ export const Navbar: React.FC<NavbarProps> = ({
       items: [
         {
           id: 'simulator',
-          label: 'Arena de Simulados',
+          label: 'Arena de Combate 60/40',
           desc: 'Simulador 60/40 com atalhos de alta velocidade e foco',
           icon: Crosshair
         },
         {
           id: 'mistakes',
-          label: 'Caderno de Erros',
-          desc: 'Mapeamento de armadilhas da banca com revanche',
+          label: 'Caderno de Erros & Revanche',
+          desc: 'Mapeamento de armadilhas da banca com revanche SM-2',
           icon: ShieldAlert,
           badge: pendingMistakesCount > 0 ? `${pendingMistakesCount}` : null
         },
         {
           id: 'flashcards',
-          label: 'Flashcards Anki (SRS)',
+          label: 'Flashcards SRS (Repetição Espaçada)',
           desc: 'Repetição espaçada com algoritmo SM-2 e flip 3D',
           icon: Layers
         },
@@ -350,7 +350,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       items: [
         {
           id: 'summaries',
-          label: 'Resumos 80/20 & Mnemônicos',
+          label: 'Resumos Inteligentes 80/20',
           desc: 'Sínteses focadas nas pegadinhas com áudio IA e jurisprudência',
           icon: BookOpen
         }
@@ -364,20 +364,20 @@ export const Navbar: React.FC<NavbarProps> = ({
       items: [
         {
           id: 'edital',
-          label: 'Edital Verticalizado IA',
+          label: 'Edital Verticalizado 80/20',
           desc: 'Mapeamento de tópicos com matriz de peso e relevância',
           icon: ScrollText
         },
         {
           id: 'cycle',
-          label: 'Ciclos de Estudo Meirelles',
+          label: 'Ciclo Adaptativo (Meirelles)',
           desc: 'Cronograma adaptativo balanceado por peso e dificuldade',
           icon: CalendarClock
         },
         {
           id: 'radar',
-          label: 'Radar Concursos',
-          desc: 'Editais abertos, autorizados, OAB e grandes vestibulares',
+          label: 'Radar de Concursos & Tribunais',
+          desc: 'Editais abertos, autorizados, OAB e grandes certames',
           icon: Radar
         }
       ]

@@ -18,18 +18,21 @@ import {
   Search, 
   ExternalLink, 
   Flame, 
-  FileCheck,
-  FileText,
-  UploadCloud,
-  X,
-  Plus,
-  Check,
-  Send,
-  MessageSquare,
-  HelpCircle,
-  Bot,
-  ShieldCheck,
-  Lock
+  FileCheck, 
+  FileText, 
+  UploadCloud, 
+  X, 
+  Plus, 
+  Check, 
+  Send, 
+  MessageSquare, 
+  HelpCircle, 
+  Bot, 
+  ShieldCheck, 
+  Lock,
+  Star,
+  Zap,
+  BarChart3
 } from 'lucide-react';
 import { ExamNotice, ExamSubject } from '@/lib/types';
 import { INITIAL_EXAMS } from '@/lib/mockData';
@@ -327,18 +330,38 @@ export const EditalParser: React.FC<EditalParserProps> = ({
     {
       id: 'msg-welcome',
       sender: 'assistant',
-      text: `Olá! Eu sou o seu Copiloto Jurídico do Edital, treinado nas regras e normas deste certame (${selectedExam.role} • ${selectedExam.institution} • Banca ${selectedExam.banca}). Posso responder tudo sobre pesos das disciplinas, regras de eliminação, prova discursiva, cronograma e notas mínimas. Como posso ajudar na sua estratégia?`,
-      itemReference: 'Edital Consolidado & Diário Oficial',
+      text: `Olá! Eu sou o Copiloto Cognitivo Argus, calibrado especificamente para o certame de **${selectedExam.role}** (${selectedExam.institution} • Banca **${selectedExam.banca}**).\n\nConheço todas as regras deste edital, pesos de disciplinas, critérios de pontuação e também posso comparar com qualquer outro concurso da plataforma (TRT 2, TJ-SP, INSS, PRF, PF, Receita Federal, OAB).\n\nComo posso orientar sua estratégia de aprovação hoje?`,
+      itemReference: `${selectedExam.institution} • Edital Consolidado`,
       timestamp: 'Sistema'
     },
     {
       id: 'msg-tip-1',
       sender: 'assistant',
-      text: `Dica de largada: As disciplinas com maior peso e relevância neste edital são ${selectedExam.subjects.map(s => `${s.name} (Peso ${s.weight})`).slice(0, 2).join(' e ')}. Juntas, elas definem mais de 65% do ponto de corte da prova objetiva.`,
-      itemReference: 'Item 8.2 - Do Quadro de Provas Objetivas',
-      timestamp: 'Sugerida'
+      text: `🎯 **Dica Estratégica 80/20 (${selectedExam.banca}):**\nAs matérias de maior peso neste edital são ${selectedExam.subjects.map(s => `**${s.name}** (Peso ${s.weight})`).slice(0, 2).join(' e ')}. Juntas, elas compõem ${selectedExam.subjects.slice(0, 2).reduce((acc, s) => acc + s.relevancePercentage, 0)}% da nota de corte da prova objetiva.`,
+      itemReference: 'Quadro Estatístico de Provas Objetivas',
+      timestamp: 'Estratégia'
     }
   ]);
+
+  // Sincroniza e recalibra automaticamente o Chat do Copiloto quando o usuário troca de concurso
+  React.useEffect(() => {
+    setEditalChatMessages([
+      {
+        id: `msg-welcome-${selectedExam.id}`,
+        sender: 'assistant',
+        text: `Olá! Eu sou o Copiloto Cognitivo Argus, calibrado especificamente para o certame de **${selectedExam.role}** (${selectedExam.institution} • Banca **${selectedExam.banca}**).\n\nConheço todas as regras deste edital, pesos de disciplinas, critérios de pontuação e também posso comparar com qualquer outro concurso da plataforma (TRT 2, TJ-SP, INSS, PRF, PF, Receita Federal, OAB).\n\nComo posso orientar sua estratégia de aprovação hoje?`,
+        itemReference: `${selectedExam.institution} • Edital Consolidado`,
+        timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      },
+      {
+        id: `msg-tip-${selectedExam.id}`,
+        sender: 'assistant',
+        text: `🎯 **Dica Estratégica 80/20 (${selectedExam.banca}):**\nAs matérias de maior impacto são ${selectedExam.subjects.map(s => `**${s.name}** (Peso ${s.weight})`).slice(0, 2).join(' e ')}. Juntas, elas compõem ${selectedExam.subjects.slice(0, 2).reduce((acc, s) => acc + s.relevancePercentage, 0)}% da nota de corte da prova objetiva.`,
+        itemReference: 'Quadro Estatístico de Provas Objetivas',
+        timestamp: 'Estratégia'
+      }
+    ]);
+  }, [selectedExam.id]);
 
   const handleAskEditalQuestion = (queryText: string) => {
     const q = queryText.trim();
@@ -368,27 +391,55 @@ export const EditalParser: React.FC<EditalParserProps> = ({
       let answer = '';
       let itemRef = 'Item Regulamentar do Edital';
 
-      if (lower.includes('elimina') || lower.includes('mínim') || lower.includes('minima') || lower.includes('corte')) {
-        answer = `Para não ser eliminado neste certame da banca ${selectedExam.banca}, o candidato deve obter no mínimo 50% de aproveitamento geral nas questões objetivas e não obter nota zero em nenhuma das disciplinas de peso maior (${selectedExam.subjects[0]?.name || 'Conhecimentos Específicos'}).`;
+      // 1. O Chat entende e compara com QUALQUER outro concurso do catálogo
+      const matchedOtherExam = exams.find(e => {
+        if (e.id === selectedExam.id) return false;
+        const eTitle = e.title.toLowerCase();
+        const eInst = e.institution.toLowerCase();
+        const eRole = e.role.toLowerCase();
+        if ((lower.includes('trt') || lower.includes('trabalho')) && (eTitle.includes('trt') || eInst.includes('trt'))) return true;
+        if ((lower.includes('tj') || lower.includes('justiça sp') || lower.includes('escrevente')) && (eTitle.includes('tj') || eInst.includes('tj'))) return true;
+        if (lower.includes('prf') && (eTitle.includes('prf') || eInst.includes('prf'))) return true;
+        if (lower.includes('pf') && !lower.includes('prf') && (eTitle.includes('federal') || eInst.includes('polícia federal') || eTitle.includes('pf'))) return true;
+        if (lower.includes('inss') && (eTitle.includes('inss') || eInst.includes('inss'))) return true;
+        if ((lower.includes('receita') || lower.includes('auditor fiscal')) && (eTitle.includes('receita') || eInst.includes('receita'))) return true;
+        if (lower.includes('oab') && (eTitle.includes('oab') || eInst.includes('oab'))) return true;
+        return false;
+      });
+
+      if (matchedOtherExam) {
+        answer = `📊 **Comparativo Cognitivo Argus:**\n\nVocê perguntou sobre o **${matchedOtherExam.title}** (${matchedOtherExam.role}):\n• **Banca Examinadora:** ${matchedOtherExam.banca}\n• **Remuneração Inicial:** ${matchedOtherExam.salary}\n• **Vagas:** ${matchedOtherExam.vacancies} vagas previstas/autorizadas\n• **Data / Prazo:** ${matchedOtherExam.examDate} (${matchedOtherExam.daysRemaining} dias)\n• **Disciplinas Centrais (80/20):** ${matchedOtherExam.subjects.map(s => s.name).slice(0, 3).join(', ')}.\n\n*Em comparação com o seu concurso ativo (**${selectedExam.role}** - ${selectedExam.institution}, banca ${selectedExam.banca}):* enquanto a banca ${selectedExam.banca} exige foco específico em ${selectedExam.subjects[0]?.name || 'Legislação'}, a ${matchedOtherExam.banca} adota peso diferenciado para ${matchedOtherExam.subjects[0]?.name}. Você pode alternar seu edital a qualquer momento no seletor de certames acima!`;
+        itemRef = `Catálogo Argus • ${matchedOtherExam.institution} vs ${selectedExam.institution}`;
+      } else if (lower.includes('elimina') || lower.includes('mínim') || lower.includes('minima') || lower.includes('corte')) {
+        if (selectedExam.banca === 'Cebraspe') {
+          answer = `⚠️ **Critérios de Eliminação e Nota de Corte (Padrão Cebraspe):**\n• **Sistema de Penalização:** 1 questão errada anula 1 certa (fator de correção 1:1). Não chute sem técnica!\n• **Notas Mínimas Eliminatórias:** É exigido aproveitamento mínimo de 10.00 pontos em Conhecimentos Básicos, 21.00 em Conhecimentos Específicos e 36.00 pontos no somatório total.\n• **Disciplina de Maior Risco:** Não zerar nenhum módulo de ${selectedExam.subjects[0]?.name || 'Conhecimentos Específicos'}.`;
+        } else if (selectedExam.banca === 'FGV') {
+          answer = `⚠️ **Critérios de Eliminação e Nota de Corte (Padrão FGV):**\n• **Modelo:** Prova objetiva de múltipla escolha (A, B, C, D, E) com alto teor de interpretação textual e casos hipotéticos.\n• **Eliminação Direta:** O candidato será eliminado se obtiver aproveitamento inferior a 50% do total de pontos da prova ou zerar qualquer uma das disciplinas.\n• **Nota de Corte Estimada:** Historicamente entre 74% e 82% da pontuação total para figurar dentro das vagas imediatas.`;
+        } else if (selectedExam.banca === 'Vunesp') {
+          answer = `⚠️ **Critérios de Eliminação e Nota de Corte (Padrão Vunesp):**\n• **Modelo:** Múltipla escolha (5 alternativas). A Vunesp prioriza a literalidade da lei seca.\n• **Nota de Corte Mínima:** Exige-se nota mínima de 50% em cada bloco temático (Gerais e Específicos). Para figurar na ampla concorrência, o ponto de corte médio histórico gira em torno de 80% a 86%.`;
+        } else {
+          answer = `⚠️ **Critérios de Eliminação (Banca ${selectedExam.banca}):**\nPara não ser eliminado neste certame de **${selectedExam.role}**, é necessário obter no mínimo 50% de aproveitamento geral nas questões objetivas e não zerar disciplinas com peso 3 (${selectedExam.subjects[0]?.name || 'Conhecimentos Específicos'}).`;
+        }
         itemRef = 'Item 9.1 - Dos Critérios de Habilitação e Eliminação';
-      } else if (lower.includes('discursiv') || lower.includes('redação') || lower.includes('peça')) {
-        answer = `A prova discursiva possui caráter eliminatório e classificatório. A banca ${selectedExam.banca} avaliará domínio técnico-jurídico, clareza lógica e citação de dispositivos legais pertinentes. Serão corrigidas as redações até a ${Number(selectedExam.vacancies) * 3 || 300}ª posição da lista de classificação ampla.`;
-        itemRef = 'Item 10.4 - Da Correção da Prova Discursiva';
-      } else if (lower.includes('remunera') || lower.includes('salário') || lower.includes('salario') || lower.includes('benefício') || lower.includes('ganha')) {
-        answer = `A remuneração inicial fixada no edital é de ${selectedExam.salary} para carga de 40 horas semanais, somando-se auxílio-alimentação e adicionais por qualificação funcional do órgão (${selectedExam.institution}).`;
+      } else if (lower.includes('discursiv') || lower.includes('redação') || lower.includes('redacao') || lower.includes('peça') || lower.includes('peca')) {
+        answer = `✍️ **Prova Discursiva & Estúdio de Peças (${selectedExam.banca}):**\n• **Caráter:** Eliminatório e classificatório.\n• **Nota Mínima:** 50% a 60% da pontuação total da discursiva.\n• **Linha de Corte de Correção:** Serão corrigidas as redações dos candidatos habilitados até a ${Number(selectedExam.vacancies) * 3 || 300}ª posição na lista geral.\n• **Critérios Avaliados pela ${selectedExam.banca}:** Domínio da norma culta (30%), clareza e estrutura lógica argumentativa (30%) e domínio técnico dos fundamentos jurídicos/legais (40%). Treine com o nosso módulo de Discursivas!`;
+        itemRef = 'Item 10.4 - Da Avaliação da Prova Discursiva';
+      } else if (lower.includes('remunera') || lower.includes('salário') || lower.includes('salario') || lower.includes('benefício') || lower.includes('ganha') || lower.includes('inicial')) {
+        answer = `💰 **Remuneração & Benefícios Oficiais:**\n• **Vencimento Básico Inicial:** ${selectedExam.salary} fixado no edital para o cargo de ${selectedExam.role}.\n• **Carga Horária:** 40 horas semanais.\n• **Benefícios do Órgão (${selectedExam.institution}):** Auxílio-alimentação (média de R$ 1.000 a R$ 1.400/mês), auxílio-saúde suplementar, adicional de qualificação (Pós/Mestrado/Doutorado) e gratificações de produtividade/desempenho da carreira.`;
         itemRef = 'Item 2.1 - Da Carreira, Remuneração e Carga Horária';
-      } else if (lower.includes('data') || lower.includes('quando') || lower.includes('prazo') || lower.includes('dia') || lower.includes('inscrição')) {
-        answer = `A aplicação da prova objetiva está prevista para ${selectedExam.examDate} (aproximadamente ${selectedExam.daysRemaining} dias até a prova). Fique atento aos prazos de pagamento de taxa e consulta aos locais de prova no portal da banca ${selectedExam.banca}.`;
+      } else if (lower.includes('data') || lower.includes('quando') || lower.includes('prazo') || lower.includes('dia') || lower.includes('inscrição') || lower.includes('inscricao')) {
+        answer = `📅 **Cronograma Oficial & Prazos Críticos:**\n• **Data Prevista da Prova:** ${selectedExam.examDate}.\n• **Contagem Regressiva:** Faltam exatamente **${selectedExam.daysRemaining} dias** até a aplicação da prova.\n• **Recomendação Argus:** Conclua a primeira passagem do ciclo 80/20 com pelo menos 25 dias de antecedência para dedicar o último mês exclusivamente à revisão de lei seca e modo revanche de erros.`;
         itemRef = 'Anexo I - Cronograma Oficial de Atividades';
-      } else if (lower.includes('peso') || lower.includes('matéria') || lower.includes('disciplina')) {
-        const topSub = [...selectedExam.subjects].sort((a, b) => b.weight - a.weight)[0];
-        answer = `A disciplina de maior impacto estratégico é "${topSub?.name}" com peso ${topSub?.weight} e ${topSub?.relevancePercentage}% da pontuação total da prova. Recomendamos alocar no mínimo 40% dos ciclos semanais nesta matéria.`;
+      } else if (lower.includes('peso') || lower.includes('matéria') || lower.includes('disciplina') || lower.includes('80/20') || lower.includes('estratégia')) {
+        const sorted = [...selectedExam.subjects].sort((a, b) => b.weight - a.weight);
+        const top2 = sorted.slice(0, 2);
+        answer = `🎯 **Estratégia 80/20 & Ponderação de Pesos (${selectedExam.banca}):**\n• As disciplinas de **Peso Máximo (${top2[0]?.weight})** são: ${top2.map(s => `"${s.name}" (${s.relevancePercentage}%)`).join(' e ')}.\n• Somadas, representam a espinha dorsal da sua nota final.\n• **Regra de ouro:** Dedique 65% do seu tempo de estudo às 2 primeiras matérias da distribuição estatística, reservando o restante para fixação por questões e lei seca das complementares.`;
         itemRef = 'Anexo II - Quadro de Disciplinas e Conteúdos Programáticos';
-      } else if (lower.includes('taf') || lower.includes('físico') || lower.includes('título')) {
-        answer = `O edital de ${selectedExam.role} estabelece etapas sucessivas após a fase objetiva, incluindo avaliação de títulos comprobatórios e exames pré-admissionais de aptidão. Consulte o subitem específico das etapas complementares.`;
+      } else if (lower.includes('taf') || lower.includes('físico') || lower.includes('título') || lower.includes('etapa')) {
+        answer = `🛡️ **Etapas Sucessivas do Certame:**\nAlém da Prova Objetiva e Discursiva, o certame para **${selectedExam.role}** prevê fases de Avaliação Biopsicossocial, Perícia Médica, Exame de Títulos e Procedimento de Heteroidentificação. Consulte o edital específico para a tabela de pontos de pós-graduação e publicações jurídicas.`;
         itemRef = 'Item 12.1 - Das Etapas Sucessivas do Concurso';
       } else {
-        answer = `Analisando o texto consolidado do edital de ${selectedExam.title} (Banca ${selectedExam.banca}) para o cargo de ${selectedExam.role}, orientamos dar foco em ${selectedExam.subjects.map(s => s.name).slice(0, 3).join(', ')}. A banca prioriza questões com aplicação prática de jurisprudência e raciocínio analítico.`;
+        answer = `🤖 **Análise de Inteligência Argus (${selectedExam.banca}):**\nPara o cargo de **${selectedExam.role}** (${selectedExam.institution}), a banca examinadora prioriza enunciados práticos com fundamentação na legislação recente e jurisprudência vinculante.\n\nAs disciplinas centrais são **${selectedExam.subjects.map(s => s.name).slice(0, 3).join(', ')}**.\n\nVocê também pode me perguntar sobre nota de corte, critérios da discursiva, remuneração, ou pedir comparações com outros concursos (TRT, TJ-SP, PRF, PF, INSS, Receita, OAB). O que deseja aprofundar?`;
         itemRef = `Item Específico da Banca ${selectedExam.banca}`;
       }
 
@@ -630,7 +681,7 @@ export const EditalParser: React.FC<EditalParserProps> = ({
             <span className="text-xs text-slate-500 dark:text-slate-400">PDF RAG Parser v2.4</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
-            Analisador Inteligente de Editais & Edital Verticalizado
+            Edital Verticalizado 80/20 • Mapeamento de Banca
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             Carregue qualquer edital em PDF ou selecione um concurso oficial pré-analisado para montar sua rota adaptativa.
@@ -737,8 +788,9 @@ export const EditalParser: React.FC<EditalParserProps> = ({
                           {area}
                         </span>
                         {exam.id === defaultExamId && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-0.5 shrink-0" title="Seu Edital Padrão ativo">
-                            ⭐ Padrão
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 shrink-0" title="Seu Edital Padrão ativo">
+                            <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-500" />
+                            <span>Padrão</span>
                           </span>
                         )}
                       </div>
@@ -759,9 +811,16 @@ export const EditalParser: React.FC<EditalParserProps> = ({
                       {exam.salary}
                     </span>
                     <span className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
-                      isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                      isSelected ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                     }`}>
-                      {isSelected ? 'Selecionado ✓' : 'Selecionar'}
+                      {isSelected ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Check className="w-3 h-3" />
+                          <span>Selecionado</span>
+                        </span>
+                      ) : (
+                        'Selecionar'
+                      )}
                     </span>
                   </div>
                 </div>
@@ -791,85 +850,86 @@ export const EditalParser: React.FC<EditalParserProps> = ({
 
       {/* Exam Overview Summary Card */}
       {!isProcessing && (
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           
-          <div className="lg:col-span-3 glass-panel bg-white/70 dark:bg-dark-card/60 backdrop-blur-md p-6 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-300 dark:border-white/10">
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">
+          {/* Card Esquerdo: Detalhes do Concurso e Métricas Rápidas */}
+          <div className="lg:col-span-7 glass-panel bg-white/80 dark:bg-dark-card/70 backdrop-blur-md p-6 sm:p-7 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-md flex flex-col justify-between space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-5 border-b border-slate-200 dark:border-white/10">
+              <div className="space-y-1">
+                <span className="inline-block px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[11px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
                   {selectedExam.institution}
                 </span>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">
                   {selectedExam.role}
                 </h2>
-                <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  <span className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
-                    <FileCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium">
+                    <FileCheck className="w-4 h-4 text-emerald-500" />
                     {selectedExam.pdfFileName || 'Edital_Oficial.pdf'}
                   </span>
                   <span>•</span>
-                  <span>Banca: <strong className="text-slate-900 dark:text-white">{selectedExam.banca}</strong></span>
+                  <span>Banca: <strong className="text-slate-900 dark:text-white font-bold">{selectedExam.banca}</strong></span>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
                 {defaultExamId === selectedExam.id ? (
-                  <span className="px-3.5 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-extrabold text-xs tracking-wide flex items-center gap-1.5 shadow-sm">
-                    <span>⭐</span>
+                  <span className="px-3.5 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-400 font-extrabold text-xs tracking-wide flex items-center gap-1.5 shadow-xs">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
                     <span>Edital Padrão Ativo</span>
                   </span>
                 ) : onSetDefaultExam ? (
                   <button
                     onClick={() => onSetDefaultExam(selectedExam)}
-                    className="px-3.5 py-2.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                    className="px-3.5 py-2.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
                     title="Definir este concurso como seu edital padrão em toda a plataforma"
                   >
-                    <span>⭐</span>
+                    <Star className="w-3.5 h-3.5 text-indigo-500" />
                     <span>Definir como Edital Padrão</span>
                   </button>
                 ) : null}
 
                 <button
                   onClick={() => onGenerateCycle(selectedExam)}
-                  className="px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold text-xs tracking-wide shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all glow-emerald"
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold text-xs tracking-wide shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all glow-emerald cursor-pointer"
                 >
                   <BookOpen className="w-4 h-4" />
-                  <span>Estruturar Ciclo de Estudos</span>
+                  <span>Estruturar Ciclo Adaptativo (Meirelles)</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
             {/* Quick Metrics Bar */}
-            <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-white dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-slate-50 dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs">
                 <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
-                  <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                  <Calendar className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
                   <span>Data da Prova</span>
                 </div>
                 <p className="text-sm sm:text-base font-black text-slate-900 dark:text-white mt-1">{selectedExam.examDate}</p>
-                <p className="text-[10px] text-amber-500 dark:text-amber-400 font-bold">Faltam {selectedExam.daysRemaining} dias</p>
+                <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">Faltam {selectedExam.daysRemaining} dias</p>
               </div>
 
-              <div className="bg-white dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
+              <div className="bg-slate-50 dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs">
                 <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
-                  <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                  <DollarSign className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
                   <span>Remuneração</span>
                 </div>
                 <p className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 mt-1">{selectedExam.salary}</p>
                 <p className="text-[10px] text-slate-500 dark:text-slate-400">Inicial Bruto</p>
               </div>
 
-              <div className="bg-white dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
+              <div className="bg-slate-50 dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs">
                 <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
-                  <Users className="w-3.5 h-3.5 text-cyan-400" />
+                  <Users className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
                   <span>Vagas</span>
                 </div>
                 <p className="text-sm sm:text-base font-black text-slate-900 dark:text-white mt-1">{selectedExam.vacancies} vagas</p>
                 <p className="text-[10px] text-slate-500 dark:text-slate-400">Imediatas + CR</p>
               </div>
 
-              <div className="bg-white dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
+              <div className="bg-slate-50 dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs">
                 <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
                   <Award className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
                   <span>Disciplinas</span>
@@ -881,57 +941,99 @@ export const EditalParser: React.FC<EditalParserProps> = ({
 
           </div>
 
-          {/* Banca Weight Distribution Card */}
-          <div className="glass-panel bg-white/80 dark:bg-dark-card/60 backdrop-blur-md p-6 rounded-3xl border border-slate-200 dark:border-white/10 shadow-sm flex flex-col justify-between">
+          {/* Card Direito: Distribuição Estatística da Prova (Descomprimido e Amplo) */}
+          <div className="lg:col-span-5 glass-panel bg-white/80 dark:bg-dark-card/70 backdrop-blur-md p-6 sm:p-7 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-md flex flex-col justify-between">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                <Flame className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
-                <span>Distribuição Estatística da Prova</span>
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">Relevância percentual de cada disciplina no cálculo da nota de corte:</p>
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/10">
+                <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+                  <span>Distribuição Estatística da Prova</span>
+                </h3>
+                <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-mono text-[11px] font-bold">
+                  80/20 Ponderado
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
+                Relevância real de cada disciplina calculada pelo algoritmo sobre o histórico da banca <strong>{selectedExam.banca}</strong>:
+              </p>
               
-              <div className="mt-4 space-y-4 overflow-y-auto max-h-56 pr-2 custom-scrollbar">
-                {selectedExam.subjects.map((sub) => (
-                  <div key={sub.id} className="text-xs group">
-                    <div className="flex items-center justify-between gap-2 text-slate-600 dark:text-slate-300 mb-1.5">
-                      <span className="font-bold text-slate-900 dark:text-white truncate flex-1 min-w-0" title={sub.name}>
-                        {sub.name}
-                      </span>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-dark-surface border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 font-mono whitespace-nowrap shrink-0">
-                          Peso {sub.weight}
-                        </span>
-                        <span className="font-black text-indigo-600 dark:text-indigo-400 min-w-[36px] text-right shrink-0">
-                          {sub.relevancePercentage}%
-                        </span>
+              <div className="mt-4 space-y-3.5 overflow-y-auto max-h-[360px] pr-2 custom-scrollbar">
+                {selectedExam.subjects.map((sub) => {
+                  const isHighPriority = sub.relevancePercentage >= 30;
+                  const isMediumPriority = sub.relevancePercentage >= 15 && sub.relevancePercentage < 30;
+                  return (
+                    <div key={sub.id} className="p-3 rounded-2xl bg-slate-50 dark:bg-dark-surface border border-slate-200/70 dark:border-white/5 group hover:border-indigo-500/40 transition-all">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-snug">
+                            {sub.name}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+                              sub.weight === 3 
+                                ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30' 
+                                : sub.weight === 2
+                                ? 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/30'
+                                : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10'
+                            }`}>
+                              Peso {sub.weight} • {sub.weight === 3 ? 'Alta' : sub.weight === 2 ? 'Média' : 'Básica'}
+                            </span>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                              {sub.totalTopics} tópicos listados
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <span className="text-base sm:text-lg font-black text-indigo-600 dark:text-indigo-400 font-mono">
+                            {sub.relevancePercentage}%
+                          </span>
+                          <span className="block text-[9px] uppercase tracking-wider text-slate-400 font-bold">
+                            da nota final
+                          </span>
+                        </div>
                       </div>
+                      
+                      <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div
+                          className={`h-2.5 rounded-full transition-all duration-1000 ${
+                            isHighPriority
+                              ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 shadow-sm shadow-amber-500/20'
+                              : isMediumPriority
+                              ? 'bg-gradient-to-r from-blue-600 to-cyan-500 shadow-sm shadow-blue-500/20'
+                              : 'bg-gradient-to-r from-slate-400 to-slate-500'
+                          }`}
+                          style={{ width: `${Math.max(sub.relevancePercentage, 6)}%` }}
+                        />
+                      </div>
+                      
+                      {isHighPriority && (
+                        <div className="mt-1.5 flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 font-bold">
+                          <Flame className="w-3 h-3" />
+                          <span>Disciplina Crítica 80/20 — Maior peso na nota de corte</span>
+                        </div>
+                      )}
                     </div>
-                    
-                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden mb-1">
-                      <div
-                        className="bg-gradient-to-r from-blue-600 to-cyan-500 h-2 rounded-full transition-all duration-1000"
-                        style={{ width: `${sub.relevancePercentage}%` }}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between text-[10px] text-slate-500 opacity-80 group-hover:opacity-100 transition-opacity">
-                      <span>{sub.totalTopics} tópicos listados</span>
-                      {sub.relevancePercentage >= 30 && <span className="text-amber-500 font-bold">Maior relevância</span>}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/5 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
-              <span>Banca: <strong>{selectedExam.banca}</strong></span>
-              <span className="text-emerald-400 font-bold">100% Mapeado</span>
+            <div className="mt-4 pt-3.5 border-t border-slate-200 dark:border-white/10 text-xs text-slate-600 dark:text-slate-400 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 font-medium">
+                <span>Banca Alvo:</span>
+                <strong className="text-slate-900 dark:text-white font-black">{selectedExam.banca}</strong>
+              </span>
+              <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-black">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                100% Ponderado
+              </span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Chat do Copiloto Jurídico do Edital */}
+      {/* Chat do Copiloto Cognitivo Argus sobre o Edital */}
       {!isProcessing && (
         <div className="mt-8 glass-panel bg-white/90 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl border border-slate-200 dark:border-white/10 shadow-xl overflow-hidden flex flex-col">
           {/* Chat Header */}
@@ -943,16 +1045,19 @@ export const EditalParser: React.FC<EditalParserProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 text-[10px] font-black uppercase tracking-wider">
-                    Copiloto Jurídico do Edital
+                    Copiloto Cognitivo Argus
                   </span>
                   <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                    Online • {selectedExam.banca}
+                    Online • Multi-Concursos & {selectedExam.banca}
                   </span>
                 </div>
                 <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-0.5">
-                  Chat com IA sobre o Edital de {selectedExam.role}
+                  Copiloto Especialista em Editais & Bancas
                 </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Calibrado para {selectedExam.role} ({selectedExam.institution}) • Responde sobre todos os certames da plataforma
+                </p>
               </div>
             </div>
 
@@ -963,8 +1068,8 @@ export const EditalParser: React.FC<EditalParserProps> = ({
                   {
                     id: 'msg-welcome-reset',
                     sender: 'assistant',
-                    text: `Chat reiniciado! Pode me fazer qualquer nova pergunta sobre as regras, matérias ou pesos do certame de **${selectedExam.role}** (${selectedExam.institution}).`,
-                    itemReference: 'Edital Consolidado',
+                    text: `Chat reiniciado! Pode me fazer qualquer pergunta sobre as regras, matérias ou pesos do certame de **${selectedExam.role}** (${selectedExam.institution}) ou pedir comparativos com outros concursos (TRT, TJ-SP, PRF, PF, INSS, Receita, OAB).`,
+                    itemReference: `${selectedExam.institution} • Edital Consolidado`,
                     timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
                   }
                 ])}
@@ -1004,8 +1109,9 @@ export const EditalParser: React.FC<EditalParserProps> = ({
                       isUser ? 'text-blue-100/80 justify-end' : 'text-slate-400 border-t border-slate-200/60 dark:border-white/5'
                     }`}>
                       {!isUser && msg.itemReference && (
-                        <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">
-                          📜 {msg.itemReference}
+                        <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                          <FileText className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                          <span>{msg.itemReference}</span>
                         </span>
                       )}
                       <span className="font-mono shrink-0">{msg.timestamp}</span>
@@ -1022,7 +1128,7 @@ export const EditalParser: React.FC<EditalParserProps> = ({
                 </div>
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-dark-surface border border-slate-200 dark:border-white/10 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
-                  <span>Copiloto Jurídico consultando regras do edital...</span>
+                  <span>Copiloto Cognitivo Argus consultando regras e base de bancas...</span>
                 </div>
               </div>
             )}
@@ -1162,8 +1268,9 @@ export const EditalParser: React.FC<EditalParserProps> = ({
                             {topic.articlesOrLaws && topic.articlesOrLaws.length > 0 && (
                               <div className="flex flex-wrap gap-1.5 mt-2">
                                 {topic.articlesOrLaws.map((law, idx) => (
-                                  <span key={idx} className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 font-mono">
-                                    📜 {law}
+                                  <span key={idx} className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 font-mono inline-flex items-center gap-1">
+                                    <FileText className="w-3 h-3 text-indigo-500 shrink-0" />
+                                    <span>{law}</span>
                                   </span>
                                 ))}
                               </div>
@@ -1418,7 +1525,10 @@ export const EditalParser: React.FC<EditalParserProps> = ({
                   className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-white/20 bg-white dark:bg-dark-surface cursor-pointer"
                 />
                 <label htmlFor="setAsDefaultExamCheckbox" className="text-xs font-semibold text-slate-800 dark:text-slate-200 cursor-pointer flex-1">
-                  <span className="font-bold text-indigo-600 dark:text-indigo-400">⭐ Definir como meu Edital Padrão ativo</span>
+                  <span className="font-bold text-indigo-600 dark:text-indigo-400 inline-flex items-center gap-1.5">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                    <span>Definir como meu Edital Padrão ativo</span>
+                  </span>
                   <span className="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                     Sincroniza automaticamente o ciclo de estudos semanal, simulados adaptativos e banco de questões para este concurso.
                   </span>
