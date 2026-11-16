@@ -477,19 +477,23 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
                   }}
                   className={`p-4 rounded-2xl border text-left transition-all relative ${
                     selectedPlan === 'black'
-                      ? 'border-amber-500 bg-slate-900 text-white ring-2 ring-amber-500/40 shadow-lg'
+                      ? 'border-amber-500 bg-slate-900 text-white ring-2 ring-amber-500/40 shadow-lg preserve-dark'
                       : 'border-slate-200 dark:border-slate-800 hover:border-amber-400/50 dark:hover:border-amber-500/50'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-black text-amber-500 flex items-center gap-1">
+                    <span className="text-xs font-black text-amber-400 flex items-center gap-1">
                       <Sparkles className="w-4 h-4" /> BLACK VIP
                     </span>
                     {selectedPlan === 'black' && <CheckCircle2 className="w-4 h-4 text-amber-400" />}
                   </div>
-                  <p className="text-xl font-black text-slate-900 dark:text-white">R$ 1.497 <span className="text-xs font-normal text-amber-700 dark:text-amber-400">único</span></p>
-                  <p className="text-[11px] text-amber-500 font-bold mt-0.5">12x R$ 149,70 ou R$ 197/mês</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Acesso Até a Posse + Todas Ferramentas + Fênix Dourada.</p>
+                  <p className={`text-xl font-black ${selectedPlan === 'black' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+                    R$ 1.497 <span className={`text-xs font-normal ${selectedPlan === 'black' ? 'text-amber-300' : 'text-amber-700 dark:text-amber-400'}`}>único</span>
+                  </p>
+                  <p className="text-[11px] text-amber-400 font-bold mt-0.5">12x R$ 149,70 ou R$ 197/mês</p>
+                  <p className={`text-xs mt-1 ${selectedPlan === 'black' ? 'text-slate-300' : 'text-slate-500 dark:text-slate-400'}`}>
+                    Acesso Até a Posse + Todas Ferramentas + Fênix Dourada.
+                  </p>
                 </button>
               </div>
             </div>

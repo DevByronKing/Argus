@@ -484,28 +484,28 @@ html.light :is([class~="bg-dark-card"], [class*=" bg-dark-card/"], [class^="bg-d
 }
 
 /* Inversão de bordas sutis para modo claro */
-html.light .border-white\/5:not(.preserve-dark *):not(.passport-card *),
-html.light .border-white\/10:not(.preserve-dark *):not(.passport-card *),
-html.light .border-white\/15:not(.preserve-dark *):not(.passport-card *),
-html.light .border-white\/20:not(.preserve-dark *):not(.passport-card *) {
+html.light .border-white\/5:not(.preserve-dark *):not(.passport-card *):not(:is([class~="from-slate-900"], [class~="from-slate-950"], [class~="from-indigo-950"], [class~="bg-slate-900"], [class~="bg-slate-950"]) *),
+html.light .border-white\/10:not(.preserve-dark *):not(.passport-card *):not(:is([class~="from-slate-900"], [class~="from-slate-950"], [class~="from-indigo-950"], [class~="bg-slate-900"], [class~="bg-slate-950"]) *),
+html.light .border-white\/15:not(.preserve-dark *):not(.passport-card *):not(:is([class~="from-slate-900"], [class~="from-slate-950"], [class~="from-indigo-950"], [class~="bg-slate-900"], [class~="bg-slate-950"]) *),
+html.light .border-white\/20:not(.preserve-dark *):not(.passport-card *):not(:is([class~="from-slate-900"], [class~="from-slate-950"], [class~="from-indigo-950"], [class~="bg-slate-900"], [class~="bg-slate-950"]) *) {
   border-color: rgba(226, 232, 240, 0.95) !important;
 }
 
-html.light .bg-white\/5:not(.preserve-dark *):not(.passport-card *) {
+html.light .bg-white\/5:not(.preserve-dark *):not(.passport-card *):not(:is([class~="from-slate-900"], [class~="from-slate-950"], [class~="from-indigo-950"], [class~="bg-slate-900"], [class~="bg-slate-950"]) *) {
   background-color: rgba(241, 245, 249, 0.85) !important;
 }
 
-html.light .bg-white\/10:not(.preserve-dark *):not(.passport-card *) {
+html.light .bg-white\/10:not(.preserve-dark *):not(.passport-card *):not(:is([class~="from-slate-900"], [class~="from-slate-950"], [class~="from-indigo-950"], [class~="bg-slate-900"], [class~="bg-slate-950"]) *) {
   background-color: rgba(226, 232, 240, 0.85) !important;
 }
 
 /* Textos de títulos e parágrafos adaptados no Modo Claro (exceto containers preservados escuros, botões e elementos com cor específica) */
-html.light h1:not(.preserve-dark *):not(.passport-card *):not([class*="from-"]):not(button *):not([class*="text-"]):not([class*="bg-clip-text"]),
-html.light h2:not(.preserve-dark *):not(.passport-card *):not([class*="from-"]):not(button *):not([class*="text-"]):not([class*="bg-clip-text"]),
-html.light h3:not(.preserve-dark *):not(.passport-card *):not([class*="from-"]):not(button *):not([class*="text-"]):not([class*="bg-clip-text"]),
-html.light h4:not(.preserve-dark *):not(.passport-card *):not([class*="from-"]):not(button *):not([class*="text-"]):not([class*="bg-clip-text"]),
-html.light h5:not(.preserve-dark *):not(.passport-card *):not([class*="from-"]):not(button *):not([class*="text-"]):not([class*="bg-clip-text"]),
-html.light h6:not(.preserve-dark *):not(.passport-card *):not([class*="from-"]):not(button *):not([class*="text-"]):not([class*="bg-clip-text"]) {
+html.light h1:not(.preserve-dark *):not(.passport-card *):not([class*="from-"]):not(button *):not([class*="text-"]):not([class*="bg-clip-text"]):not(:is([class~="from-slate-900"], [class~="from-slate-950"], [class~="from-indigo-950"], [class~="bg-slate-900"], [class~="bg-slate-950"]) *),
+html.light h2:not(.preserve-dark *):not(.passport-card *):not([class*="from-"]):not(button *):not([class*="text-"]):not([class*="bg-clip-text"]):not(:is([class~="from-slate-900"], [class~="from-slate-950"], [class~="from-indigo-950"], [class~="bg-slate-900"], [class~="bg-slate-950"]) *),
+html.light h3:not(.preserve-dark *):not(.passport-card *):not([class*="from-"]):not(button *):not([class*="text-"]):not([class*="bg-clip-text"]):not(:is([class~="from-slate-900"], [class~="from-slate-950"], [class~="from-indigo-950"], [class~="bg-slate-900"], [class~="bg-slate-950"]) *),
+html.light h4:not(.preserve-dark *):not(.passport-card *):not([class*="from-"]):not(button *):not([class*="text-"]):not([class*="bg-clip-text"]):not(:is([class~="from-slate-900"], [class~="from-slate-950"], [class~="from-indigo-950"], [class~="bg-slate-900"], [class~="bg-slate-950"]) *),
+html.light h5:not(.preserve-dark *):not(.passport-card *):not([class*="from-"]):not(button *):not([class*="text-"]):not([class*="bg-clip-text"]):not(:is([class~="from-slate-900"], [class~="from-slate-950"], [class~="from-indigo-950"], [class~="bg-slate-900"], [class~="bg-slate-950"]) *),
+html.light h6:not(.preserve-dark *):not(.passport-card *):not([class*="from-"]):not(button *):not([class*="text-"]):not([class*="bg-clip-text"]):not(:is([class~="from-slate-900"], [class~="from-slate-950"], [class~="from-indigo-950"], [class~="bg-slate-900"], [class~="bg-slate-950"]) *) {
   color: #0f172a;
 }
 
@@ -573,7 +573,7 @@ html.light .text-purple-400:not(.preserve-dark *):not(.passport-card *):not(butt
 }
 
 /* CATCH-ALL: qualquer .text-white no modo claro sem fundo colorido fica escuro por padrão */
-html.light .text-white:not([class*="bg-"]):not([class*="from-"]):not(button):not(button *):not(a[class*="bg-"]):not(a[class*="from-"]):not(.dock-nav *):not(.preserve-dark *):not(.passport-card *):not(.force-white):not(.preserve-white):not([class*="badge"]) {
+html.light .text-white:not([class*="bg-"]):not([class*="from-"]):not(button):not(button *):not(a[class*="bg-"]):not(a[class*="from-"]):not(.dock-nav *):not(.preserve-dark *):not(.passport-card *):not(.force-white):not(.preserve-white):not([class*="badge"]):not(:is([class~="from-slate-900"], [class*=" from-slate-900/"], [class^="from-slate-900/"]) *):not(:is([class~="from-slate-950"], [class*=" from-slate-950/"], [class^="from-slate-950/"]) *):not(:is([class~="from-indigo-950"], [class*=" from-indigo-950/"], [class^="from-indigo-950/"]) *):not(:is([class~="bg-slate-900"], [class*=" bg-slate-900/"], [class^="bg-slate-900/"]) *):not(:is([class~="bg-slate-950"], [class*=" bg-slate-950/"], [class^="bg-slate-950/"]) *) {
   color: #0f172a;
 }
 
@@ -720,7 +720,31 @@ html.light :is([class~="from-amber-950"], [class*=" from-amber-950/"], [class^="
 html.light :is([class~="from-emerald-950"], [class*=" from-emerald-950/"], [class^="from-emerald-950/"]) h1,
 html.light :is([class~="from-emerald-950"], [class*=" from-emerald-950/"], [class^="from-emerald-950/"]) h2,
 html.light :is([class~="from-emerald-950"], [class*=" from-emerald-950/"], [class^="from-emerald-950/"]) h3,
-html.light :is([class~="from-emerald-950"], [class*=" from-emerald-950/"], [class^="from-emerald-950/"]) p:not(.text-slate-900) {
+html.light :is([class~="from-emerald-950"], [class*=" from-emerald-950/"], [class^="from-emerald-950/"]) p:not(.text-slate-900),
+html.light :is([class~="from-slate-900"], [class*=" from-slate-900/"], [class^="from-slate-900/"]) h1,
+html.light :is([class~="from-slate-900"], [class*=" from-slate-900/"], [class^="from-slate-900/"]) h2,
+html.light :is([class~="from-slate-900"], [class*=" from-slate-900/"], [class^="from-slate-900/"]) h3,
+html.light :is([class~="from-slate-900"], [class*=" from-slate-900/"], [class^="from-slate-900/"]) p:not(.text-slate-900),
+html.light :is([class~="from-slate-950"], [class*=" from-slate-950/"], [class^="from-slate-950/"]) h1,
+html.light :is([class~="from-slate-950"], [class*=" from-slate-950/"], [class^="from-slate-950/"]) h2,
+html.light :is([class~="from-slate-950"], [class*=" from-slate-950/"], [class^="from-slate-950/"]) h3,
+html.light :is([class~="from-slate-950"], [class*=" from-slate-950/"], [class^="from-slate-950/"]) p:not(.text-slate-900),
+html.light :is([class~="from-indigo-950"], [class*=" from-indigo-950/"], [class^="from-indigo-950/"]) h1,
+html.light :is([class~="from-indigo-950"], [class*=" from-indigo-950/"], [class^="from-indigo-950/"]) h2,
+html.light :is([class~="from-indigo-950"], [class*=" from-indigo-950/"], [class^="from-indigo-950/"]) h3,
+html.light :is([class~="from-indigo-950"], [class*=" from-indigo-950/"], [class^="from-indigo-950/"]) p:not(.text-slate-900),
+html.light :is([class~="bg-slate-900"], [class*=" bg-slate-900/"], [class^="bg-slate-900/"]) h1,
+html.light :is([class~="bg-slate-900"], [class*=" bg-slate-900/"], [class^="bg-slate-900/"]) h2,
+html.light :is([class~="bg-slate-900"], [class*=" bg-slate-900/"], [class^="bg-slate-900/"]) h3,
+html.light :is([class~="bg-slate-900"], [class*=" bg-slate-900/"], [class^="bg-slate-900/"]) p:not(.text-slate-900),
+html.light :is([class~="bg-slate-950"], [class*=" bg-slate-950/"], [class^="bg-slate-950/"]) h1,
+html.light :is([class~="bg-slate-950"], [class*=" bg-slate-950/"], [class^="bg-slate-950/"]) h2,
+html.light :is([class~="bg-slate-950"], [class*=" bg-slate-950/"], [class^="bg-slate-950/"]) h3,
+html.light :is([class~="bg-slate-950"], [class*=" bg-slate-950/"], [class^="bg-slate-950/"]) p:not(.text-slate-900),
+html.light .preserve-dark h1,
+html.light .preserve-dark h2,
+html.light .preserve-dark h3,
+html.light .preserve-dark p:not(.text-slate-900) {
   color: #ffffff !important;
 }
 

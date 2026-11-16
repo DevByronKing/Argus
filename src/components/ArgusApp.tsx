@@ -476,9 +476,11 @@ export function ArgusApp() {
   const applyThemeClasses = (t: 'dark' | 'light') => {
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(t);
+    document.documentElement.setAttribute('data-theme', t);
     if (document.body) {
       document.body.classList.remove('light', 'dark');
       document.body.classList.add(t);
+      document.body.setAttribute('data-theme', t);
     }
   };
 
@@ -487,6 +489,7 @@ export function ArgusApp() {
     setTheme(nextTheme);
     try {
       localStorage.setItem('learning_ai_theme', nextTheme);
+      localStorage.setItem('argus_theme', nextTheme);
     } catch {}
     applyThemeClasses(nextTheme);
     showToast(nextTheme === 'light' ? '☀️ Modo Claro ativado!' : '🌙 Modo Escuro ativado!');
