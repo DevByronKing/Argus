@@ -11,12 +11,12 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#3B82F6',
     icons: [
       {
-        src: '/argus-logo.png?v=argus2026',
+        src: '/app-icon.png?v=argus_iris_2026_v5',
         sizes: '192x192',
         type: 'image/png',
       },
       {
-        src: '/logo-512.png?v=argus2026',
+        src: '/logo-512.png?v=argus_iris_2026_v5',
         sizes: '512x512',
         type: 'image/png',
       },

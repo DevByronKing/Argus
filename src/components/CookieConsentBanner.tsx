@@ -22,30 +22,43 @@ interface CookiePreferences {
 
 const STORAGE_KEY = 'argus_cookie_consent';
 
-export const CookieConsentBanner: React.FC = () => {
+export interface CookieConsentBannerProps {
+  onConsentGiven?: () => void;
+  canShow?: boolean;
+}
+
+export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({
+  onConsentGiven,
+  canShow = true,
+}) => {
   const [isVisible, setIsVisible] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [analyticsAllowed, setAnalyticsAllowed] = useState(true);
   const [marketingAllowed, setMarketingAllowed] = useState(false);
 
   useEffect(() => {
+    if (!canShow) {
+      setIsVisible(false);
+      return;
+    }
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (!stored) {
-        // Exibe após 1.2 segundos para não concorrer com o carregamento visual inicial
-        const timer = setTimeout(() => setIsVisible(true), 1200);
+        // Exibe imediatamente quando liberado pelo sequenciador
+        const timer = setTimeout(() => setIsVisible(true), 250);
         return () => clearTimeout(timer);
       }
     } catch {}
-  }, []);
+  }, [canShow]);
 
-  if (!isVisible) return null;
+  if (!isVisible || !canShow) return null;
 
   const saveConsent = (preferences: CookiePreferences) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
     } catch {}
     setIsVisible(false);
+    onConsentGiven?.();
   };
 
   const handleAcceptAll = () => {

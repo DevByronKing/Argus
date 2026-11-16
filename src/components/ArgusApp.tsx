@@ -28,6 +28,8 @@ import { FlashChallengeModal } from '@/components/FlashChallengeModal';
 import { InactivityRecoveryBanner } from '@/components/InactivityRecoveryBanner';
 import { ReferralProgramModal } from '@/components/ReferralProgramModal';
 import { CookieConsentBanner } from '@/components/CookieConsentBanner';
+import { SplashScreen } from '@/components/SplashScreen';
+import { GoogleAdSense } from '@/components/GoogleAdSense';
 import { analytics } from '@/lib/analytics';
 
 // Code Splitting Dinâmico de Abas Pesadas (Performance Otimizada)
@@ -178,30 +180,55 @@ export function ArgusApp() {
     isReferralModalOpen
   );
 
-  // Abertura suave da Anamnese Cognitiva no primeiro acesso (sem splashscreen bloqueante ou piscadeiras)
+  // Sequência de entrada ordenada e sem poluição: 1) Splash Screen -> 2) LGPD -> 3) Anamnese Cognitiva -> 4) App liberado
+  const [isSplashDone, setIsSplashDone] = useState(false);
+  const [hasLgpdConsent, setHasLgpdConsent] = useState(false);
+
   useEffect(() => {
+    try {
+      const consent = localStorage.getItem('argus_cookie_consent');
+      if (consent) setHasLgpdConsent(true);
+    } catch {}
+  }, []);
+
+  const checkAndTriggerOnboarding = () => {
     const isTestEnv = typeof window !== 'undefined' && Boolean(
       window.navigator.webdriver ||
       window.location.search.includes('test=1') ||
       (window as any).__E2E__
     );
+    if (isTestEnv) return;
 
-    if (!isTestEnv) {
-      try {
-        const shouldOpen = shouldAutoOpenOnboarding({
-          completed: Boolean(localStorage.getItem(ONBOARDING_COMPLETED_KEY)),
-          hasSavedProfile: Boolean(localStorage.getItem(ONBOARDING_PROFILE_KEY)),
-          skippedAt: localStorage.getItem(ONBOARDING_SKIPPED_KEY),
-        });
-        if (shouldOpen) {
-          const timer = setTimeout(() => {
-            setIsOnboardingTerminalOpen(true);
-          }, 600);
-          return () => clearTimeout(timer);
-        }
-      } catch {}
+    try {
+      const shouldOpen = shouldAutoOpenOnboarding({
+        completed: Boolean(localStorage.getItem(ONBOARDING_COMPLETED_KEY)),
+        hasSavedProfile: Boolean(localStorage.getItem(ONBOARDING_PROFILE_KEY)),
+        skippedAt: localStorage.getItem(ONBOARDING_SKIPPED_KEY),
+      });
+      if (shouldOpen) {
+        setIsOnboardingTerminalOpen(true);
+      }
+    } catch {}
+  };
+
+  const handleSplashFinish = () => {
+    setIsSplashDone(true);
+    // Passo 2: Verifica se LGPD já foi aceito. Se sim, passa diretamente para o Passo 3 (Anamnese)
+    const consent = typeof window !== 'undefined' ? localStorage.getItem('argus_cookie_consent') : null;
+    if (consent) {
+      setTimeout(() => {
+        checkAndTriggerOnboarding();
+      }, 350);
     }
-  }, []);
+  };
+
+  const handleLgpdConsentGiven = () => {
+    setHasLgpdConsent(true);
+    // Passo 3: Imediatamente após aceitar LGPD, abre a Anamnese se ainda pendente
+    setTimeout(() => {
+      checkAndTriggerOnboarding();
+    }, 400);
+  };
 
   // Load from LocalStorage if available
   useEffect(() => {
@@ -889,21 +916,23 @@ export function ArgusApp() {
             onOpenEditalSelector={() => setActiveTab('edital')}
           />
 
-          {/* Alerta de Resgate por Inatividade - Modo Pílula (Pilar 3: Anti-Churn) */}
-          <InactivityRecoveryBanner
-            studentName={studentProfile?.warName || studentProfile?.name || 'Guerreiro(a)'}
-            streakDays={metrics.streakDays}
-            forceShowForTesting={isInactivityBannerForceOpen}
-            onStartPillMode={() => {
-              setActiveTab('flashcards');
-              showToast('⚡ Modo Pílula ativado! 3 flashcards rápidos hoje para blindar sua ofensiva.');
-              setMetrics(prev => ({
-                ...prev,
-                streakDays: Math.max(prev.streakDays, 1),
-                lastStudyDate: new Date().toISOString()
-              }));
-            }}
-          />
+          {/* Alerta de Resgate por Inatividade - Modo Pílula (Pilar 3: Anti-Churn) - Exibido apenas em abas de estudo, nunca na Landing Page */}
+          {activeTab !== 'landing' && isSplashDone && !isOnboardingTerminalOpen && (
+            <InactivityRecoveryBanner
+              studentName={studentProfile?.warName || studentProfile?.name || 'Guerreiro(a)'}
+              streakDays={metrics.streakDays}
+              forceShowForTesting={isInactivityBannerForceOpen}
+              onStartPillMode={() => {
+                setActiveTab('flashcards');
+                showToast('⚡ Modo Pílula ativado! 3 flashcards rápidos hoje para blindar sua ofensiva.');
+                setMetrics(prev => ({
+                  ...prev,
+                  streakDays: Math.max(prev.streakDays, 1),
+                  lastStudyDate: new Date().toISOString()
+                }));
+              }}
+            />
+          )}
 
       {/* Main Content Area com espaçamento equilibrado para barra de abas mobile */}
       <main className={`flex-1 relative z-10 ${activeTab === 'landing' ? 'pb-20 md:pb-0' : 'pb-24 md:pb-16'}`}>
@@ -1276,8 +1305,19 @@ export function ArgusApp() {
         }}
       />
 
-      {/* Banner de Consentimento de Cookies & LGPD (Pilar 1: Conformidade Legal) */}
-      <CookieConsentBanner />
+      {/* 1. Splash Screen de Carregamento Cognitivo Inicial */}
+      {!isSplashDone && (
+        <SplashScreen onFinish={handleSplashFinish} />
+      )}
+
+      {/* 2. Banner de Consentimento de Cookies & LGPD (Passo 2 do fluxo: exibido sozinho após a Splash) */}
+      <CookieConsentBanner
+        canShow={isSplashDone && !hasLgpdConsent}
+        onConsentGiven={handleLgpdConsentGiven}
+      />
+
+      {/* 3. Google AdSense Estratégico (Apenas Plano Gratuito / Zero Ad para Assinantes) */}
+      <GoogleAdSense currentPlan={plan} />
 
       {/* Botão Flutuante de Rolagem Suave para o Topo */}
       <ScrollToTop />

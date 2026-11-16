@@ -226,7 +226,7 @@ export type MockExamScoringRule = 'cebraspe_uma_anula_uma' | 'multipla_escolha_p
 export type MockExam = {
   id: string;
   title: string;
-  banca: 'Cebraspe' | 'FGV' | 'FCC' | 'Vunesp';
+  banca: 'Cebraspe' | 'FGV' | 'FCC' | 'Vunesp' | 'Cesgranrio';
   institution: string;
   role: string;
   durationMinutes: number;
@@ -241,7 +241,7 @@ export type MockExam = {
   historicalCutoffScore?: number;
   historicalCutoffDescription?: string;
   isFreeDemo?: boolean;
-  requiredPlan?: 'pro' | 'elite';
+  requiredPlan?: 'pro' | 'elite' | 'aspirante';
 };
 
 export type MockExamAnswer = {

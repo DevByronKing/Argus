@@ -933,6 +933,54 @@ export const INITIAL_EXAMS: ExamNotice[] = [
         ]
       }
     ]
+  },
+  {
+    id: 'exam-trt-2026',
+    title: 'TRT 2026 — Analista e Técnico Judiciário',
+    institution: 'Tribunais Regionais do Trabalho (TRT-2, TRT-15, TRT-1)',
+    banca: 'FCC',
+    role: 'Analista Judiciário (Área Judiciária) & Técnico Judiciário',
+    salary: 'R$ 9.052,00 a R$ 15.200,00',
+    vacancies: 210,
+    examDate: '2026-11-20',
+    daysRemaining: 185,
+    status: 'confirmado',
+    pdfFileName: 'Edital_Verticalizado_TRT_FCC_2026.pdf',
+    uploadedAt: '2026-09-12',
+    subjects: [
+      {
+        id: 'sub-trt-trab',
+        name: 'Direito do Trabalho & Legislação Social',
+        weight: 3,
+        relevancePercentage: 36.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-trt-1', name: 'Teletrabalho (Lei 14.442/22), Jornada, Banco de Horas e Súmulas do TST', frequencyInBanca: 'Alta', accuracyRate: 58, status: 'Ponto Cego' },
+          { id: 'top-trt-2', name: 'Extinção do Contrato, Verbas Rescisórias e Dano Existencial', frequencyInBanca: 'Alta', accuracyRate: 64, status: 'Instável' }
+        ]
+      },
+      {
+        id: 'sub-trt-proc',
+        name: 'Direito Processual do Trabalho',
+        weight: 3,
+        relevancePercentage: 34.0,
+        totalTopics: 2,
+        topics: [
+          { id: 'top-trt-3', name: 'Recursos Trabalhistas (RO, RR, Agravos) e Depósito Recursal', frequencyInBanca: 'Alta', accuracyRate: 52, status: 'Ponto Cego' },
+          { id: 'top-trt-4', name: 'Audiência Trabalhista, Provas e Rito Sumaríssimo', frequencyInBanca: 'Alta', accuracyRate: 68, status: 'Instável' }
+        ]
+      },
+      {
+        id: 'sub-trt-pub',
+        name: 'Direito Constitucional & Administrativo Aplicado a Tribunais',
+        weight: 2,
+        relevancePercentage: 30.0,
+        totalTopics: 1,
+        topics: [
+          { id: 'top-trt-5', name: 'Competência da Justiça do Trabalho (Art. 114 CF) e Regime dos Servidores', frequencyInBanca: 'Alta', accuracyRate: 70, status: 'Instável' }
+        ]
+      }
+    ]
   }
 ];
 
@@ -1577,6 +1625,144 @@ export const MOCK_QUESTIONS: Question[] = [
       commonTrap: 'Achar que qualquer impulsionamento nas redes sociais é proibido pela OAB (a regra foi modernizada em 2021).',
       keyConcept: 'Marketing de Conteúdo Jurídico é VÁLIDO: caráter estritamente informativo + sobriedade + sem mercantilização/preços.',
       bancaTendency: 'A FGV testa a atualização do candidato quanto às regras modernas de internet do Provimento 205/2021.'
+    }
+  },
+  {
+    id: 'q-trt-1',
+    subjectId: 'sub-dir-trab',
+    subjectName: 'Direito do Trabalho',
+    topicId: 'top-trt-teletrab',
+    topicName: 'Teletrabalho, Controle de Jornada e Custos',
+    banca: 'FCC',
+    year: 2024,
+    institution: 'TRT 2ª Região / TRT 15ª Região',
+    statement: 'Mariana foi admitida por instituição financeira para prestar serviços em regime de teletrabalho por produção/tarefa. O contrato individual de trabalho não prevê estipulação de horário fixo nem controle telemático contínuo.\n\nÀ luz das alterações promovidas pela Lei nº 14.442/2022 no art. 62 e no art. 75-B da CLT, é correto afirmar que:',
+    codeCitation: 'Art. 62, III, e Art. 75-B da CLT (Redação Lei 14.442/2022)',
+    options: [
+      {
+        id: 'opt-trt1-a',
+        text: 'Mariana tem direito automático ao recebimento de horas extraordinárias caso comprove que enviava relatórios por e-mail após as 18 horas.',
+        isCorrect: false,
+        distractorReason: 'Pegadinha clássica da CLT anterior: a Lei 14.442/22 limitou a exclusão do controle de jornada aos empregados em teletrabalho que prestam serviços por produção ou tarefa.'
+      },
+      {
+        id: 'opt-trt1-b',
+        text: 'Os empregados em regime de teletrabalho que prestam serviços por produção ou tarefa estão expressamente excluídos do capítulo da duração do trabalho (art. 62, III, da CLT), não fazendo jus a horas extras.',
+        isCorrect: true
+      },
+      {
+        id: 'opt-trt1-c',
+        text: 'O comparecimento esporádico de Mariana às dependências do empregador para reuniões presenciais descaracteriza de pleno direito o regime de teletrabalho.',
+        isCorrect: false,
+        distractorReason: 'O art. 75-C, § 1º, da CLT prevê expressamente que o comparecimento eventual às dependências do empregador NÃO descaracteriza o teletrabalho.'
+      },
+      {
+        id: 'opt-trt1-d',
+        text: 'A utilização de equipamentos telemáticos fora da jornada normal de trabalho constitui presunção absoluta de regime de sobreaviso remunerado a 1/3.',
+        isCorrect: false,
+        distractorReason: 'A Súmula 428 do TST e o art. 75-B, § 5º, da CLT exigem escala prévia ou ordem direta de prontidão, não bastando a posse do smartphone.'
+      }
+    ],
+    explanation: 'GABARITO: B. A Lei nº 14.442/2022 alterou profundamente o regime de teletrabalho. O art. 62, III, da CLT passou a prever expressamente que estão excluídos do controle de jornada APENAS os empregados em teletrabalho que prestam serviços POR PRODUÇÃO OU TAREFA. Se o teletrabalho for contratado por jornada/tempo, haverá controle e pagamento de horas extras.',
+    lawArticles: ['Art. 62, inciso III da CLT', 'Art. 75-B da CLT', 'Súmula 428 do TST'],
+    cognitiveAnalysis: {
+      commonTrap: 'Achar que TODO teletrabalho é isento de ponto (a reforma de 2022 diferenciou teletrabalho por tempo de teletrabalho por produção).',
+      keyConcept: 'Teletrabalho por produção/tarefa = sem horas extras (Art. 62, III, CLT). Teletrabalho por tempo = com controle de jornada.',
+      bancaTendency: 'A FCC cobra a literalidade das inovações legislativas recentes com foco em casos práticos de agências e tribunais.'
+    }
+  },
+  {
+    id: 'q-caixa-1',
+    subjectId: 'sub-conhec-banc',
+    subjectName: 'Conhecimentos Bancários & Mercado Financeiro',
+    topicId: 'top-banco-pix',
+    topicName: 'Pix Automático, Sistema de Pagamentos Brasileiro e BACEN',
+    banca: 'Cesgranrio',
+    year: 2024,
+    institution: 'Caixa Econômica Federal',
+    statement: 'O Banco Central do Brasil (BACEN) instituiu o mecanismo de "Pix Automático" com o objetivo de viabilizar pagamentos recorrentes sem a necessidade de intervenção do pagador a cada cobrança (como concessionárias de energia, saneamento, telecomunicações e serviços de assinatura).\n\nDe acordo com a regulamentação do Conselho Monetário Nacional (CMN) e do BACEN, o Pix Automático:',
+    codeCitation: 'Resolução BCB nº 352/2023 e Regulamento do Pix',
+    options: [
+      {
+        id: 'opt-cx-a',
+        text: 'Depende de prévia autorização única concedida pelo usuário pagador, podendo ser cancelado por este a qualquer momento antes da liquidação da respectiva cobrança.',
+        isCorrect: true
+      },
+      {
+        id: 'opt-cx-b',
+        text: 'Exige que o cliente realize leitura biométrica ou confirmação de senha transacional no aplicativo a cada fatura periódica apresentada.',
+        isCorrect: false,
+        distractorReason: 'O Pix Automático dispensa a confirmação pontual a cada fatura justamente para substituir o débito automático tradicional.'
+      },
+      {
+        id: 'opt-cx-c',
+        text: 'Pode ser cobrado com tarifa bancária de transferência dos clientes pessoas físicas pelas instituições financeiras participantes.',
+        isCorrect: false,
+        distractorReason: 'O Pix é estritamente gratuito para pessoas físicas como pagadoras nos termos da Resolução BCB.'
+      },
+      {
+        id: 'opt-cx-d',
+        text: 'Tem liquidação exclusiva por meio de boletos de liquidação compensados pela CIP em D+2.',
+        isCorrect: false,
+        distractorReason: 'O Pix é um arranjo de pagamento instantâneo 24/7/365 com liquidação em segundos pelo SPI do Banco Central.'
+      },
+      {
+        id: 'opt-cx-e',
+        text: 'É restrito a pagamentos entre contas mantidas na mesma instituição financeira custodiante.',
+        isCorrect: false,
+        distractorReason: 'O Pix é interoperável e funciona entre todas as instituições financeiras participantes autorizadas.'
+      }
+    ],
+    explanation: 'GABARITO: A. No Pix Automático, o usuário pagador realiza uma autorização prévia e única no seu banco. A partir de então, os débitos periódicos ocorrem automaticamente nas datas acordadas, sem necessidade de nova autenticação mensal. O pagador pode estipular limites máximos de valor e cancelar a autorização a qualquer momento em seu aplicativo bancário.',
+    lawArticles: ['Resolução BCB nº 352/2023', 'Lei 12.865/2013 (SPB)'],
+    cognitiveAnalysis: {
+      commonTrap: 'Confundir o Pix Agendado (pontual) com o Pix Automático (recorrente sem senha repetida).',
+      keyConcept: 'Pix Automático: Débito recorrente instantâneo com autorização prévia revogável a qualquer tempo.',
+      bancaTendency: 'A Cesgranrio prioriza inovações da agenda BC# do Banco Central nas provas da Caixa e do Banco do Brasil.'
+    }
+  },
+  {
+    id: 'q-oab41-1',
+    subjectId: 'sub-etica-oab',
+    subjectName: 'Ética Profissional & Estatuto da OAB',
+    topicId: 'top-incompatibilidade',
+    topicName: 'Incompatibilidades e Impedimentos no Exercício da Advocacia',
+    banca: 'FGV',
+    year: 2024,
+    institution: 'Exame de Ordem Unificado (OAB 41º)',
+    statement: 'Lucas, advogado regularmente inscrito nos quadros da OAB, foi nomeado e tomou posse no cargo efetivo de Analista Judiciário - Oficial de Justiça Avaliador Federal de Tribunal Regional do Trabalho. Paralelamente, seu irmão foi preso em flagrante pela suposta prática de crime de estelionato e solicitou que Lucas assumisse a sua defesa técnica na audiência de custódia e impetrasse habeas corpus em seu favor.\n\nÀ luz do Estatuto da Advocacia e da OAB (Lei nº 8.906/1994), Lucas:',
+    codeCitation: 'Art. 28, IV, e Art. 29 da Lei nº 8.906/1994 (EAOAB)',
+    options: [
+      {
+        id: 'opt-oab41-a',
+        text: 'Pode impetrar o habeas corpus e atuar como patrono de seu irmão, haja vista que os parentes consanguíneos de até segundo grau constituem exceção legal à vedação.',
+        isCorrect: false,
+        distractorReason: 'Não existe qualquer exceção legal de parentesco para a incompatibilidade absoluta da advocacia.'
+      },
+      {
+        id: 'opt-oab41-b',
+        text: 'Encontra-se em situação de incompatibilidade absoluta com a advocacia, o que proíbe o exercício da profissão inclusive em causa própria ou de familiares, sob pena de nulidade dos atos privativos praticados.',
+        isCorrect: true
+      },
+      {
+        id: 'opt-oab41-c',
+        text: 'Está apenas impedido de advogar contra a União e suas autarquias, podendo exercer a advocacia criminal perante a Justiça Comum Estadual.',
+        isCorrect: false,
+        distractorReason: 'Ocupantes de funções com poder de polícia judiciária ou vinculadas a órgãos do Poder Judiciário são INCOMPATÍVEIS (art. 28, IV), não meramente impedidos.'
+      },
+      {
+        id: 'opt-oab41-d',
+        text: 'Poderá atuar mediante prévia autorização formal do Corregedor-Geral do respectivo Tribunal Regional do Trabalho.',
+        isCorrect: false,
+        distractorReason: 'A autorização administrativa não tem o condão de afastar comando expresso de lei federal reguladora da profissão.'
+      }
+    ],
+    explanation: 'GABARITO: B. O art. 28, IV, da Lei nº 8.906/94 estabelece que a advocacia é INCOMPATÍVEL, mesmo em causa própria, com as atividades de ocupantes de cargos ou funções vinculados direta ou indiretamente a qualquer órgão do Poder Judiciário. A incompatibilidade acarreta a proibição TOTAL do exercício da advocacia (diferente do impedimento, que é parcial). O art. 4º da Lei 8.906/94 comina a nulidade de qualquer ato privativo de advogado praticado por pessoa incompatível.',
+    lawArticles: ['Art. 28, inciso IV, da Lei 8.906/94 (EAOAB)', 'Art. 4º do EAOAB'],
+    cognitiveAnalysis: {
+      commonTrap: 'Achar que laços familiares ou a nobreza do habeas corpus afastam a incompatibilidade funcional do servidor da Justiça.',
+      keyConcept: 'Incompatibilidade (proibição total) vs Impedimento (proibição parcial) nos arts. 28 a 30 do EAOAB.',
+      bancaTendency: 'Tema obrigatório da FGV na 1ª Fase da OAB (responde por 8 questões decisivas na prova).'
     }
   }
 ];
@@ -2405,6 +2591,98 @@ export const MOCK_FULL_EXAMS: MockExam[] = [
           commonTrap: 'Confundir incompatibilidade (proibição total) com impedimento (proibição parcial, como advogar contra o ente pagador).',
           keyConcept: 'Incompatibilidade de autoridades policiais com a advocacia.',
           bancaTendency: 'A FGV cobra incompatibilidades em todas as edições do Exame de Ordem.'
+        }
+      }
+    ]
+  },
+  {
+    id: 'sim-caixa-cesgranrio-2024',
+    title: 'Prova Oficial Caixa 2024 — Técnico Bancário Novo',
+    banca: 'Cesgranrio',
+    institution: 'Caixa Econômica Federal',
+    role: 'Técnico Bancário Novo',
+    durationMinutes: 45,
+    totalQuestions: 5,
+    scoringRule: 'multipla_escolha_ponderada',
+    estimatedCutoffScore: 82.0,
+    isOfficialPastExam: true,
+    examYear: 2024,
+    careerCategory: 'bancaria',
+    historicalCutoffScore: 82.0,
+    historicalCutoffDescription: 'Nota de corte real do concurso Caixa 2024 (Cesgranrio) para o Polo SP/DF: 82,0% de aproveitamento.',
+    isFreeDemo: true,
+    requiredPlan: 'aspirante',
+    description: 'Caderno oficial da prova aplicada pela Fundação Cesgranrio em maio de 2024. Questões de Conhecimentos Bancários, Pix Automático, Atendimento e LGPD no Sistema Financeiro Nacional.',
+    questions: [
+      {
+        id: 'q-cx-sim-1',
+        subjectId: 'sub-conhec-banc',
+        subjectName: 'Conhecimentos Bancários',
+        topicId: 'top-banco-pix',
+        topicName: 'Pix Automático e Resolução BCB 352/2023',
+        banca: 'Cesgranrio',
+        year: 2024,
+        institution: 'Caixa Econômica Federal',
+        statement: 'Em conformidade com a regulamentação do Banco Central do Brasil para pagamentos instantâneos recorrentes, o Pix Automático:',
+        codeCitation: 'Resolução BCB nº 352/2023',
+        options: [
+          { id: 'opt-a', text: 'Permite débitos periódicos autorizados previamente pelo titular da conta, dispensando validação manual a cada fatura periódica.', isCorrect: true },
+          { id: 'opt-b', text: 'Exige que o cliente escaneie um QR Code dinâmico a cada cobrança mensal enviada.', isCorrect: false },
+          { id: 'opt-c', text: 'Gera cobrança obrigatória de tarifas bancárias para pessoas físicas em qualquer transação.', isCorrect: false },
+          { id: 'opt-d', text: 'Tem liquidação pelo sistema STR em dias úteis no horário comercial das 10h às 16h.', isCorrect: false }
+        ],
+        explanation: 'GABARITO: A. O Pix Automático foi concebido especificamente para substituir o débito automático em conta corrente e as faturas de cartão de crédito para serviços recorrentes (luz, água, mensalidades, assinaturas), operando 24 horas por dia através do SPI com autorização única concedida pelo titular.',
+        lawArticles: ['Resolução BCB 352/2023', 'Regulamento do Pix'],
+        cognitiveAnalysis: {
+          commonTrap: 'Confundir Pix Cobrança com Pix Automático.',
+          keyConcept: 'Recorrência automática de pagamentos no ecossistema instantâneo.',
+          bancaTendency: 'A Cesgranrio foca na digitalização dos serviços financeiros nos bancos públicos.'
+        }
+      }
+    ]
+  },
+  {
+    id: 'sim-trt-fcc-2024',
+    title: 'Prova Oficial TRT-2 / TRT-15 — Analista e Técnico Judiciário',
+    banca: 'FCC',
+    institution: 'Tribunais Regionais do Trabalho',
+    role: 'Analista Judiciário - Área Judiciária',
+    durationMinutes: 45,
+    totalQuestions: 5,
+    scoringRule: 'multipla_escolha_ponderada',
+    estimatedCutoffScore: 84.0,
+    isOfficialPastExam: true,
+    examYear: 2024,
+    careerCategory: 'tribunais',
+    historicalCutoffScore: 84.0,
+    historicalCutoffDescription: 'Nota de corte real FCC nos concursos de TRT da 2ª e 15ª Região: média de 84% de aproveitamento nas provas objetivas.',
+    isFreeDemo: false,
+    requiredPlan: 'pro',
+    description: 'Caderno oficial com questões aplicadas pela Fundação Carlos Chagas (FCC) para tribunais do trabalho. Ênfase em Direito Individual do Trabalho (CLT), Recursos Trabalhistas e Jurisprudência do TST.',
+    questions: [
+      {
+        id: 'q-trt-sim-1',
+        subjectId: 'sub-dir-trab',
+        subjectName: 'Direito do Trabalho',
+        topicId: 'top-trt-teletrab',
+        topicName: 'Teletrabalho e Duração do Trabalho (Lei 14.442/2022)',
+        banca: 'FCC',
+        year: 2024,
+        institution: 'Tribunal Regional do Trabalho (TRT)',
+        statement: 'Nos termos da Consolidação das Leis do Trabalho (CLT) com as alterações da Lei nº 14.442/2022, estão expressamente excluídos do regime de controle de jornada:',
+        codeCitation: 'Art. 62, III da CLT',
+        options: [
+          { id: 'opt-a', text: 'Todos os empregados submetidos à modalidade de teletrabalho ou trabalho remoto, independentemente da forma de pactuação.', isCorrect: false },
+          { id: 'opt-b', text: 'Apenas os empregados em regime de teletrabalho que prestam serviços por produção ou tarefa.', isCorrect: true },
+          { id: 'opt-c', text: 'Somente os estagiários e aprendizes que exercem suas funções em regime remoto.', isCorrect: false },
+          { id: 'opt-d', text: 'Os empregados em regime de teletrabalho que recebam gratificação de função superior a 40% do salário efetivo.', isCorrect: false }
+        ],
+        explanation: 'GABARITO: B. A Lei nº 14.442/2022 conferiu nova redação ao art. 62, III, da CLT, restringindo a dispensa de controle de jornada unicamente aos empregados em regime de teletrabalho que prestam serviços por PRODUÇÃO OU TAREFA. Logo, os contratados por unidade de tempo/jornada estão sujeitos a controle e recebem horas extras.',
+        lawArticles: ['Art. 62, inciso III da CLT', 'Art. 75-B da CLT'],
+        cognitiveAnalysis: {
+          commonTrap: 'Achar que a redação antiga da Reforma de 2017 (que isentava qualquer teletrabalho) ainda vigora.',
+          keyConcept: 'Diferença entre teletrabalho por tempo (tem controle de ponto) e por produção (sem controle de ponto).',
+          bancaTendency: 'A FCC premia o candidato que acompanha as minúcias das reformas legislativas trabalhistas.'
         }
       }
     ]
