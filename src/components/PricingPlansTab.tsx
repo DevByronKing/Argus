@@ -575,10 +575,13 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Mais de 20 funcionalidades detalhadas para você comparar lado a lado:
           </p>
+          <p className="text-[11px] text-indigo-600 dark:text-indigo-400 sm:hidden font-bold flex items-center gap-1 pt-1">
+            👉 Deslize para o lado para comparar todas as colunas
+          </p>
         </div>
 
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto no-scrollbar max-w-full">
+          <table className="w-full text-left text-xs min-w-[600px]">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase font-black">
                 <th className="py-4 px-4 w-2/5">Funcionalidade</th>

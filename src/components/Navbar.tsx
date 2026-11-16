@@ -709,11 +709,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               
 
-              {/* Alternador de Tema (Modo Claro / Modo Escuro) */}
+              {/* Alternador de Tema (Modo Claro / Modo Escuro - Visível a partir de tablet/desktop, no mobile fica no menu) */}
               {onToggleTheme && (
                 <button
                   onClick={onToggleTheme}
-                  className={`p-2 rounded-xl border transition-all flex items-center justify-center shrink-0 cursor-pointer ${
+                  className={`hidden sm:flex p-2 rounded-xl border transition-all items-center justify-center shrink-0 cursor-pointer ${
                     isLight 
                       ? 'bg-slate-100 hover:bg-slate-200 text-amber-600 border-slate-200 shadow-xs' 
                       : 'bg-white/5 hover:bg-white/10 text-amber-400 border-white/10'
@@ -751,9 +751,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               )}
 
-              {/* Fogo de Ofensiva (Streak Diário) */}
+              {/* Fogo de Ofensiva (Streak Diário - Visível a partir de tablet sm:) */}
               <div 
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-xs font-extrabold shrink-0 select-none ${
+                className={`hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-xs font-extrabold shrink-0 select-none ${
                   isLight 
                     ? 'bg-amber-50 border-amber-200 text-amber-800' 
                     : 'bg-amber-500/10 border-amber-500/25 text-amber-400'
@@ -765,8 +765,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="whitespace-nowrap">{streakDays}d</span>
               </div>
 
-              {/* Menu da Conta & Perfil do Estudante */}
-              <div className="relative" ref={userMenuRef}>
+              {/* Menu da Conta & Perfil do Estudante (Visível a partir de tablet sm:) */}
+              <div className="hidden sm:block relative" ref={userMenuRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-xs group shrink-0 cursor-pointer ${

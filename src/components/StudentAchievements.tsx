@@ -459,7 +459,7 @@ export const StudentAchievements: React.FC<StudentAchievementsProps> = ({
         </div>
 
         {/* Abas de Categoria */}
-        <div className="flex items-center gap-2 overflow-x-auto py-4 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto py-3 no-scrollbar max-w-full">
           {[
             { id: 'todas', label: 'Todas as Conquistas', count: achievements.length },
             { id: 'bancas', label: 'Bancas & Simulados', count: achievements.filter(a => a.category === 'bancas').length },
@@ -470,7 +470,7 @@ export const StudentAchievements: React.FC<StudentAchievementsProps> = ({
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
                 selectedCategory === cat.id
                   ? 'bg-indigo-600 text-white shadow-md'
                   : 'bg-slate-100 hover:bg-slate-200 dark:bg-dark-surface dark:hover:bg-dark-card text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/5'

@@ -138,10 +138,10 @@ export const ConcursosRadarTab: React.FC<ConcursosRadarTabProps> = ({
       </div>
 
       {/* Navegação de Abas do Radar */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-1 overflow-x-auto custom-scrollbar">
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto no-scrollbar max-w-full">
         <button
           onClick={() => setMainView('concursos')}
-          className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap shrink-0 ${
             mainView === 'concursos'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
@@ -153,26 +153,26 @@ export const ConcursosRadarTab: React.FC<ConcursosRadarTabProps> = ({
 
         <button
           onClick={() => setMainView('oab')}
-          className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap shrink-0 ${
             mainView === 'oab'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
           }`}
         >
           <Scale className="w-4 h-4 text-amber-400" />
-          <span>Exame de Ordem (OAB / CFOAB)</span>
+          <span>Exame de Ordem (OAB)</span>
         </button>
 
         <button
           onClick={() => setMainView('enem')}
-          className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap shrink-0 ${
             mainView === 'enem'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
           }`}
         >
           <GraduationCap className="w-4 h-4 text-emerald-400" />
-          <span>ENEM & Matriz TRI</span>
+          <span>ENEM &amp; TRI</span>
         </button>
       </div>
 

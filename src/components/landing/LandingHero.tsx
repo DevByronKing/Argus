@@ -257,14 +257,15 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                   });
                   onOpenFlashChallenge();
                 }}
-                className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-500/15 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/30 hover:border-amber-500/50 text-amber-900 dark:text-amber-200 font-bold text-xs sm:text-sm whitespace-nowrap transition-all cursor-pointer shadow-xs group"
+                className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-500/15 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/30 hover:border-amber-500/50 text-amber-900 dark:text-amber-200 font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-xs group"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 min-w-0">
                   <Zap className="w-4 h-4 text-amber-500 fill-amber-500 animate-pulse shrink-0 group-hover:scale-110 transition-transform" />
-                  <span>Desafio 3 Pegadinhas (2 min)</span>
+                  <span className="truncate">Desafio 3 Pegadinhas</span>
+                  <span className="hidden sm:inline text-xs opacity-80">(2 min)</span>
                 </div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300">
-                  Teste de Nivelamento
+                <span className="text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300 shrink-0">
+                  Nivelamento
                 </span>
                 <ArrowRight className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
               </button>

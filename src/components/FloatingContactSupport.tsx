@@ -128,7 +128,7 @@ export function FloatingContactSupport({
   return (
     <>
       {/* Botão Gatilho Flutuante Compacto para Gravação Limpa */}
-      <div className="fixed bottom-16 right-2 sm:bottom-6 sm:right-6 z-40 flex items-center gap-1 group/btn">
+      <div className="fixed bottom-20 right-3 sm:bottom-6 sm:right-6 z-40 flex items-center gap-1 group/btn">
         {!isOpen && (
           <>
             <button

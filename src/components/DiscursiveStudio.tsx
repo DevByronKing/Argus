@@ -371,7 +371,7 @@ Por derradeiro, a lavagem de dinheiro (Lei nº 9.613/1998) consubstancia tipo pe
       )}
 
       {/* Prompts Preset Bar */}
-      <div className="mt-6 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <div className="mt-6 flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar max-w-full">
         {filteredPrompts.map((prompt) => (
           <button
             key={prompt.id}
@@ -388,9 +388,9 @@ Por derradeiro, a lavagem de dinheiro (Lei nº 9.613/1998) consubstancia tipo pe
                 : 'bg-white dark:bg-dark-surface hover:bg-slate-50 dark:hover:bg-dark-hover border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>{prompt.title}</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/40 font-mono text-indigo-300">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+            <span className="truncate max-w-[210px] sm:max-w-xs">{prompt.title}</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/40 font-mono text-indigo-300 shrink-0">
               {prompt.banca}
             </span>
           </button>

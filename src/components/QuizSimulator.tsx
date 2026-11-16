@@ -686,7 +686,7 @@ export const QuizSimulator: React.FC<QuizSimulatorProps> = ({
                     setIsAnswered(false);
                     setSelectedOptionId(null);
                   }}
-                  className="px-2.5 py-1.5 rounded-xl glass-input text-xs text-slate-800 dark:text-white font-medium cursor-pointer border border-slate-200 dark:border-white/10"
+                  className="w-full sm:w-auto max-w-full sm:max-w-xs truncate px-2.5 py-1.5 rounded-xl glass-input text-xs text-slate-800 dark:text-white font-medium cursor-pointer border border-slate-200 dark:border-white/10"
                 >
                   {exams.map(exam => (
                     <option key={exam.id} value={exam.id}>{exam.title}</option>
@@ -702,7 +702,7 @@ export const QuizSimulator: React.FC<QuizSimulatorProps> = ({
                   setIsAnswered(false);
                   setSelectedOptionId(null);
                 }}
-                className="px-2.5 py-1.5 rounded-xl glass-input text-xs text-slate-800 dark:text-white font-medium cursor-pointer border border-slate-200 dark:border-white/10"
+                className="w-full sm:w-auto max-w-full sm:max-w-xs truncate px-2.5 py-1.5 rounded-xl glass-input text-xs text-slate-800 dark:text-white font-medium cursor-pointer border border-slate-200 dark:border-white/10"
               >
                 <option value="todas">Todas as Disciplinas</option>
                 {selectedExam && selectedExam.subjects.map(sub => (
@@ -774,7 +774,7 @@ export const QuizSimulator: React.FC<QuizSimulatorProps> = ({
                       title="Selecione o texto e clique para grifar"
                     >
                       <Highlighter className="w-3 h-3 text-amber-500" />
-                      <span>Grifar</span>
+                      <span className="hidden sm:inline">Grifar</span>
                     </button>
                     <button
                       type="button"
@@ -783,7 +783,7 @@ export const QuizSimulator: React.FC<QuizSimulatorProps> = ({
                       title="Selecione o texto e clique para riscar trecho"
                     >
                       <Scissors className="w-3 h-3 text-rose-500" />
-                      <span>Riscar Trecho</span>
+                      <span className="hidden sm:inline">Riscar</span>
                     </button>
                     {(highlightedSnippets.length > 0 || strikethroughSnippets.length > 0) && (
                       <button

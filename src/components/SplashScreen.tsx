@@ -75,7 +75,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
       aria-live="polite"
       aria-label="Carregando Argus AI"
       onClick={handleSkip}
-      className={`fixed inset-0 z-[200] flex flex-col items-center justify-between bg-[#050811] text-white select-none cursor-pointer transition-all duration-400 ease-out py-10 px-4 ${
+      className={`preserve-dark force-white fixed inset-0 z-[200] flex flex-col items-center justify-between bg-[#050811] text-white select-none cursor-pointer transition-all duration-400 ease-out py-10 px-4 ${
         phase === 'fading' ? 'opacity-0 scale-102 pointer-events-none' : 'opacity-100 scale-100'
       }`}
     >
@@ -188,8 +188,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
             <span>Copiloto Cognitivo de Alta Precisão</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white flex items-center justify-center gap-2">
-            <span>Argus</span>
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white !text-white flex items-center justify-center gap-2">
+            <span className="text-white !text-white">Argus</span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-400">
               AI
             </span>
