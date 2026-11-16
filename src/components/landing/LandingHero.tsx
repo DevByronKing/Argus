@@ -246,30 +246,37 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               </button>
             </div>
 
-            {/* Quick Challenge Hook - Desafio Rápido de 2 Minutos */}
+            {/* Quick Challenge Hook - Desafio Rápido de 2 Minutos (Design Destaque Ouro/Âmbar de Alta Visibilidade) */}
             {onOpenFlashChallenge && (
-              <div className="pt-0.5">
+              <div className="pt-1">
                 <button
+                  type="button"
                   onClick={() => {
                     analytics.track('cta_clicked', {
-                    location: 'landing_hero_flash_challenge',
-                    cta_label: 'Desafio 3 Pegadinhas',
-                  });
-                  onOpenFlashChallenge();
-                }}
-                className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-500/15 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/30 hover:border-amber-500/50 text-amber-900 dark:text-amber-200 font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-xs group"
-              >
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <Zap className="w-4 h-4 text-amber-500 fill-amber-500 animate-pulse shrink-0 group-hover:scale-110 transition-transform" />
-                  <span className="truncate">Desafio 3 Pegadinhas</span>
-                  <span className="hidden sm:inline text-xs opacity-80">(2 min)</span>
-                </div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300 shrink-0">
-                  Nivelamento
-                </span>
-                <ArrowRight className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-            </div>
+                      location: 'landing_hero_flash_challenge',
+                      cta_label: 'Desafio 3 Pegadinhas',
+                    });
+                    onOpenFlashChallenge();
+                  }}
+                  className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start gap-3 px-4 sm:px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:via-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs sm:text-sm transition-all transform hover:-translate-y-0.5 cursor-pointer shadow-lg shadow-amber-500/30 border-2 border-amber-300/80 ring-2 ring-amber-400/40 group active:scale-95"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-6 h-6 rounded-lg bg-slate-950/20 flex items-center justify-center shrink-0">
+                      <Zap className="w-4 h-4 text-slate-950 fill-slate-950 animate-pulse group-hover:scale-110 transition-transform" />
+                    </div>
+                    <span className="font-black text-slate-950 tracking-tight">
+                      Desafio das 3 Pegadinhas
+                    </span>
+                    <span className="hidden sm:inline text-xs font-bold text-slate-900/80">
+                      (2 min)
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-slate-950 text-amber-300 shrink-0 shadow-xs">
+                    Teste de Nivelamento
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-slate-950 shrink-0 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </div>
             )}
 
             {/* Micro-trust indicators */}
@@ -429,21 +436,17 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                   </div>
                 )}
 
-                {/* Mini CTA footer inside Cockpit */}
-                <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                {/* Mini status footer inside Cockpit (sem botão duplicado com o hero principal) */}
+                <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-400">
+                  <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-indigo-500 shrink-0" />
                     <span>
                       O Argus decodifica <strong>todas as pegadinhas do seu concurso ou Exame da OAB</strong>.
                     </span>
                   </div>
-                  <button
-                    onClick={onStartEdital}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-black text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/35 transform hover:-translate-y-0.5 cursor-pointer shrink-0"
-                  >
-                    <span>Escanear Meu Edital</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                  <span className="text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400 shrink-0 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2.5 py-1 rounded-lg">
+                    ⚡ 25.000+ Questões
+                  </span>
                 </div>
 
               </div>
