@@ -371,7 +371,7 @@ export const EditalParser: React.FC<EditalParserProps> = ({
         timestamp: 'Estratégia'
       }
     ]);
-  }, [selectedExam.id]);
+  }, [selectedExam.id, selectedExam.banca, selectedExam.institution, selectedExam.role, selectedExam.subjects]);
 
   const handleAskEditalQuestion = async (queryText: string) => {
     const q = queryText.trim();

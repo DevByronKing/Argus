@@ -68,9 +68,6 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
 
 
   const handleFinishExamRef = useRef<(() => void) | null>(null);
-  useEffect(() => {
-    handleFinishExamRef.current = handleFinishExam;
-  });
 
   // Timer countdown
   useEffect(() => {
@@ -221,6 +218,10 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
     setResult(examResult);
     setViewMode('result');
   };
+
+  useEffect(() => {
+    handleFinishExamRef.current = handleFinishExam;
+  });
 
   const handleAddWrongQuestionsToSRS = () => {
     if (!result || !onAddFlashcardsBatch) return;

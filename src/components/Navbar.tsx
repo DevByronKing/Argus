@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { 
   Compass,
   ScrollText,
@@ -1274,8 +1275,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Rodapé do Menu Mobile */}
             <div className={`mt-6 pt-4 border-t space-y-2 ${isLight ? 'border-slate-200' : 'border-slate-800 dark:border-white/10'}`}>
-              <a
+              <Link
                 href="/edital/inss-tecnico-seguro-social-2026"
+                onClick={() => setIsMobileMenuOpen(false)}
                 className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-between transition-colors ${
                   isLight ? 'bg-slate-100 hover:bg-slate-200 text-slate-800' : 'bg-white/5 hover:bg-white/10 text-slate-300'
                 }`}
@@ -1285,7 +1287,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>Páginas de Editais (SEO)</span>
                 </div>
                 <ExternalLink className="w-3.5 h-3.5 opacity-50" />
-              </a>
+              </Link>
 
 
               <button

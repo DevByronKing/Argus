@@ -116,7 +116,8 @@ const CSRF_SECRET = process.env.ARGUS_CSRF_SECRET || 'argus_csrf_master_secret_k
 
 function computeHmacSignature(payload: string, secret: string): string {
   try {
-    const nodeCrypto = typeof require !== 'undefined' ? require('crypto') : null;
+    const getBuiltin = (process as unknown as { getBuiltinModule?: (name: string) => any }).getBuiltinModule;
+    const nodeCrypto = typeof getBuiltin === 'function' ? getBuiltin('crypto') : null;
     if (nodeCrypto?.createHmac) {
       return nodeCrypto.createHmac('sha256', secret).update(payload).digest('hex');
     }

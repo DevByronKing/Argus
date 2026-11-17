@@ -387,12 +387,8 @@ export async function middleware(request: NextRequest) {
 
   if (isProtectedAppRoute) {
     if (pathname.startsWith('/admin')) {
-      if (!hasToken) {
-        const loginUrl = new URL('/', request.url);
-        loginUrl.searchParams.set('auth', 'required');
-        loginUrl.searchParams.set('redirect', pathname);
-        return applySecurityHeaders(NextResponse.redirect(loginUrl));
-      }
+      // A UI do Portal /admin exibe bloqueio seguro ou modal de login,
+      // enquanto todos os endpoints /api/admin/* exigem assertServerAdmin(req).
       return finalizeResponse(NextResponse.next());
     }
 

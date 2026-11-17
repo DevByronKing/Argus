@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { 
   ShieldCheck, 
@@ -35,6 +35,8 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({
   const [showPreferences, setShowPreferences] = useState(false);
   const [analyticsAllowed, setAnalyticsAllowed] = useState(true);
   const [marketingAllowed, setMarketingAllowed] = useState(false);
+  const onConsentGivenRef = useRef(onConsentGiven);
+  onConsentGivenRef.current = onConsentGiven;
 
   useEffect(() => {
     if (!canShow) {
@@ -48,7 +50,7 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({
         const timer = setTimeout(() => setIsVisible(true), 200);
         return () => clearTimeout(timer);
       } else {
-        onConsentGiven?.();
+        onConsentGivenRef.current?.();
       }
     } catch {}
   }, [canShow]);

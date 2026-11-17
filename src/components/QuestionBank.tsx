@@ -262,7 +262,7 @@ export const QuestionBank: React.FC<QuestionBankProps> = ({
 
       return true;
     });
-  }, [filter, userAnswers]);
+  }, [filter, userAnswers, questionsList]);
 
   // Paginação
   const totalPages = Math.max(1, Math.ceil(filteredQuestions.length / itemsPerPage));
@@ -284,7 +284,7 @@ export const QuestionBank: React.FC<QuestionBankProps> = ({
       wrongCount: answeredCount - correctCount,
       accuracy
     };
-  }, [userAnswers, filteredQuestions]);
+  }, [userAnswers, filteredQuestions, questionsList.length]);
 
   const handleSelectOption = (questionId: string, optionId: string) => {
     if (userAnswers[questionId]?.confirmed) return; // já confirmou

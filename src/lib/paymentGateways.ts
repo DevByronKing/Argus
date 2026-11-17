@@ -2,6 +2,9 @@
  * Integração com Gateways de Pagamento (Asaas e Stripe) com fallback offline
  */
 
+import fs from 'node:fs';
+import path from 'node:path';
+
 export interface PixPaymentResult {
   transactionId: string;
   pixCopyPaste: string;
@@ -16,10 +19,6 @@ function getAsaasApiKey(): string {
   if (!key || key.includes('sua-chave')) {
     // Fallback: Next.js expande variáveis que começam com $ (como $aact_prod) para vazio no .env.local
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const fs = require('fs');
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const path = require('path');
       const envPath = path.resolve(process.cwd(), '.env.local');
       if (fs.existsSync(envPath)) {
         const content = fs.readFileSync(envPath, 'utf8');
@@ -73,8 +72,7 @@ export class PaymentGateway {
         // Validação estrita de SSL/TLS por padrão (permite bypass apenas sob flag explícita de desenvolvimento)
         if (process.env.ALLOW_INSECURE_TLS === 'true') {
           try {
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            const { Agent } = require('undici');
+            const { Agent } = await import('undici');
             customDispatcher = new Agent({ connect: { rejectUnauthorized: false } });
           } catch {}
         }

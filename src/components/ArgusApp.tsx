@@ -193,6 +193,11 @@ export function ArgusApp() {
   const [isSeanEllisSurveyOpen, setIsSeanEllisSurveyOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
   // Student Profile & Daily AI Quota tracking
   const [studentProfile, setStudentProfile] = useState<StudentProfile>(DEFAULT_STUDENT_PROFILE);
   const [defaultExamId, setDefaultExamId] = useState<string>(INITIAL_EXAMS[0].id);
@@ -374,6 +379,11 @@ export function ArgusApp() {
           showToast('Acesso exclusivo: Escolha seu Passe ou Plano PRO para liberar todas as ferramentas.');
         }
 
+        if (urlParams.get('auth') === 'required') {
+          setIsAuthModalOpen(true);
+          showToast('Faça login com sua conta autorizada para continuar.');
+        }
+
         if (urlParams.get('ref')) {
           const refCode = urlParams.get('ref');
           localStorage.setItem('argus_referrer_code', refCode || '');
@@ -418,7 +428,13 @@ export function ArgusApp() {
       const handleOpenOnboardingEvent = () => setIsOnboardingTerminalOpen(true);
       window.addEventListener('argus-open-onboarding', handleOpenOnboardingEvent);
 
-      const handleGoHomeEvent = () => handleNavigateWithHistory('landing');
+      const handleGoHomeEvent = () => {
+        setTabHistory((prev) => [...prev.slice(-15), 'landing']);
+        setActiveTab('landing');
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      };
       window.addEventListener('argus-go-home', handleGoHomeEvent);
 
       return () => {
@@ -584,11 +600,6 @@ export function ArgusApp() {
     document.addEventListener('click', handleAnchorClick);
     return () => document.removeEventListener('click', handleAnchorClick);
   }, []);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
 
   const applyThemeClasses = (t: 'dark' | 'light') => {
     document.documentElement.classList.remove('light', 'dark');

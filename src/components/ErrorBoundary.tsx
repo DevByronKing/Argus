@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import Link from 'next/link';
 import { logger } from '@/lib/logger';
 import { AlertTriangle, RefreshCw, Home, Copy, Check } from 'lucide-react';
 
@@ -107,13 +108,13 @@ export class ErrorBoundary extends Component<Props, State> {
                 )}
               </button>
 
-              <a
+              <Link
                 href="/"
                 className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
               >
                 <Home className="w-4 h-4" />
                 Início
-              </a>
+              </Link>
             </div>
           </div>
         </div>

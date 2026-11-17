@@ -6,10 +6,6 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
 
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-
   // ─── COMPRESSÃO ─────────────────────────────────────────
   compress: true,
 

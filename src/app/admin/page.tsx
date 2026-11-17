@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { AdminQuestionIngestModal } from '@/components/AdminQuestionIngestModal';
+import { AuthModal } from '@/components/AuthModal';
 
 interface AuditLogItem {
   id: string;
@@ -37,6 +38,7 @@ export default function AdminPortalPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [dbLogs, setDbLogs] = useState<AuditLogItem[]>([]);
   const [isIngestOpen, setIsIngestOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   const verifyAndLoadAdminData = useCallback(
     async (explicitAdminKey?: string) => {
@@ -186,14 +188,27 @@ export default function AdminPortalPage() {
                   className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs"
                 />
               </div>
-              <button
-                type="submit"
-                className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black cursor-pointer"
-              >
-                Validar Chave Admin
-              </button>
-            </form>
-          </div>
+                <button
+                  type="submit"
+                  className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black cursor-pointer"
+                >
+                  Validar Chave Admin
+                </button>
+              </form>
+
+              <div className="pt-2 border-t border-slate-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Já está cadastrado em <code className="font-mono">ADMIN_EMAILS</code> ou <code className="font-mono">admin_allowlist</code>?
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsAuthOpen(true)}
+                  className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white/10 dark:hover:bg-white/20 text-white text-xs font-black cursor-pointer"
+                >
+                  Entrar com Minha Conta
+                </button>
+              </div>
+            </div>
         ) : (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -268,6 +283,14 @@ export default function AdminPortalPage() {
       <AdminQuestionIngestModal
         isOpen={isIngestOpen}
         onClose={() => setIsIngestOpen(false)}
+      />
+
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => {
+          setIsAuthOpen(false);
+          void verifyAndLoadAdminData();
+        }}
       />
     </div>
   );

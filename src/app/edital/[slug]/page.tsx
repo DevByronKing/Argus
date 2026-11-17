@@ -25,9 +25,9 @@ import {
 import { LeadCaptureForm } from '@/components/LeadCaptureForm';
 
 interface EditalPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 // 1. Pré-renderização Estática (SSG) de todas as URLs para máxima velocidade e SEO
@@ -38,7 +38,8 @@ export async function generateStaticParams() {
 
 // 2. Metadados dinâmicos e OpenGraph para indexação do Google
 export async function generateMetadata({ params }: EditalPageProps): Promise<Metadata> {
-  const edital = getEditalBySlug(params.slug);
+  const { slug } = await params;
+  const edital = getEditalBySlug(slug);
 
   if (!edital) {
     return {
@@ -81,8 +82,9 @@ export async function generateMetadata({ params }: EditalPageProps): Promise<Met
   };
 }
 
-export default function EditalPublicPage({ params }: EditalPageProps) {
-  const edital = getEditalBySlug(params.slug);
+export default async function EditalPublicPage({ params }: EditalPageProps) {
+  const { slug } = await params;
+  const edital = getEditalBySlug(slug);
 
   if (!edital) {
     notFound();

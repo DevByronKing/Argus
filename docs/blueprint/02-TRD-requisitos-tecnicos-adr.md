@@ -10,7 +10,7 @@
 
 | Domínio | Tecnologia / Implementação Real | Arquivos de Referência |
 | :--- | :--- | :--- |
-| **Framework Web** | Next.js `^14.2.24` (App Router) + React `^18.3.1` | `package.json`, `next.config.mjs`, `src/app/` |
+| **Framework Web** | Next.js `^16.4.6` (App Router + Turbopack) + React `^19.3.1` | `package.json`, `next.config.mjs`, `src/app/` |
 | **Linguagem** | TypeScript `^5.7.3` (`strict` via `npx tsc --noEmit`) | `tsconfig.json` |
 | **Estilização & UI** | Tailwind CSS `^3.4.17` + CSS Custom Properties + `lucide-react` + `recharts` `^2.15.1` | `src/styles/tokens.css`, `src/components/ui/`, `tailwind.config.js` |
 | **Estado Client-Side** | Zustand `^5.0.15` com `persist` (`localStorage`) + `argus_onboarding_draft` | `src/store/useAuthStore.ts`, `src/store/useStudyStore.ts` |
@@ -21,7 +21,7 @@
 | **E-mail Transacional** | Resend (`RESEND_API_KEY`) para boas-vindas e avisos de renovação/retenção | `src/lib/email/welcomeEmail.ts`, `/api/welcome-email` |
 | **Mobile Nativo** | Capacitor `^8.5.3` (`@capacitor/android`, `@capacitor/ios`, `haptics`, `keyboard`, `status-bar`) | `capacitor.config.ts` (`appId: br.com.argus.app`) |
 | **WAF & Segurança** | Middleware de Edge/Next.js: IP Jail, Honeypot Bot Traps, SQLi/XSS/Path Traversal sanitizers, CSRF check (`/api/admin`), CSP/HSTS + SIEM + Guardrails SQL | `src/middleware.ts`, `src/lib/rateLimiter.ts`, `src/lib/securitySanitizer.ts`, `src/lib/siemEngine.ts`, `src/lib/guardrails.ts` |
-| **Testes & QA** | Vitest `^5.0.1` (22 suítes em `src/__tests__/`), `@testing-library/react`, Playwright `^1.63.0` + `@axe-core/playwright` (`e2e/`), ESLint `^8.57.1` | `vitest.config.mjs`, `playwright.config.ts`, `src/__tests__/`, `e2e/` |
+| **Testes & QA** | Vitest `^5.0.1` (23 suítes em `src/__tests__/`), `@testing-library/react` `^16.3.3`, Playwright `^1.63.0` + `@axe-core/playwright` (`e2e/`), ESLint `^9.39.5` + `eslint-config-next` `^16.4.6` | `vitest.config.mjs`, `eslint.config.mjs`, `playwright.config.ts`, `src/__tests__/`, `e2e/` |
 | **Telemetria & Growth** | Meta Pixel (`NEXT_PUBLIC_META_PIXEL_ID`), Google Analytics (`NEXT_PUBLIC_GA_MEASUREMENT_ID`), A/B engine | `src/components/TrackingScripts.tsx`, `src/lib/analytics.ts`, `src/lib/abTesting.ts` |
 
 ---
