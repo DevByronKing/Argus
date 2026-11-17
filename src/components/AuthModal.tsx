@@ -242,7 +242,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 sm:p-6 bg-slate-950/85 backdrop-blur-md animate-fadeIn overflow-y-auto">
+    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 sm:p-6 bg-black/75 backdrop-blur-md animate-fadeIn overflow-y-auto">
       
       {/* Container Principal do Modal de Login com Design Luxury */}
       <div
@@ -265,7 +265,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Header Centralizado com Logotipo Íris */}
         <div className="text-center mb-6 relative z-10">
-          <div className="inline-flex items-center justify-center mb-3">
+          <div className="flex items-center justify-center mb-3">
             <BrandLogo size={56} showGlow />
           </div>
 
@@ -637,7 +637,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 cursor-pointer disabled:opacity-50"
             >
               <Sparkles className="w-4 h-4" />
-              <span>{isLoading ? 'Cadastrando...' : 'Criar Minha Conta Grátis'}</span>
+              <span>{isLoading ? 'Cadastrando...' : 'Criar Minha Conta no Argus'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>

@@ -42,11 +42,13 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({
       return;
     }
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('argus_lgpd_consent');
       if (!stored) {
         // Exibe imediatamente quando liberado pelo sequenciador
-        const timer = setTimeout(() => setIsVisible(true), 250);
+        const timer = setTimeout(() => setIsVisible(true), 200);
         return () => clearTimeout(timer);
+      } else {
+        onConsentGiven?.();
       }
     } catch {}
   }, [canShow]);
@@ -56,6 +58,7 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({
   const saveConsent = (preferences: CookiePreferences) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+      localStorage.setItem('argus_lgpd_consent', 'true');
     } catch {}
     setIsVisible(false);
     onConsentGiven?.();

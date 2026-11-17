@@ -25,13 +25,14 @@ import {
   MapPin,
   Layers
 } from 'lucide-react';
-import { ConcursoRadarItem, ConcursoStatus, ConcursoCategory, BrazilRegion, ExamNotice } from '@/lib/types';
+import { ConcursoRadarItem, ConcursoStatus, ConcursoCategory, BrazilRegion, ExamNotice, SubscriptionPlan } from '@/lib/types';
 import { 
   CONCURSOS_RADAR_DATA, 
   OAB_CALENDAR_DATA, 
   ENEM_CALENDAR_DATA 
 } from '@/lib/concursosData';
 import { BrazilInteractiveMap } from '@/components/BrazilInteractiveMap';
+import { AdBannerSlot } from '@/components/GoogleAdSense';
 
 interface ConcursosRadarTabProps {
   onSelectExamNotice?: (noticeId: string) => void;
@@ -40,6 +41,8 @@ interface ConcursosRadarTabProps {
   selectedExam?: ExamNotice;
   onSetDefaultExam?: (exam: ExamNotice) => void;
   exams?: ExamNotice[];
+  currentPlan?: SubscriptionPlan;
+  onOpenPricing?: () => void;
 }
 
 export const ConcursosRadarTab: React.FC<ConcursosRadarTabProps> = ({
@@ -48,7 +51,9 @@ export const ConcursosRadarTab: React.FC<ConcursosRadarTabProps> = ({
   showToast,
   selectedExam,
   onSetDefaultExam,
-  exams = []
+  exams = [],
+  currentPlan = 'aspirante',
+  onOpenPricing
 }) => {
   const [mainView, setMainView] = useState<'concursos' | 'oab' | 'enem'>('concursos');
   const [statusFilter, setStatusFilter] = useState<'todos' | ConcursoStatus>('todos');
@@ -140,9 +145,13 @@ export const ConcursosRadarTab: React.FC<ConcursosRadarTabProps> = ({
       {/* Navegação de Abas do Radar */}
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto no-scrollbar max-w-full">
         <button
-          onClick={() => setMainView('concursos')}
-          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap shrink-0 ${
-            mainView === 'concursos'
+          onClick={() => {
+            setMainView('concursos');
+            setSearchQuery('');
+            setCategoryFilter('todas');
+          }}
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+            mainView === 'concursos' && searchQuery.toLowerCase() !== 'trt'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
           }`}
@@ -152,8 +161,26 @@ export const ConcursosRadarTab: React.FC<ConcursosRadarTabProps> = ({
         </button>
 
         <button
+          onClick={() => {
+            setMainView('concursos');
+            setCategoryFilter('tribunais');
+            setSearchQuery('TRT');
+            setStatusFilter('todos');
+            setSelectedRegion('todos');
+          }}
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+            mainView === 'concursos' && searchQuery.toLowerCase() === 'trt'
+              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+              : 'bg-indigo-50/70 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-500/20 hover:bg-indigo-100 dark:hover:bg-indigo-500/20'
+          }`}
+        >
+          <Scale className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+          <span>Especial TRTs (Abertos, Previstos &amp; Rumores)</span>
+        </button>
+
+        <button
           onClick={() => setMainView('oab')}
-          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap shrink-0 ${
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap shrink-0 cursor-pointer ${
             mainView === 'oab'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
@@ -165,7 +192,7 @@ export const ConcursosRadarTab: React.FC<ConcursosRadarTabProps> = ({
 
         <button
           onClick={() => setMainView('enem')}
-          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap shrink-0 ${
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap shrink-0 cursor-pointer ${
             mainView === 'enem'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
@@ -175,6 +202,9 @@ export const ConcursosRadarTab: React.FC<ConcursosRadarTabProps> = ({
           <span>ENEM &amp; TRI</span>
         </button>
       </div>
+
+      {/* Google AdSense Slot estratégico para monetização de visitantes no Radar de Concursos & TRTs */}
+      <AdBannerSlot currentPlan={currentPlan} onOpenPricing={onOpenPricing} />
 
       {/* ========================================================================= */}
       {/* VISTA 1: CONCURSOS PÚBLICOS NACIONAIS & ESTADUAIS                          */}

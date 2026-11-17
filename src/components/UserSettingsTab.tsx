@@ -133,10 +133,12 @@ export const UserSettingsTab: React.FC<UserSettingsTabProps> = ({
         
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
           <div className="flex items-center gap-4 sm:gap-6">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-400 p-[2px] shadow-lg shrink-0">
-              <div className="w-full h-full rounded-[14px] bg-slate-900 flex items-center justify-center text-3xl sm:text-4xl">
-                {currentGuardian.emoji}
-              </div>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-400 p-[2px] shadow-lg shrink-0 overflow-hidden">
+              <img
+                src={currentGuardian.avatar3dUrl}
+                alt={currentGuardian.name}
+                className="w-full h-full rounded-[14px] object-cover"
+              />
             </div>
             <div>
               <div className="flex items-center gap-3">
@@ -145,9 +147,9 @@ export const UserSettingsTab: React.FC<UserSettingsTabProps> = ({
                 </h1>
                 
                 {/* Plan Badge */}
-                {currentPlan === 'aspirante' && (
-                  <span className="px-2.5 py-1 rounded-full text-xs font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
-                    Aspirante (Freemium)
+                {(currentPlan === 'aspirante' || currentPlan === 'lancamento') && (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-black bg-orange-500/15 text-orange-600 dark:text-orange-300 border border-orange-500/30">
+                    Passe Até a Prova (1 Edital)
                   </span>
                 )}
                 {currentPlan === 'pro' && (
@@ -216,7 +218,7 @@ export const UserSettingsTab: React.FC<UserSettingsTabProps> = ({
           }`}
         >
           <Crown className="w-4 h-4 text-amber-400" />
-          <span>Opções por Plano (Freemium / Pro / Elite)</span>
+          <span>Opções por Plano (Passe / Pro / Elite / Black)</span>
         </button>
 
         <button
@@ -393,7 +395,11 @@ export const UserSettingsTab: React.FC<UserSettingsTabProps> = ({
                         : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                     }`}
                   >
-                    <span className="text-2xl">{animal.emoji}</span>
+                    <img
+                      src={animal.avatar3dUrl}
+                      alt={animal.name}
+                      className="w-11 h-11 rounded-xl object-cover border border-blue-500/30 shrink-0 shadow-xs"
+                    />
                     <div className="min-w-0">
                       <p className={`text-xs font-black truncate ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-slate-800 dark:text-slate-200'}`}>
                         {animal.name}
@@ -434,38 +440,38 @@ export const UserSettingsTab: React.FC<UserSettingsTabProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             
-            {/* TIER 1: ASPIRANTE (FREEMIUM) */}
+            {/* TIER 1: PASSE ATÉ A PROVA */}
             <div className={`rounded-3xl p-6 border transition-all flex flex-col justify-between ${
-              currentPlan === 'aspirante'
-                ? 'bg-white dark:bg-dark-surface border-blue-500 ring-2 ring-blue-500/20 shadow-lg'
+              currentPlan === 'aspirante' || currentPlan === 'lancamento'
+                ? 'bg-white dark:bg-dark-surface border-orange-500 ring-2 ring-orange-500/20 shadow-lg'
                 : 'bg-white/60 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800'
             }`}>
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-black px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                    Aspirante (Freemium)
+                  <span className="text-xs font-black px-2.5 py-1 rounded-full bg-orange-500/15 text-orange-600 dark:text-orange-300">
+                    Passe Até a Prova
                   </span>
-                  {currentPlan === 'aspirante' && (
-                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                  {(currentPlan === 'aspirante' || currentPlan === 'lancamento') && (
+                    <span className="text-xs font-bold text-orange-600 dark:text-orange-400 flex items-center gap-1">
                       <CheckCircle2 className="w-4 h-4" /> Plano Atual
                     </span>
                   )}
                 </div>
-                <h3 className="text-2xl font-black text-slate-900 dark:text-white">R$ 0</h3>
-                <p className="text-xs text-slate-400 mt-1 mb-6">Acesso básico permanente (Isca PLG)</p>
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white">R$ 97</h3>
+                <p className="text-xs text-slate-400 mt-1 mb-6">Dose única • Motor Gemini 3.8 Flash</p>
 
                 <ul className="space-y-2.5 text-xs text-slate-600 dark:text-slate-300">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>5 Diagnósticos Cognitivos IA / dia</span>
+                    <span>Diagnósticos Cognitivos IA (Gemini 3.8 Flash)</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>1 Edital pré-carregado</span>
+                    <span>1 Edital Travado até a prova</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Banco: 20 questões / dia</span>
+                    <span>Banco de 260+ questões auditadas</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />

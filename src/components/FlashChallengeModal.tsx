@@ -210,19 +210,22 @@ export const FlashChallengeModal: React.FC<FlashChallengeModalProps> = ({
         className="relative w-full max-w-2xl max-h-[calc(100dvh-1rem)] sm:max-h-[92dvh] flex flex-col my-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden text-slate-900 dark:text-white"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Header com Gradiente Temático */}
-        <div className="relative p-4 sm:p-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white shrink-0">
+        {/* Top Header com Gradiente Temático e Alto Contraste */}
+        <div
+          style={{ color: '#ffffff' }}
+          className="preserve-dark force-white relative p-4 sm:p-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white shrink-0"
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
                 <Zap className="w-5 h-5 text-amber-300 animate-pulse" />
               </div>
               <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-cyan-200 bg-white/10 px-2 py-0.5 rounded-full border border-white/10">
-                  D0 • Retenção Instantânea
+                <span style={{ color: '#a5f3fc' }} className="text-[10px] font-extrabold uppercase tracking-wider text-cyan-200 bg-white/10 px-2 py-0.5 rounded-full border border-white/10">
+                  D0 • Nivelamento Psicométrico
                 </span>
-                <h2 className="text-base sm:text-lg font-black tracking-tight mt-0.5">
-                  Desafio Relâmpago das Pegadinhas
+                <h2 style={{ color: '#ffffff' }} className="text-base sm:text-lg font-black tracking-tight text-white mt-0.5">
+                  Desafio Relâmpago das 3 Pegadinhas
                 </h2>
               </div>
             </div>
@@ -545,7 +548,7 @@ export const FlashChallengeModal: React.FC<FlashChallengeModalProps> = ({
                     className="w-full sm:w-auto py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-800 dark:text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <ShieldAlert className="w-4 h-4 text-rose-500" />
-                    <span>Ver Erros Grátis</span>
+                    <span>Abrir Caderno de Erros</span>
                   </button>
                 )}
               </div>
@@ -556,7 +559,7 @@ export const FlashChallengeModal: React.FC<FlashChallengeModalProps> = ({
                 onClick={onClose}
                 className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white underline cursor-pointer"
               >
-                Continuar no Plano Aspirante (Gratuito) e ir para o painel
+                Voltar ao Cockpit Principal
               </button>
             </div>
           </div>

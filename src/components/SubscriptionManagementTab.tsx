@@ -53,8 +53,8 @@ export const SubscriptionManagementTab: React.FC<SubscriptionManagementTabProps>
 
   const planTitle = 
     currentPlan === 'black' ? 'Plano BLACK VITALÍCIO (Até a Posse)' :
-    currentPlan === 'elite' ? 'Plano ELITE VIP' : 
-    currentPlan === 'pro' ? 'Plano PRO' : 'Plano Aspirante (Freemium)';
+    currentPlan === 'elite' ? 'Plano ELITE VIP (Gemini 4 Carbon)' : 
+    currentPlan === 'pro' ? 'Plano Gabarito PRO (Gemini 3.8 Flash)' : 'Passe Até a Prova (1 Edital Exclusivo)';
 
   const handleToggleAutoRenew = () => {
     const nextVal = !subscription.autoRenew;

@@ -765,6 +765,25 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="whitespace-nowrap">{streakDays}d</span>
               </div>
 
+              {/* Botão Direto de Login (Quando não autenticado) */}
+              {!isGoogleConnected && (!user || user.id === 'usr_default_demo') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onOpenAuth) onOpenAuth();
+                    else window.dispatchEvent(new CustomEvent('open-auth-modal'));
+                  }}
+                  className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-extrabold transition-all cursor-pointer shrink-0 ${
+                    isLight
+                      ? 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200 text-indigo-700 shadow-2xs'
+                      : 'bg-indigo-500/15 hover:bg-indigo-500/25 border-indigo-400/35 text-indigo-200'
+                  }`}
+                  title="Entrar na sua conta ou cadastrar-se"
+                >
+                  <span>Entrar</span>
+                </button>
+              )}
+
               {/* Menu da Conta & Perfil do Estudante (Visível a partir de tablet sm:) */}
               <div className="hidden sm:block relative" ref={userMenuRef}>
                 <button
@@ -778,9 +797,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                   aria-label="Abrir menu da conta e configurações"
                   aria-expanded={isUserMenuOpen}
                 >
-                  <span className="text-base select-none transition-transform group-hover:scale-110">
-                    {currentGuardian.emoji}
-                  </span>
+                  <img
+                    src={currentGuardian.avatar3dUrl}
+                    alt={currentGuardian.name}
+                    className="w-6 h-6 rounded-full object-cover border border-indigo-500/40 shrink-0 transition-transform group-hover:scale-105"
+                  />
                   <div className="hidden xl:flex flex-col text-left leading-tight">
                     <span className="text-xs font-black truncate max-w-[95px] text-slate-900 dark:text-white">
                       {studentProfile?.warName || studentProfile?.name || 'Futuro Servidor'}
@@ -812,7 +833,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       </div>
                     </div>
 
-                    {/* Destaque Login Google se não conectado */}
+                    {/* Destaque Login se não conectado */}
                     {!isGoogleConnected && (
                       <div className="mb-2">
                         <button
@@ -825,7 +846,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           className="w-full flex items-center justify-center gap-2.5 py-2.5 px-3 rounded-xl text-xs font-black transition-all cursor-pointer bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700/90 border-2 border-blue-500/40 dark:border-blue-400/50 text-slate-800 dark:text-white shadow-xs hover:border-blue-600"
                         >
                           <GoogleIcon className="w-4 h-4 shrink-0" />
-                          <span className="text-slate-800 dark:text-white font-black">Conectar Conta Google</span>
+                          <span className="text-slate-800 dark:text-white font-black">Entrar / Criar Conta</span>
                         </button>
                       </div>
                     )}
@@ -842,7 +863,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                             isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-100'
                           }`}
                         >
-                          <span className="text-base">{currentGuardian.emoji}</span>
+                          <img
+                            src={currentGuardian.avatar3dUrl}
+                            alt={currentGuardian.name}
+                            className="w-5 h-5 rounded-full object-cover border border-indigo-500/40 shrink-0"
+                          />
                           <span>Passaporte Cognitivo</span>
                         </button>
                       )}
@@ -1021,7 +1046,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               </div>
 
-              {/* Login com Google Mobile */}
+              {/* Login Mobile */}
               {!isGoogleConnected && (
                 <button
                   type="button"
@@ -1033,7 +1058,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className="w-full mb-3 p-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shadow-sm flex items-center justify-center gap-2 text-xs font-bold text-slate-800 dark:text-white transition-all active:scale-95 cursor-pointer"
                 >
                   <GoogleIcon className="w-4 h-4" />
-                  <span>Fazer login com Google</span>
+                  <span>Entrar / Criar Conta</span>
                 </button>
               )}
 
@@ -1048,9 +1073,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-3xl p-1 rounded-xl bg-black/20">
-                      {currentGuardian.emoji}
-                    </span>
+                    <img
+                      src={currentGuardian.avatar3dUrl}
+                      alt={currentGuardian.name}
+                      className="w-11 h-11 rounded-xl object-cover border border-blue-500/40 shrink-0 shadow-sm"
+                    />
                     <div>
                       <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 block">
                         Passaporte Cognitivo
@@ -1114,15 +1141,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   if (itemsInPillar.length === 0) return null;
                   return (
                     <div key={pillar} className="space-y-1.5">
-                      <span className={`text-[10px] font-bold px-2 block ${
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 block ${
                         isLight ? 'text-slate-500' : 'text-slate-400'
                       }`}>
-                        {pillar === 'Geral' && '🏠 '}
-                        {pillar === 'Praticar' && '🎯 '}
-                        {pillar === 'Conteúdo' && '📚 '}
-                        {pillar === 'Planejar' && '🗺️ '}
-                        {pillar === 'Evolução' && '📊 '}
-                        {pillar === 'Conta & Sistema' && '⚙️ '}
                         {pillar}
                       </span>
 

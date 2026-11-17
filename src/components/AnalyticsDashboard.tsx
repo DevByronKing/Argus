@@ -227,7 +227,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 ) : (
                   <span>{guardian.emoji}</span>
                 )}
-                <span className="absolute bottom-1 right-1 text-xs">🛡️</span>
               </div>
 
               <div className="space-y-1">
@@ -241,11 +240,20 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
-                  <span>🎯 Alvo: <strong className="text-slate-900 dark:text-white">{studentProfile.targetExamTitle || selectedExam.title}</strong></span>
+                  <span className="inline-flex items-center gap-1">
+                    <Target className="w-3.5 h-3.5 text-indigo-500" />
+                    <span>Alvo: <strong className="text-slate-900 dark:text-white">{studentProfile.targetExamTitle || selectedExam.title}</strong></span>
+                  </span>
                   <span>•</span>
-                  <span>🏛️ Banca: <strong className="text-blue-600 dark:text-blue-400">{studentProfile.targetBanca || selectedExam.banca || 'Geral'}</strong></span>
+                  <span className="inline-flex items-center gap-1">
+                    <Award className="w-3.5 h-3.5 text-blue-500" />
+                    <span>Banca: <strong className="text-blue-600 dark:text-blue-400">{studentProfile.targetBanca || selectedExam.banca || 'Geral'}</strong></span>
+                  </span>
                   <span>•</span>
-                  <span>⏱️ Meta: <strong className="text-emerald-600 dark:text-emerald-400">{studentProfile.dailyHoursGoal || 4}h/dia</strong></span>
+                  <span className="inline-flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Meta: <strong className="text-emerald-600 dark:text-emerald-400">{studentProfile.dailyHoursGoal || 4}h/dia</strong></span>
+                  </span>
                 </div>
 
                 <p className="text-xs text-slate-500 dark:text-slate-400 italic pt-0.5">
@@ -301,7 +309,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           }`}
         >
           <Trophy className="w-4 h-4 text-amber-300" />
-          <span>🏆 Jornada, Metas & Conquistas</span>
+          <span>Jornada, Metas &amp; Conquistas</span>
         </button>
 
         <button
@@ -313,7 +321,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           }`}
         >
           <BarChart3 className="w-4 h-4" />
-          <span>📊 Diagnóstico Técnico & Gráficos</span>
+          <span>Diagnóstico Técnico &amp; Gráficos</span>
         </button>
 
         <button
@@ -325,7 +333,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           }`}
         >
           <TrendingUp className="w-4 h-4 text-emerald-400" />
-          <span>📈 Funil & Retenção B2C</span>
+          <span>Funil &amp; Retenção B2C</span>
         </button>
       </div>
 

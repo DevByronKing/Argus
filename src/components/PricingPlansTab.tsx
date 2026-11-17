@@ -117,7 +117,7 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({
         'Editais Simultâneos Ilimitados',
         'Banco com Filtros Psicométricos TRI',
         'Vade Mecum com Súmulas & Jurisprudência',
-        'Motor de IA de Alta Temperatura (Gemini 1.5 Pro)',
+        'Motor de IA Frontier (Google Gemini 4 Carbon)',
         'Suporte Prioritário VIP no WhatsApp'
       ],
       notIncluded: [
@@ -158,9 +158,9 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({
     {
       category: 'Inteligência Artificial & Diagnóstico',
       items: [
-        { name: 'Diagnósticos Cognitivos de Erros', aspirante: '5 / dia', pro: 'Ilimitado (Flash)', elite: 'Ilimitado (Pro)', black: 'Ilimitado Prioritário' },
+        { name: 'Diagnósticos Cognitivos de Erros', aspirante: '15 / dia', pro: 'Ilimitado (Flash 3.8)', elite: 'Ilimitado (Carbon)', black: 'Ilimitado Prioritário' },
         { name: 'Classificação de Tipo de Erro (4 tipos)', aspirante: 'Básica', pro: 'Completa', elite: 'Avançada', black: 'Deep Neural' },
-        { name: 'Motor de IA Cognitivo', aspirante: 'Padrão', pro: 'Gemini 1.5 Flash', elite: 'Gemini 1.5 Pro', black: 'Gemini 1.5 Pro + Áudio' },
+        { name: 'Motor de IA Cognitivo', aspirante: 'Gemini 3.8 Flash', pro: 'Gemini 3.8 Flash + Deep', elite: 'Gemini 4 Carbon', black: 'Gemini 4 Carbon + Áudio' },
         { name: 'Geração Instantânea de Flashcards', aspirante: false, pro: true, elite: true, black: true },
         { name: 'Simulador Cognitivo de Prova Oral', aspirante: false, pro: false, elite: false, black: true }
       ]
@@ -197,7 +197,7 @@ export const PricingPlansTab: React.FC<PricingPlansTabProps> = ({
         { name: 'Garantia Incondicional de 7 Dias (CDC)', aspirante: '-', pro: true, elite: true, black: true },
         { name: 'Canal de Atendimento ao Aluno', aspirante: 'FAQ / Plataforma', pro: 'E-mail Prioritário', elite: 'WhatsApp VIP', black: 'Gerente 1-a-1 Dedicado' },
         { name: 'Animal Guardião Exclusivo', aspirante: 'Padrão', pro: 'Todos os 6', elite: 'Todos os 6 + Evolução', black: 'Fênix Dourada Mítica 🔥' },
-        { name: 'Vigência do Acesso', aspirante: 'Gratuito', pro: 'Mensal / Anual', elite: 'Mensal / Anual', black: 'Vitalício (Até a Posse)' }
+        { name: 'Vigência do Acesso', aspirante: 'Até a Prova (Dose Única)', pro: 'Mensal / Anual', elite: 'Mensal / Anual', black: 'Vitalício (Até a Posse)' }
       ]
     }
   ];

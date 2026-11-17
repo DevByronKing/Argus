@@ -38,18 +38,22 @@ export interface LegalDiagnosticResult {
   quotaMessage?: string;
 }
 
-// Matriz de Cotas e Limites por Plano (Freemium / Pro / Elite)
+// Matriz de Cotas, Modelos Oficiais Google AI Engine e Limites por Plano
 export const PLAN_LIMITS = {
   aspirante: {
-    name: 'Aspirante (Gratuito)',
-    maxDailyAiRequests: 5,
+    name: 'Passe de 30 Dias (Edital Travado)',
+    aiModel: 'gemini-3.8-flash',
+    aiModelLabel: 'Google Gemini 3.8 Flash',
+    maxDailyAiRequests: 15,
     canAccessDiscursivas: false,
-    maxFlashcards: 30,
+    maxFlashcards: 100,
     maxActiveEditais: 1,
     hasSpeechSynthesis: true,
   },
   pro: {
-    name: 'Pro (Copiloto Cognitivo)',
+    name: 'Gabarito PRO (Copiloto Cognitivo)',
+    aiModel: 'gemini-3.8-flash',
+    aiModelLabel: 'Google Gemini 3.8 Flash + Deep',
     maxDailyAiRequests: 100,
     canAccessDiscursivas: true,
     maxMonthlyDiscursivas: 3,
@@ -58,7 +62,9 @@ export const PLAN_LIMITS = {
     hasSpeechSynthesis: true,
   },
   elite: {
-    name: 'Elite (Carreiras Jurídicas)',
+    name: 'ELITE VIP (Carreiras Jurídicas)',
+    aiModel: 'gemini-4-carbon',
+    aiModelLabel: 'Google Gemini 4 Carbon (Frontier)',
     maxDailyAiRequests: 999999,
     canAccessDiscursivas: true,
     maxDailyDiscursivas: 3,
@@ -68,7 +74,9 @@ export const PLAN_LIMITS = {
     hasSpeechSynthesis: true,
   },
   black: {
-    name: 'Black Vitalício (Acesso Até a Posse)',
+    name: 'BLACK VITALÍCIO (Acesso Até a Posse)',
+    aiModel: 'gemini-4-carbon',
+    aiModelLabel: 'Google Gemini 4 Carbon (Frontier)',
     maxDailyAiRequests: 999999,
     canAccessDiscursivas: true,
     maxDailyDiscursivas: 999999,
@@ -78,13 +86,15 @@ export const PLAN_LIMITS = {
     hasSpeechSynthesis: true,
   },
   lancamento: {
-    name: 'Passe Até a Prova (Oferta Fechada Lançamento)',
+    name: 'Passe Até a Prova (Lote 1 Exclusivo)',
+    aiModel: 'gemini-3.8-flash',
+    aiModelLabel: 'Google Gemini 3.8 Flash',
     maxDailyAiRequests: 999999,
     canAccessDiscursivas: true,
     maxDailyDiscursivas: 10,
     maxMonthlyDiscursivas: 999999,
     maxFlashcards: 999999,
-    maxActiveEditais: 999999,
+    maxActiveEditais: 1,
     hasSpeechSynthesis: true,
   },
 } as const;

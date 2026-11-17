@@ -455,8 +455,8 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
 
                           <div className="flex items-center gap-2">
                             {exam.isFreeDemo && (
-                              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-black text-[10px] border border-emerald-500/30">
-                                GRATUITO
+                              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-black text-[10px] border border-emerald-500/30">
+                                LIBERADO
                               </span>
                             )}
                             <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400">

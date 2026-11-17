@@ -45,7 +45,7 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
       </div>
 
       {/* BANNER VIP OFERTA FECHADA DE LANÇAMENTO (R$ 97) */}
-      <div className="mb-14 relative overflow-hidden rounded-3xl p-6 sm:p-10 bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 text-white shadow-2xl shadow-orange-500/25 border border-orange-400/40">
+      <div className="preserve-dark force-white mb-14 relative overflow-hidden rounded-3xl p-6 sm:p-10 bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 text-white shadow-2xl shadow-orange-500/25 border border-orange-400/40">
         <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
           <div className="space-y-3">
@@ -236,7 +236,7 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
               Gabarito Pro
             </h3>
             <div className="pt-1 pb-1">
-              <GoogleAIEngineBadge variant="card" />
+              <GoogleAIEngineBadge variant="card" modelName="Gemini 3.8 Flash + Deep" />
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-semibold">O Copiloto Cognitivo de Alta Performance</p>
             
@@ -293,7 +293,7 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
           <div>
             <h3 className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors">Elite & Discursivas</h3>
             <div className="pt-1 pb-1">
-              <GoogleAIEngineBadge variant="card" />
+              <GoogleAIEngineBadge variant="card" modelName="Gemini 4 Carbon Frontier" />
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Carreiras Jurídicas, Fiscais, OAB e Tribunais</p>
             

@@ -82,10 +82,11 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header Banner with Selected Animal's Aesthetic */}
-        <div className={`p-6 sm:p-7 bg-gradient-to-r ${selectedAnimal.colorGradient} relative overflow-hidden transition-all duration-500 shrink-0`}>
-          <div className="absolute -right-8 -bottom-8 opacity-20 text-9xl select-none pointer-events-none filter blur-[1px]">
-            {selectedAnimal.emoji}
-          </div>
+        <div
+          style={{ color: '#ffffff' }}
+          className={`preserve-dark force-white p-6 sm:p-7 bg-gradient-to-r ${selectedAnimal.colorGradient} relative overflow-hidden transition-all duration-500 shrink-0`}
+        >
+          <div className="absolute -right-12 -bottom-12 w-48 h-48 rounded-full bg-white/10 blur-2xl pointer-events-none" />
           
           <button
             type="button"

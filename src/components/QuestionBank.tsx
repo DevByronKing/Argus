@@ -23,7 +23,10 @@ import {
   Activity,
   Lightbulb,
   Info,
-  ShieldCheck
+  ShieldCheck,
+  Download,
+  FileText,
+  Target
 } from 'lucide-react';
 import { Question, QuestionAttempt, Flashcard, QuestionBankFilter, PsychometricDistractorType, StudentProfile } from '@/lib/types';
 import { MOCK_QUESTIONS, MASCOTS_DATA } from '@/lib/mockData';
@@ -92,25 +95,16 @@ export const QuestionBank: React.FC<QuestionBankProps> = ({
   onGoToMistakes,
   studentProfile
 }) => {
+  const [selectedExamPack, setSelectedExamPack] = useState<string>('todos');
   const [filter, setFilter] = useState<QuestionBankFilter>(() => ({
     searchQuery: '',
-    banca: (studentProfile?.targetBanca && studentProfile.targetBanca !== 'Outra') ? studentProfile.targetBanca : 'todas',
+    banca: 'todas',
     subject: 'todas',
     topic: 'todos',
     year: 'todos',
     difficulty: 'todas',
     status: 'todas'
   }));
-
-  // Sincronizar banca do filtro quando o perfil do aluno ou edital padrão for alterado
-  useEffect(() => {
-    if (studentProfile?.targetBanca && studentProfile.targetBanca !== 'Outra') {
-      setFilter((prev) => ({
-        ...prev,
-        banca: studentProfile.targetBanca as any
-      }));
-    }
-  }, [studentProfile?.targetBanca]);
 
   // Respostas locais para o banco
   const [userAnswers, setUserAnswers] = useState<Record<string, { selectedOptionId: string; isCorrect: boolean; confirmed: boolean }>>({});
@@ -175,17 +169,44 @@ export const QuestionBank: React.FC<QuestionBankProps> = ({
   const availableBancas = useMemo(() => {
     const set = new Set(questionsList.map(q => q.banca));
     return ['todas', ...Array.from(set)];
-  }, []);
+  }, [questionsList]);
 
   const availableSubjects = useMemo(() => {
     const set = new Set(questionsList.map(q => q.subjectName));
     return ['todas', ...Array.from(set)];
-  }, []);
+  }, [questionsList]);
 
   const availableYears = useMemo(() => {
     const set = new Set(questionsList.map(q => q.year.toString()));
     return ['todos', ...Array.from(set).sort((a, b) => Number(b) - Number(a))];
-  }, []);
+  }, [questionsList]);
+
+  const handleDownloadBooklet = () => {
+    const listToExport = filteredQuestions.slice(0, 60);
+    const header = `====================================================================\nARGUS AI — CADERNO DE QUESTÕES OFICIAIS COMENTADAS\nTotal exportado: ${listToExport.length} questões auditadas\nData: ${new Date().toLocaleDateString('pt-BR')}\n====================================================================\n\n`;
+    const body = listToExport
+      .map((q, idx) => {
+        const opts = q.options
+          .map((o, i) => `  (${String.fromCharCode(65 + i)}) ${o.text}`)
+          .join('\n');
+        const correctIdx = q.options.findIndex((o) => o.isCorrect);
+        const correctLetter = String.fromCharCode(65 + Math.max(0, correctIdx));
+        return `QUESTÃO ${idx + 1} [${q.banca} • ${q.year} • ${q.institution || q.subjectName}]\nDisciplina: ${q.subjectName} — ${q.topicName}\n\n${q.statement}\n\n${opts}\n\n✔ GABARITO OFICIAL: ${correctLetter}\n💡 COMENTÁRIO & FUNDAMENTAÇÃO: ${q.explanation}\n⚠️ PEGADINHA DA BANCA: ${q.cognitiveAnalysis?.commonTrap || ''}\n--------------------------------------------------------------------\n`;
+      })
+      .join('\n');
+
+    try {
+      const blob = new Blob([header + body], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Caderno_Questoes_Argus_${filter.banca !== 'todas' ? filter.banca : 'Completo'}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {}
+  };
 
   // Filtragem dinâmica das questões
   const filteredQuestions = useMemo(() => {
@@ -385,11 +406,77 @@ export const QuestionBank: React.FC<QuestionBankProps> = ({
         </div>
       </div>
 
+      {/* Vitrine das Últimas Provas Oficiais dos Concursos Mais Famosos */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-white/85 dark:bg-dark-card/70 backdrop-blur-md border border-slate-200/90 dark:border-white/10 shadow-sm space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-200/80 dark:border-white/10">
+          <div className="flex items-center gap-2">
+            <FileText className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
+              Cadernos de Últimas Provas Oficiais (Concursos Mais Famosos)
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleDownloadBooklet}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold shadow-sm shadow-indigo-600/20 transition-all cursor-pointer active:scale-95"
+            title="Baixar caderno com as questões filtradas comentadas"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Baixar Caderno de Prova ({stats.filteredCount}q)</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+          {[
+            { id: 'todos', label: 'Acervo Completo', sub: 'Todas as 5 Bancas', banca: 'todas', query: '' },
+            { id: 'pf_prf', label: 'PF & PRF 2024/25', sub: 'Cebraspe • 52q', banca: 'Cebraspe', query: '' },
+            { id: 'inss', label: 'INSS Seguro Social', sub: 'Cebraspe • 52q', banca: 'Cebraspe', query: '' },
+            { id: 'oab_fgv', label: 'OAB & Receita', sub: 'FGV • 52q', banca: 'FGV', query: '' },
+            { id: 'trt_fcc', label: 'TRTs & Tribunais', sub: 'FCC • 52q', banca: 'FCC', query: '' },
+            { id: 'tjsp_vunesp', label: 'TJ-SP & PC-SP', sub: 'Vunesp • 52q', banca: 'Vunesp', query: '' },
+            { id: 'cnu_cesgranrio', label: 'CNU, Caixa & BB', sub: 'Cesgranrio • 52q', banca: 'Cesgranrio', query: '' },
+          ].map((pack) => {
+            const isPackActive = selectedExamPack === pack.id;
+            return (
+              <button
+                key={pack.id}
+                type="button"
+                onClick={() => {
+                  setSelectedExamPack(pack.id);
+                  setFilter((prev) => ({
+                    ...prev,
+                    banca: pack.banca as any,
+                    searchQuery: pack.query,
+                    subject: 'todas',
+                  }));
+                  setCurrentPage(1);
+                }}
+                className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1 ${
+                  isPackActive
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20'
+                    : 'bg-slate-50 dark:bg-dark-surface hover:bg-indigo-50/60 dark:hover:bg-white/5 border-slate-200/80 dark:border-white/10 text-slate-800 dark:text-slate-200'
+                }`}
+              >
+                <span className={`text-xs font-black leading-tight ${isPackActive ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+                  {pack.label}
+                </span>
+                <span className={`text-[10px] font-mono font-bold ${isPackActive ? 'text-indigo-100' : 'text-indigo-600 dark:text-cyan-400'}`}>
+                  {pack.sub}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Banner de Calibração Pessoal do Aluno */}
       {studentProfile && (
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-blue-900/30 via-indigo-900/20 to-purple-900/30 border border-blue-500/20 flex flex-wrap items-center justify-between gap-3 text-xs backdrop-blur-sm">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 border border-blue-500/20 flex flex-wrap items-center justify-between gap-3 text-xs backdrop-blur-sm">
           <div className="flex items-center gap-2.5">
-            <span className="text-xl">🎯</span>
+            <div className="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+              <Target className="w-4 h-4" />
+            </div>
             <div>
               <span className="font-black text-slate-900 dark:text-white">
                 Filtros Calibrados para {studentProfile.warName || studentProfile.name}

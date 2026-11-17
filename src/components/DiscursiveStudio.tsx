@@ -291,7 +291,7 @@ Por derradeiro, a lavagem de dinheiro (Lei nº 9.613/1998) consubstancia tipo pe
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn space-y-6">
       
-      {/* Banner de Gating Freemium se plano for Aspirante */}
+      {/* Banner de Upgrade para Discursivas */}
       {userPlan === 'aspirante' && (
         <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/10 via-slate-500/10 to-transparent border border-blue-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs animate-fadeIn">
           <div className="flex items-center gap-2.5">
@@ -300,10 +300,10 @@ Por derradeiro, a lavagem de dinheiro (Lei nº 9.613/1998) consubstancia tipo pe
             </div>
             <div>
               <p className="font-bold text-slate-900 dark:text-white">
-                Recurso Exclusivo dos Planos Pro e Elite
+                Estúdio Analítico Powered by Google Gemini 4 Carbon
               </p>
               <p className="text-slate-600 dark:text-slate-300 text-[11px]">
-                Você está no <strong>Plano Aspirante (Gratuito)</strong> em modo demonstração. Faça upgrade para enviar suas redações para correção analítica oficial com IA.
+                Ative o <strong>Plano ELITE VIP</strong> ou <strong>BLACK Vitalício</strong> para desbloquear correções ilimitadas de peças práticas e redações com espelho oficial da banca.
               </p>
             </div>
           </div>

@@ -906,17 +906,14 @@ html.light {
 @keyframes tabSlideFadeIn {
   0% {
     opacity: 0;
-    transform: translateY(8px) scale(0.996);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
   }
 }
 
 .tab-page-wrapper {
-  animation: tabSlideFadeIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  will-change: opacity, transform;
+  animation: tabSlideFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Barra de Rolagem Global Customizada e Fluida (Dark & Light Mode) */

@@ -1137,9 +1137,15 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
                         key={animal.id}
                         selected={isSelected}
                         onClick={() => patchForm({ guardianId: animal.id, guardianTouched: true })}
-                        className="p-2 rounded-[var(--radius-md)] text-center flex flex-col items-center gap-0.5 relative"
+                        className="p-2 rounded-[var(--radius-md)] text-center flex flex-col items-center gap-1 relative"
                       >
-                        <span className="text-2xl" aria-hidden="true">{animal.emoji}</span>
+                        <img
+                          src={animal.avatar3dUrl}
+                          alt={animal.name}
+                          className={`w-10 h-10 rounded-full object-cover border-2 transition-transform ${
+                            isSelected ? 'border-indigo-500 scale-110 shadow-md shadow-indigo-500/30' : 'border-slate-300 dark:border-white/20'
+                          }`}
+                        />
                         <span className={`text-[10px] truncate max-w-full ${isSelected ? 'font-black text-[var(--brand-primary)]' : 'font-bold text-[var(--text-secondary)]'}`}>
                           {animal.name.split(' ')[0]}
                         </span>
@@ -1386,11 +1392,11 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
                     <Button
                       variant="secondary"
                       size="lg"
-                      onClick={() => handleFinalSubmit('pricing', 'trial')}
-                      leftIcon={<CreditCard className="w-4 h-4 text-[var(--brand-accent)]" />}
+                      onClick={() => handleFinalSubmit('simulator', 'trial')}
+                      leftIcon={<Zap className="w-4 h-4 text-[var(--brand-accent)]" />}
                       className="w-full uppercase tracking-wider"
                     >
-                      Iniciar 7 Dias Grátis com Cartão
+                      Ir Direto para Minha 1ª Bateria de Questões
                     </Button>
                   </div>
 

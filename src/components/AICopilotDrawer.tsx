@@ -229,8 +229,12 @@ export const AICopilotDrawer: React.FC<AICopilotDrawerProps> = ({
         className="fixed bottom-5 right-5 z-[80] flex items-center gap-3 px-4 py-2.5 rounded-full bg-white/95 dark:bg-[#0c1427]/95 border-2 border-blue-500/50 shadow-2xl shadow-blue-500/20 text-slate-800 dark:text-white cursor-pointer hover:scale-105 active:scale-95 transition-all backdrop-blur-xl group"
         title="Clique para expandir o Copiloto Cognitivo"
       >
-        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-lg shadow-xs shrink-0 group-hover:scale-110 transition-transform">
-          {copilotEmoji}
+        <div className="w-8 h-8 rounded-full overflow-hidden bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-lg shadow-xs shrink-0 group-hover:scale-110 transition-transform border border-blue-400/40">
+          {guardian.avatar3dUrl ? (
+            <img src={guardian.avatar3dUrl} alt={copilotName} className="w-full h-full object-cover" />
+          ) : (
+            copilotEmoji
+          )}
         </div>
         <div className="flex flex-col text-left leading-tight">
           <div className="flex items-center gap-1.5">
@@ -485,7 +489,19 @@ export const AICopilotDrawer: React.FC<AICopilotDrawerProps> = ({
                     }`}
                   >
                     <div className="whitespace-pre-line">
-                      {m.text}
+                      {m.text.split(/(\*\*[^*]+\*\*)/g).map((part, idx) => {
+                        if (part.startsWith('**') && part.endsWith('**')) {
+                          return (
+                            <strong
+                              key={idx}
+                              className={m.sender === 'user' ? 'font-black text-white' : 'font-black text-slate-950 dark:text-white'}
+                            >
+                              {part.slice(2, -2)}
+                            </strong>
+                          );
+                        }
+                        return <React.Fragment key={idx}>{part}</React.Fragment>;
+                      })}
                     </div>
 
                     {m.sender === 'assistant' && (
