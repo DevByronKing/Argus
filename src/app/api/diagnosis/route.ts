@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { AIEngine, LegalDiagnosticRequest } from '@/lib/aiEngine';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
+import { measureLatency } from '@/lib/logger';
 
 export async function POST(req: Request) {
-  try {
+  return measureLatency('/api/diagnosis', async () => {
+    try {
     const ip = getClientIp(req);
     const { allowed, resetTime } = checkRateLimit(ip, 30, 60000);
 
@@ -47,11 +49,12 @@ export async function POST(req: Request) {
       success: true,
       data: result,
     });
-  } catch (error: any) {
-    console.error('API Diagnosis Error:', error);
-    return NextResponse.json(
-      { success: false, error: error.message || 'Erro interno no diagnóstico cognitivo' },
-      { status: 500 }
-    );
-  }
+    } catch (error: any) {
+      console.error('API Diagnosis Error:', error);
+      return NextResponse.json(
+        { success: false, error: error.message || 'Erro interno no diagnóstico cognitivo' },
+        { status: 500 }
+      );
+    }
+  });
 }

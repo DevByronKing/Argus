@@ -3,11 +3,13 @@ import { TransactionManager } from '@/lib/transactions';
 import { PaymentGateway } from '@/lib/paymentGateways';
 import { SubscriptionPlan } from '@/lib/types';
 import { isFreemiumAllowed } from '@/lib/abTesting';
+import { measureLatency } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
-  try {
+  return measureLatency('/api/checkout', async () => {
+    try {
     const body = await req.json();
     const { 
       planId = 'pro', 
@@ -104,41 +106,44 @@ export async function POST(req: NextRequest) {
       },
       status: 'pending_payment',
     });
-  } catch (error: any) {
-    console.error('Erro na API de checkout:', error);
-    return NextResponse.json(
-      { success: false, error: error.message || 'Falha ao processar checkout' },
-      { status: 500 }
-    );
-  }
+    } catch (error: any) {
+      console.error('Erro na API de checkout:', error);
+      return NextResponse.json(
+        { success: false, error: error.message || 'Falha ao processar checkout' },
+        { status: 500 }
+      );
+    }
+  });
 }
 
 export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const txId = searchParams.get('txId');
+  return measureLatency('/api/checkout', async () => {
+    try {
+      const { searchParams } = new URL(req.url);
+      const txId = searchParams.get('txId');
 
-    if (!txId) {
-      return NextResponse.json({ success: false, error: 'txId é obrigatório' }, { status: 400 });
-    }
+      if (!txId) {
+        return NextResponse.json({ success: false, error: 'txId é obrigatório' }, { status: 400 });
+      }
 
-    const tx = await TransactionManager.getAsync(txId);
-    if (!tx) {
+      const tx = await TransactionManager.getAsync(txId);
+      if (!tx) {
+        return NextResponse.json({
+          success: true,
+          transactionId: txId,
+          status: 'pending_payment', // Mantém polling se em modo mock
+        });
+      }
+
       return NextResponse.json({
         success: true,
-        transactionId: txId,
-        status: 'pending_payment', // Mantém polling se em modo mock
+        transactionId: tx.id,
+        status: tx.status,
+        planId: tx.planId,
+        confirmedAt: tx.confirmedAt,
       });
+    } catch (error: any) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
-
-    return NextResponse.json({
-      success: true,
-      transactionId: tx.id,
-      status: tx.status,
-      planId: tx.planId,
-      confirmedAt: tx.confirmedAt,
-    });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-  }
+  });
 }

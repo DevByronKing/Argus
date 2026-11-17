@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
+import { measureLatency } from '@/lib/logger';
 import {
   MOCK_QUESTIONS,
   INITIAL_VADE_MECUM,
@@ -8,8 +9,9 @@ import {
 } from '@/lib/mockData';
 import { ALL_OFFICIAL_QUESTIONS } from '@/lib/questions';
 
-const ALL_QUESTIONS =
-  ALL_OFFICIAL_QUESTIONS.length > 0 ? ALL_OFFICIAL_QUESTIONS : MOCK_QUESTIONS;
+const ALL_QUESTIONS = Array.from(
+  new Map([...MOCK_QUESTIONS, ...ALL_OFFICIAL_QUESTIONS].map((q) => [q.id, q])).values()
+);
 
 function normalizeText(str: string): string {
   return str
@@ -36,7 +38,8 @@ function extractKeywords(query: string): string[] {
 }
 
 export async function POST(req: Request) {
-  try {
+  return measureLatency('/api/copilot', async () => {
+    try {
     const ip = getClientIp(req);
     const { allowed, resetTime } = checkRateLimit(ip, 30, 60000);
 
@@ -178,25 +181,26 @@ Responda em JSON válido:
         tab: directAnswer.quickAction.actionTab,
       },
     });
-  } catch (error: any) {
-    console.error('API Copilot Error:', error);
-    const fallbackText =
-      'Não consegui processar sua pergunta neste instante. Tente reformular com o tema ou artigo que você quer revisar.';
-    return NextResponse.json({
-      success: true,
-      source: 'fallback',
-      text: fallbackText,
-      reply: fallbackText,
-      quickAction: {
-        label: 'Abrir Banco de Questões',
-        actionTab: 'questions',
-      },
-      recommendedAction: {
-        label: 'Abrir Banco de Questões',
-        tab: 'questions',
-      },
-    });
-  }
+    } catch (error: any) {
+      console.error('API Copilot Error:', error);
+      const fallbackText =
+        'Não consegui processar sua pergunta neste instante. Tente reformular com o tema ou artigo que você quer revisar.';
+      return NextResponse.json({
+        success: true,
+        source: 'fallback',
+        text: fallbackText,
+        reply: fallbackText,
+        quickAction: {
+          label: 'Abrir Banco de Questões',
+          actionTab: 'questions',
+        },
+        recommendedAction: {
+          label: 'Abrir Banco de Questões',
+          tab: 'questions',
+        },
+      });
+    }
+  });
 }
 
 function answerStudentQueryDirectly(
@@ -328,7 +332,7 @@ function answerStudentQueryDirectly(
 
     const scoredSummaries = INITIAL_MICRO_SUMMARIES.map((sum) => {
       const sumNorm = normalizeText(
-        `${sum.subjectName} ${sum.topicName} ${sum.title} ${sum.coreConcept} ${sum.mnemonic} ${sum.bancaTrapAlert}`
+        `${sum.subjectName} ${sum.topicName} ${sum.title} ${sum.coreConcept || ''} ${(sum.keyPoints || []).join(' ')} ${sum.mnemonic || ''} ${sum.bancaTrapAlert}`
       );
       let score = 0;
       for (const kw of keywords) {
@@ -342,7 +346,7 @@ function answerStudentQueryDirectly(
     // Busca também nas questões oficiais auditadas
     const scoredQuestions = ALL_QUESTIONS.map((q) => {
       const qTextNorm = normalizeText(
-        `${q.subjectName} ${q.topicName} ${q.statement} ${q.explanation || ''} ${q.codeCitation || ''}`
+        `${q.subjectName} ${q.topicName} ${q.statement} ${q.explanation || ''} ${q.cognitiveAnalysis?.commonTrap || ''} ${q.cognitiveAnalysis?.keyConcept || ''} ${q.codeCitation || ''} ${(q.lawArticles || []).join(' ')}`
       );
       let score = 0;
       for (const kw of keywords) {
@@ -359,8 +363,11 @@ function answerStudentQueryDirectly(
 
       if (scoredSummaries.length > 0) {
         const topSum = scoredSummaries[0].sum;
+        const mainRule = topSum.coreConcept || (topSum.keyPoints || []).join('; ');
         parts.push(
-          `\n**Resumo Simples (${topSum.subjectName} — ${topSum.topicName}):**\n• **Regra Principal:** ${topSum.coreConcept}\n• **Como não esquecer (Macete):** *${topSum.mnemonic}*\n• **Pegadinha clássica de prova:** ${topSum.bancaTrapAlert}`
+          `\n**Resumo Simples (${topSum.subjectName} — ${topSum.topicName}):**\n• **Regra Principal:** ${mainRule}${
+            topSum.mnemonic ? `\n• **Como não esquecer (Macete):** *${topSum.mnemonic}*` : ''
+          }\n• **Pegadinha clássica de prova:** ${topSum.bancaTrapAlert}`
         );
       }
 
@@ -376,7 +383,11 @@ function answerStudentQueryDirectly(
       if (scoredQuestions.length > 0) {
         const topQ = scoredQuestions[0].q;
         parts.push(
-          `\n**Como as bancas cobram isso (${topQ.banca} • ${topQ.year}):**\n• **Tema:** ${topQ.subjectName} (${topQ.topicName})\n• **Explicação prática:** ${topQ.explanation}`
+          `\n**Como as bancas cobram isso (${topQ.banca} • ${topQ.year}):**\n• **Tema:** ${topQ.subjectName} (${topQ.topicName})\n• **Explicação prática:** ${topQ.explanation}${
+            topQ.cognitiveAnalysis?.commonTrap
+              ? `\n• **Armadilha recorrente:** ${topQ.cognitiveAnalysis.commonTrap}`
+              : ''
+          }`
         );
       }
 

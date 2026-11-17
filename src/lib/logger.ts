@@ -91,3 +91,53 @@ class StructuredLogger {
 }
 
 export const logger = new StructuredLogger();
+
+export const SLA_LATENCY_THRESHOLD_MS = 1000;
+
+/**
+ * Registra latência de uma rota crítica e dispara `SLA_LATENCY_BREACH` quando ultrapassar 1.000 ms.
+ */
+export function recordLatencySLA(
+  route: string,
+  durationMs: number,
+  extraContext?: Record<string, string | number | boolean>
+): boolean {
+  const safeDurationMs = Math.max(0, Math.round(durationMs));
+  const metricTags: Record<string, string> = { route };
+
+  if (extraContext) {
+    for (const [k, v] of Object.entries(extraContext)) {
+      metricTags[k] = String(v);
+    }
+  }
+
+  logger.metric('api_latency_ms', safeDurationMs, 'ms', metricTags);
+
+  if (safeDurationMs > SLA_LATENCY_THRESHOLD_MS) {
+    logger.warn('SLA_LATENCY_BREACH', {
+      route,
+      durationMs: safeDurationMs,
+      thresholdMs: SLA_LATENCY_THRESHOLD_MS,
+      ...extraContext,
+    });
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Instrumenta uma operação assíncrona de API garantindo emissão automática de métrica e alerta de SLA.
+ */
+export async function measureLatency<T>(
+  route: string,
+  fn: () => Promise<T>,
+  extraContext?: Record<string, string | number | boolean>
+): Promise<T> {
+  const startedAt = Date.now();
+  try {
+    return await fn();
+  } finally {
+    recordLatencySLA(route, Date.now() - startedAt, extraContext);
+  }
+}

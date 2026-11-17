@@ -218,6 +218,12 @@ CREATE INDEX IF NOT EXISTS idx_mistakes_question
 CREATE INDEX IF NOT EXISTS idx_questions_banca_subject 
   ON public.questions (banca, subject_name, year DESC);
 
+CREATE INDEX IF NOT EXISTS idx_questions_banca_trgm
+  ON public.questions USING gin (banca gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_questions_subject_trgm
+  ON public.questions USING gin (subject_name gin_trgm_ops);
+
 CREATE INDEX IF NOT EXISTS idx_questions_statement_trgm 
   ON public.questions USING gin (statement gin_trgm_ops);
 
@@ -226,6 +232,12 @@ CREATE INDEX IF NOT EXISTS idx_cache_lookup
 
 CREATE INDEX IF NOT EXISTS idx_transactions_user_status 
   ON public.transactions (user_email, status);
+
+CREATE INDEX IF NOT EXISTS idx_transactions_external_id
+  ON public.transactions (external_id);
+
+CREATE INDEX IF NOT EXISTS idx_profiles_email
+  ON public.profiles (email);
 
 CREATE INDEX IF NOT EXISTS idx_exam_notices_user 
   ON public.exam_notices (user_id);
