@@ -182,9 +182,14 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
     const fetchPix = async () => {
       setIsLoadingPix(true);
       try {
+        const token = useAuthStore.getState().token;
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token && !token.startsWith('jwt_mock_')) {
+          headers.Authorization = `Bearer ${token}`;
+        }
         const res = await fetch('/api/checkout', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({
             planId: selectedPlan,
             billingCycle,

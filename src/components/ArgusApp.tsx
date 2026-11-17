@@ -188,6 +188,7 @@ export function ArgusApp() {
   const [isPricingOpen, setIsPricingOpen] = useState(false);
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
   const [isAdminIngestOpen, setIsAdminIngestOpen] = useState(false);
+  const [isServerVerifiedAdmin, setIsServerVerifiedAdmin] = useState(false);
   const [isOnboardingTerminalOpen, setIsOnboardingTerminalOpen] = useState(false);
   const [isSeanEllisSurveyOpen, setIsSeanEllisSurveyOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -473,6 +474,17 @@ export function ArgusApp() {
       } catch {
         // Perfil sem assinatura paga confirmada mantém plano Visitante
       }
+
+      // Verifica privilégio administrativo estritamente no backend (/api/admin/session)
+      try {
+        const admRes = await fetch('/api/admin/session', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const admData = await admRes.json().catch(() => null);
+        setIsServerVerifiedAdmin(Boolean(admRes.ok && admData?.isAdmin === true));
+      } catch {
+        setIsServerVerifiedAdmin(false);
+      }
     };
 
     // Carrega sessão atual ativa no Supabase
@@ -488,6 +500,7 @@ export function ArgusApp() {
         syncAuthAndPlan(session.user, session.access_token);
       } else if (event === 'SIGNED_OUT') {
         useAuthStore.getState().logout();
+        setIsServerVerifiedAdmin(false);
         if (!isFreemiumAllowed()) {
           setPlan('aspirante');
         }
@@ -970,6 +983,7 @@ export function ArgusApp() {
               onOpenAuth={() => setIsAuthModalOpen(true)}
               onOpenSettings={() => setActiveTab('settings')}
               onOpenAdminIngest={() => setIsAdminIngestOpen(true)}
+              isServerVerifiedAdmin={isServerVerifiedAdmin}
               onOpenMobileModal={() => setIsMobileModalOpen(true)}
               onOpenFlashChallenge={() => setIsFlashChallengeOpen(true)}
               onOpenReferral={() => setIsReferralModalOpen(true)}

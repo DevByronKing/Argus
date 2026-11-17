@@ -5,18 +5,18 @@ import {
   crossReferenceWithAnswerKey,
   generatePostgresSql,
 } from '@/lib/questionExtractor';
-import { getSupabase, isSupabaseConfigured } from '@/lib/supabase';
+import { getSupabaseServiceRole, isSupabaseServiceRoleConfigured } from '@/lib/supabase';
 import { ExamIngestionMetadata, ParsedExamQuestion } from '@/lib/types';
+import { assertServerAdmin } from '@/lib/adminAuth';
 
 export async function POST(req: Request) {
   try {
-    // 0. Controle de Acesso Administrativo em Produção
-    const adminKey = req.headers.get('x-admin-key') || req.headers.get('authorization')?.replace('Bearer ', '');
-    const configuredSecret = process.env.ADMIN_API_KEY;
-    if (process.env.NODE_ENV === 'production' && (!configuredSecret || adminKey !== configuredSecret)) {
+    // 0. Autorização Administrativa Exclusiva no Servidor (JWT validado + allowlist ou ADMIN_API_KEY via timingSafeEqual)
+    const adminCheck = await assertServerAdmin(req, '/api/admin/ingest-exam');
+    if (!adminCheck.authorized) {
       return NextResponse.json(
-        { success: false, error: 'Acesso não autorizado. Chave administrativa ausente ou inválida.' },
-        { status: 401 }
+        { success: false, error: adminCheck.error || 'Acesso não autorizado.' },
+        { status: adminCheck.status }
       );
     }
 
@@ -202,9 +202,9 @@ Retorne ESTRITAMENTE um JSON Array válido com os itens:
       let insertedCount = 0;
       let usedSupabase = false;
 
-      // Gravação no Supabase se as credenciais estiverem ativas
-      if (isSupabaseConfigured()) {
-        const client = getSupabase();
+      // Gravação segura no Supabase usando estritamente service_role após validação admin no servidor
+      if (isSupabaseServiceRoleConfigured()) {
+        const client = getSupabaseServiceRole();
         if (client) {
           const records = questionsToSave.map((q) => ({
             subject_name: q.subjectName,

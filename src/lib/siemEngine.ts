@@ -4,6 +4,8 @@
  * e exportação em formato padrão de mercado (CEF - Common Event Format).
  */
 
+import { logger } from './logger';
+
 export type SiemEventType =
   | 'AUTH_FAILED'
   | 'AUTH_SUCCESS'
@@ -12,8 +14,12 @@ export type SiemEventType =
   | 'CSRF_VIOLATION'
   | 'SSRF_ATTEMPT'
   | 'WAF_IP_BANNED'
+  | 'IP_JAILED'
   | 'MALWARE_BLOCKED'
   | 'PRIVILEGE_ESCALATION_ATTEMPT'
+  | 'WEBHOOK_REJECTED'
+  | 'CHECKOUT_ABUSE'
+  | 'CAPTCHA_FAILED'
   | 'PROMPT_INJECTION_ATTEMPT'
   | 'PHISHING_DETECTED'
   | 'ZERO_TRUST_REJECTED'
@@ -46,6 +52,11 @@ class SiemRegistry {
   private events: SiemEvent[] = [];
   private alerts: SiemAlert[] = [];
   private maxBufferSize = 2000;
+  private persistenceHook?: (event: SiemEvent) => Promise<void> | void;
+
+  public setPersistenceHook(hook: (event: SiemEvent) => Promise<void> | void): void {
+    this.persistenceHook = hook;
+  }
 
   /**
    * Registra um evento de segurança estruturado no SIEM.
@@ -62,6 +73,42 @@ class SiemRegistry {
     this.events.unshift(fullEvent);
     if (this.events.length > this.maxBufferSize) {
       this.events.pop();
+    }
+
+    // Alerta estruturado com sanitização automática (nunca loga segredos/cookies/tokens)
+    if (
+      fullEvent.severity === 'CRITICAL' ||
+      fullEvent.severity === 'HIGH' ||
+      [
+        'AUTH_FAILED',
+        'BRUTE_FORCE_DETECTED',
+        'PRIVILEGE_ESCALATION_ATTEMPT',
+        'WEBHOOK_REJECTED',
+        'CHECKOUT_ABUSE',
+        'IP_JAILED',
+      ].includes(fullEvent.eventType)
+    ) {
+      const logPayload = {
+        siemId: fullEvent.id,
+        eventType: fullEvent.eventType,
+        severity: fullEvent.severity,
+        sourceIp: fullEvent.sourceIp,
+        userId: fullEvent.userId,
+        ...fullEvent.details,
+      };
+      if (fullEvent.severity === 'CRITICAL') {
+        logger.error(`SIEM:${fullEvent.eventType}`, undefined, logPayload);
+      } else {
+        logger.warn(`SIEM:${fullEvent.eventType}`, logPayload);
+      }
+    }
+
+    if (this.persistenceHook) {
+      try {
+        void this.persistenceHook(fullEvent);
+      } catch {
+        // Falha silenciosa para nunca quebrar fluxo crítico
+      }
     }
 
     // Executa correlação automática de anomalias

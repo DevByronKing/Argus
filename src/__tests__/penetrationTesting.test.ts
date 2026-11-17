@@ -34,6 +34,12 @@ import { siemEngine } from '@/lib/siemEngine';
 import { auditDependencyCves } from '@/lib/cveAuditor';
 import { runDevSecOpsPipeline } from '../../scripts/securityAudit';
 import { checkRateLimitWithProfile, banIp, isIpBanned, unbanIp } from '@/lib/rateLimiter';
+import { middleware } from '@/middleware';
+import { signAccessCookiePayload } from '@/lib/signedAccessToken';
+import { assertServerAdmin } from '@/lib/adminAuth';
+import * as supabaseModule from '@/lib/supabase';
+import { NextRequest } from 'next/server';
+import { vi, afterEach } from 'vitest';
 
 describe('Suíte de Penetration Testing & Auditoria dos 20 Conceitos de Segurança (Argus)', () => {
   beforeEach(() => {
@@ -447,11 +453,127 @@ describe('Suíte de Penetration Testing & Auditoria dos 20 Conceitos de Seguran�
   // CONCEITO 20: DevSecOps
   // ============================================================================
   describe('20. DevSecOps (Pipeline SAST/DAST e Gate de Segurança)', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+      delete process.env.ADMIN_EMAILS;
+      delete process.env.ADMIN_USER_IDS;
+    });
+
     it('deve executar o pipeline de segurança e atestar conformidade do código-fonte', () => {
       const devSecOpsResult = runDevSecOpsPipeline();
       expect(devSecOpsResult.sastClean).toBe(true);
       expect(devSecOpsResult.headersCompliant).toBe(true);
       expect(devSecOpsResult.overallPassed).toBe(true);
     }, 15000);
+
+    it('deve rejeitar cookie argus_user_access forjado sem HMAC e bypass via argus_ab_flags no middleware', async () => {
+      const forgedDashboardReq = new NextRequest('http://localhost:3000/dashboard', {
+        headers: {
+          'x-forwarded-for': '203.0.113.210',
+          cookie:
+            'argus_user_access=' +
+            encodeURIComponent(JSON.stringify({ status: 'ativa', isPayingOrCommitted: true })) +
+            '; argus_ab_flags=' +
+            encodeURIComponent(JSON.stringify({ freemium_vs_paid_experiment: 'variant_b' })),
+        },
+      });
+
+      const dashRes = await middleware(forgedDashboardReq);
+      expect(dashRes.status).toBe(307);
+      expect(dashRes.headers.get('location')).toContain('paywall=required');
+
+      const escalationEvents = siemEngine.getEvents({ eventType: 'PRIVILEGE_ESCALATION_ATTEMPT' });
+      expect(escalationEvents.length).toBeGreaterThan(0);
+
+      // Token fake em /api/admin deve ser rejeitado pelo formato JWT no middleware
+      const forgedAdminApiReq = new NextRequest('http://localhost:3000/api/admin/ingest-exam', {
+        method: 'POST',
+        headers: {
+          'x-forwarded-for': '203.0.113.211',
+          cookie: 'argus-session=fake_token_12345',
+        },
+      });
+      const adminApiRes = await middleware(forgedAdminApiReq);
+      expect(adminApiRes.status).toBe(401);
+
+      // Cookie validamente assinado com HMAC-SHA256 deve liberar /dashboard
+      const signedCookie = await signAccessCookiePayload({
+        status: 'ativa',
+        isPayingOrCommitted: true,
+        planId: 'pro',
+        userId: 'usr-valid-1',
+      });
+      expect(signedCookie).toBeTruthy();
+
+      const validDashboardReq = new NextRequest('http://localhost:3000/dashboard', {
+        headers: {
+          'x-forwarded-for': '203.0.113.212',
+          cookie: `argus_user_access=${signedCookie}`,
+        },
+      });
+      const validRes = await middleware(validDashboardReq);
+      expect(validRes.status).toBe(200);
+    });
+
+    it('deve impedir escalação via user_metadata.role=admin e só autorizar admins na allowlist do servidor', async () => {
+      process.env.ADMIN_EMAILS = 'dono@argus.app.br';
+
+      const fakeAdminUser = {
+        id: '11111111-1111-1111-1111-111111111111',
+        email: 'aluno.atacante@gmail.com',
+        email_confirmed_at: '2026-01-01T00:00:00Z',
+        user_metadata: { role: 'admin', is_admin: true },
+      };
+
+      const mockClient: any = {
+        auth: {
+          getUser: vi.fn(async (tok: string) => {
+            if (tok === 'jwt-atacante') return { data: { user: fakeAdminUser }, error: null };
+            return {
+              data: {
+                user: {
+                  id: '22222222-2222-2222-2222-222222222222',
+                  email: 'dono@argus.app.br',
+                  email_confirmed_at: '2026-01-01T00:00:00Z',
+                  user_metadata: {},
+                },
+              },
+              error: null,
+            };
+          }),
+        },
+        from: vi.fn(() => ({
+          select: () => ({
+            eq: () => ({
+              or: () => ({
+                limit: () => ({
+                  maybeSingle: async () => ({ data: null, error: null }),
+                }),
+              }),
+            }),
+          }),
+        })),
+      };
+
+      vi.spyOn(supabaseModule, 'isSupabaseConfigured').mockReturnValue(true);
+      vi.spyOn(supabaseModule, 'isSupabaseServiceRoleConfigured').mockReturnValue(true);
+      vi.spyOn(supabaseModule, 'getSupabaseServiceRole').mockReturnValue(mockClient);
+
+      const attackerCheck = await assertServerAdmin(
+        new Request('http://localhost/api/admin/ingest-exam', {
+          headers: { Authorization: 'Bearer jwt-atacante', 'x-forwarded-for': '203.0.113.213' },
+        })
+      );
+      expect(attackerCheck.authorized).toBe(false);
+      expect(attackerCheck.status).toBe(403);
+
+      const realAdminCheck = await assertServerAdmin(
+        new Request('http://localhost/api/admin/ingest-exam', {
+          headers: { Authorization: 'Bearer jwt-dono', 'x-forwarded-for': '203.0.113.214' },
+        })
+      );
+      expect(realAdminCheck.authorized).toBe(true);
+      expect(realAdminCheck.status).toBe(200);
+    });
   });
 });

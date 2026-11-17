@@ -1,5 +1,5 @@
 import { SubscriptionPlan } from './types';
-import { getSupabaseServiceRole, isSupabaseConfigured } from './supabase';
+import { getSupabaseServiceRole, isSupabaseConfigured, isSupabaseServiceRoleConfigured } from './supabase';
 
 export type PaymentStatus = 'pending_payment' | 'confirmed' | 'expired' | 'failed';
 
@@ -14,6 +14,7 @@ export interface Transaction {
   qrCodeUrl?: string;
   externalId?: string;
   provider: 'asaas' | 'stripe' | 'simulated';
+  userId?: string;
   userEmail: string;
   userName: string;
   createdAt: string;
@@ -35,6 +36,79 @@ export class TransactionManager {
   }
 
   /**
+   * Verifica idempotência persistente na tabela `public.webhook_events` do PostgreSQL
+   * (resistente a cold starts Serverless).
+   */
+  static async isEventProcessedAsync(eventId: string): Promise<boolean> {
+    if (processedWebhookEvents.has(eventId)) return true;
+
+    if (isSupabaseServiceRoleConfigured()) {
+      const client = getSupabaseServiceRole();
+      if (client) {
+        try {
+          const { data } = await client
+            .from('webhook_events')
+            .select('event_id')
+            .eq('event_id', eventId)
+            .maybeSingle();
+
+          if (data?.event_id) {
+            processedWebhookEvents.add(eventId);
+            return true;
+          }
+        } catch {
+          // Fallback em memória L1
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Reivindica atomicamente o processamento do webhook (PK `event_id` em `public.webhook_events`).
+   * Retorna `true` se reivindicado agora; `false` se já havia sido processado (duplicate replay).
+   */
+  static async tryClaimWebhookEventAsync(
+    eventId: string,
+    provider: 'asaas' | 'stripe' | 'simulated',
+    transactionId?: string,
+    payloadSummary?: Record<string, unknown>
+  ): Promise<boolean> {
+    if (processedWebhookEvents.has(eventId)) {
+      return false;
+    }
+
+    if (isSupabaseServiceRoleConfigured()) {
+      const client = getSupabaseServiceRole();
+      if (client) {
+        try {
+          const { error } = await client.from('webhook_events').insert({
+            event_id: eventId,
+            provider,
+            transaction_id: transactionId || null,
+            payload_summary: payloadSummary || {},
+            processed_at: new Date().toISOString(),
+          });
+
+          if (error) {
+            // PostgreSQL unique_violation (`23505`) indica evento duplicado/replay concorrente
+            if (error.code === '23505' || error.message?.toLowerCase().includes('duplicate')) {
+              processedWebhookEvents.add(eventId);
+              return false;
+            }
+          }
+        } catch {
+          // Segue controle L1 se DB indisponível fora de produção
+        }
+      }
+    }
+
+    processedWebhookEvents.add(eventId);
+    return true;
+  }
+
+  /**
    * Persiste uma transação de forma síncrona no PostgreSQL do Supabase via service_role
    * (indispensável para arquiteturas Serverless e ambientes distribuídos como Vercel).
    */
@@ -49,6 +123,7 @@ export class TransactionManager {
             .from('transactions')
             .upsert({
               id: tx.id,
+              user_id: tx.userId || null,
               plan_id: tx.planId,
               billing_cycle: tx.billingCycle,
               amount: tx.amount,
@@ -106,6 +181,7 @@ export class TransactionManager {
           if (!error && data) {
             const tx: Transaction = {
               id: data.id,
+              userId: data.user_id || undefined,
               planId: data.plan_id as SubscriptionPlan,
               billingCycle: data.billing_cycle,
               amount: Number(data.amount),
@@ -135,24 +211,7 @@ export class TransactionManager {
   static confirm(id: string, provider: 'asaas' | 'stripe' | 'simulated' = 'simulated', externalId?: string): Transaction | null {
     const tx = globalTransactions.get(id);
     if (!tx) {
-      const newTx: Transaction = {
-        id,
-        planId: 'pro',
-        billingCycle: 'annual',
-        amount: 297,
-        paymentMethod: 'pix',
-        status: 'confirmed',
-        provider,
-        externalId,
-        userEmail: 'aluno@argus.app.br',
-        userName: 'Concurseiro',
-        createdAt: new Date().toISOString(),
-        confirmedAt: new Date().toISOString(),
-        expiresAt: new Date().toISOString(),
-      };
-      globalTransactions.set(id, newTx);
-      this.confirmAsync(id, provider, externalId).catch(() => {});
-      return newTx;
+      return null;
     }
 
     tx.status = 'confirmed';
@@ -166,36 +225,19 @@ export class TransactionManager {
   }
 
   /**
-   * Confirma transação com gravação garantida no Supabase e liberação do plano no perfil do aluno.
+   * Confirma transação existente com gravação garantida no Supabase e liberação do plano no perfil do aluno.
    */
   static async confirmAsync(id: string, provider: 'asaas' | 'stripe' | 'simulated' = 'simulated', externalId?: string): Promise<Transaction | null> {
-    let tx = await this.getAsync(id);
-    
+    const tx = await this.getAsync(id);
     if (!tx) {
-      const newTx: Transaction = {
-        id,
-        planId: 'pro',
-        billingCycle: 'annual',
-        amount: 297,
-        paymentMethod: 'pix',
-        status: 'confirmed',
-        provider,
-        externalId,
-        userEmail: 'aluno@argus.app.br',
-        userName: 'Concurseiro',
-        createdAt: new Date().toISOString(),
-        confirmedAt: new Date().toISOString(),
-        expiresAt: new Date().toISOString(),
-      };
-      globalTransactions.set(id, newTx);
-      tx = newTx;
-    } else {
-      tx.status = 'confirmed';
-      tx.confirmedAt = new Date().toISOString();
-      if (externalId) tx.externalId = externalId;
-      tx.provider = provider;
-      globalTransactions.set(id, tx);
+      return null;
     }
+
+    tx.status = 'confirmed';
+    tx.confirmedAt = new Date().toISOString();
+    if (externalId) tx.externalId = externalId;
+    tx.provider = provider;
+    globalTransactions.set(id, tx);
 
     if (isSupabaseConfigured()) {
       const client = getSupabaseServiceRole();
@@ -205,6 +247,7 @@ export class TransactionManager {
             .from('transactions')
             .upsert({
               id: tx.id,
+              user_id: tx.userId || null,
               plan_id: tx.planId,
               billing_cycle: tx.billingCycle,
               amount: tx.amount,
@@ -217,8 +260,17 @@ export class TransactionManager {
               expires_at: tx.expiresAt,
             }, { onConflict: 'id' });
 
-          // Atualiza automaticamente o tier e status do aluno na tabela profiles via service_role
-          if (tx.userEmail) {
+          // Atualiza o tier e status do aluno prioritariamente por user_id (imutável) ou fallback por email
+          if (tx.userId) {
+            await client
+              .from('profiles')
+              .update({
+                subscription_tier: tx.planId,
+                subscription_status: 'active',
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', tx.userId);
+          } else if (tx.userEmail) {
             await client
               .from('profiles')
               .update({

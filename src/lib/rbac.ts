@@ -119,7 +119,26 @@ export function sanitizeProfileUpdatePayload(
   actorRole: UserRole,
   payload: Record<string, any>
 ): { sanitized: Record<string, any>; blockedFields: string[] } {
-  const privilegedFields = ['role', 'isAdmin', 'is_admin', 'permissions', 'subscriptionStatus', 'trialEndsAt'];
+  const privilegedFields = [
+    'role',
+    'userRole',
+    'user_role',
+    'isAdmin',
+    'is_admin',
+    'isSuperAdmin',
+    'is_super_admin',
+    'admin',
+    'permissions',
+    'subscriptionTier',
+    'subscription_tier',
+    'subscriptionStatus',
+    'subscription_status',
+    'dailyAiRequestsCount',
+    'daily_ai_requests_count',
+    'dailyAiRequestsResetAt',
+    'daily_ai_requests_reset_at',
+    'trialEndsAt',
+  ];
   const sanitized: Record<string, any> = { ...payload };
   const blockedFields: string[] = [];
 

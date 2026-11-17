@@ -1,20 +1,37 @@
 import { NextResponse } from 'next/server';
-import { getSupabase, isSupabaseConfigured } from '@/lib/supabase';
-import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
+import { getSupabase, getSupabaseServiceRole, isSupabaseConfigured } from '@/lib/supabase';
+import { checkDistributedRateLimit, getClientIp } from '@/lib/rateLimiter';
+import { verifyTurnstileToken } from '@/lib/captcha';
+import { siemEngine } from '@/lib/siemEngine';
+import '@/lib/auditLogger';
+import { sanitizeProfileUpdatePayload } from '@/lib/rbac';
 
 export async function POST(req: Request) {
   try {
-    // Proteção contra criação em massa de contas / spam (máx 5 por minuto por IP)
     const ip = getClientIp(req);
-    const { allowed, resetTime } = checkRateLimit(`register_${ip}`, 5, 60000);
-    if (!allowed) {
+
+    // 1. Proteção contra flood/criação em massa de contas (máx 5 por minuto por IP distribuído)
+    const ipLimit = await checkDistributedRateLimit({
+      key: `register:ip:${ip}`,
+      limit: 5,
+      windowMs: 60000,
+      ip,
+    });
+    if (!ipLimit.allowed) {
+      siemEngine.logEvent({
+        eventType: 'BRUTE_FORCE_DETECTED',
+        severity: 'HIGH',
+        sourceIp: ip,
+        details: { route: '/api/auth/register', scope: 'ip' },
+      });
+      const retryAfter = Math.max(1, Math.ceil((ipLimit.resetTime - Date.now()) / 1000));
       return NextResponse.json(
         {
           success: false,
           error: 'Muitos registros a partir deste IP. Aguarde 1 minuto para cadastrar outra conta.',
-          retryAfterSeconds: Math.ceil((resetTime - Date.now()) / 1000),
+          retryAfterSeconds: retryAfter,
         },
-        { status: 429 }
+        { status: 429, headers: { 'Retry-After': String(retryAfter) } }
       );
     }
 
@@ -37,7 +54,85 @@ export async function POST(req: Request) {
       parentalConsent,
       guardianName,
       guardianContact,
+      turnstileToken,
+      captchaToken,
     } = body || {};
+
+    // Rate limit adicional por e-mail normalizado
+    if (typeof email === 'string' && email.includes('@')) {
+      const cleanEmail = email.trim().toLowerCase();
+      const emailLimit = await checkDistributedRateLimit({
+        key: `register:email:${cleanEmail}`,
+        limit: 5,
+        windowMs: 60000,
+      });
+      if (!emailLimit.allowed) {
+        siemEngine.logEvent({
+          eventType: 'BRUTE_FORCE_DETECTED',
+          severity: 'HIGH',
+          sourceIp: ip,
+          details: { route: '/api/auth/register', scope: 'email', attemptedEmail: cleanEmail },
+        });
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Muitas tentativas de cadastro para este e-mail. Aguarde 1 minuto.',
+            retryAfterSeconds: Math.max(1, Math.ceil((emailLimit.resetTime - Date.now()) / 1000)),
+          },
+          { status: 429 }
+        );
+      }
+    }
+
+    // 2. Verificação server-side obrigatória de CAPTCHA (Cloudflare Turnstile)
+    const captchaCheck = await verifyTurnstileToken({
+      token: turnstileToken || captchaToken || body?.['cf-turnstile-response'],
+      remoteIp: ip,
+    });
+    if (!captchaCheck.valid) {
+      siemEngine.logEvent({
+        eventType: 'CAPTCHA_FAILED',
+        severity: 'MEDIUM',
+        sourceIp: ip,
+        details: { route: '/api/auth/register', code: captchaCheck.code },
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          code: captchaCheck.code || 'CAPTCHA_INVALID',
+          error: captchaCheck.error || 'Falha na verificação anti-bot.',
+        },
+        { status: captchaCheck.code === 'CAPTCHA_REQUIRED' ? 400 : 403 }
+      );
+    }
+
+    // 3. Bloqueio estrito de auto-promoção / Mass Assignment no registro (role: "admin", isAdmin: true, etc.)
+    const requestedElevatedRole =
+      typeof body?.role === 'string' && body.role.trim().toLowerCase() !== 'student';
+    if (requestedElevatedRole || body?.isAdmin === true || body?.is_admin === true) {
+      siemEngine.logEvent({
+        eventType: 'PRIVILEGE_ESCALATION_ATTEMPT',
+        severity: 'CRITICAL',
+        sourceIp: ip,
+        details: {
+          route: '/api/auth/register',
+          attemptedRole: body?.role,
+          attemptedIsAdmin: Boolean(body?.isAdmin || body?.is_admin),
+          attemptedEmail: typeof email === 'string' ? email.trim().toLowerCase() : undefined,
+        },
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          code: 'PRIVILEGE_ESCALATION_BLOCKED',
+          error: 'Não é permitido definir privilégios administrativos no cadastro.',
+        },
+        { status: 403 }
+      );
+    }
+
+    // Higieniza campos privilegiados adicionais preventivamente
+    const { sanitized: safeBody } = sanitizeProfileUpdatePayload('student', body || {});
 
     if (!email || !password) {
       return NextResponse.json(
@@ -53,7 +148,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Validação de Idade (ECA Digital - Lei 14.811/2024, Código Civil Arts. 3º e 4º e LGPD Art. 14)
+    // 4. Validação de Idade (ECA Digital - Lei 14.811/2024, Código Civil Arts. 3º e 4º e LGPD Art. 14)
     if (!birthDate) {
       return NextResponse.json(
         {
@@ -87,7 +182,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Menores de 16 anos: Absolutamente Incapazes (Bloqueio estrito de contratação digital direta)
     if (calculatedAge < 16) {
       return NextResponse.json(
         {
@@ -99,7 +193,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Jovens de 16 e 17 anos: Relativamente Incapazes (Exigência de assistência legal e dados do responsável)
     if (calculatedAge >= 16 && calculatedAge < 18) {
       if (!parentalConsent || !guardianName || guardianName.trim().length < 3 || !guardianContact) {
         return NextResponse.json(
@@ -127,12 +220,13 @@ export async function POST(req: Request) {
     if (isSupabaseConfigured()) {
       const client = getSupabase();
       if (client) {
+        const cleanEmail = email.trim().toLowerCase();
         const { data, error } = await client.auth.signUp({
-          email,
+          email: cleanEmail,
           password,
           options: {
             data: {
-              full_name: fullName || email.split('@')[0],
+              full_name: safeBody.fullName || fullName || cleanEmail.split('@')[0],
               target_exam: targetExam || 'Geral',
               ...complianceAudit,
             },
@@ -146,39 +240,85 @@ export async function POST(req: Request) {
           );
         }
 
-        return NextResponse.json({
+        // Garante perfil inicial com role sempre não privilegiado
+        const serviceClient = getSupabaseServiceRole();
+        if (serviceClient && data.user?.id) {
+          try {
+            await serviceClient.from('profiles').upsert({
+              id: data.user.id,
+              email: cleanEmail,
+              full_name: fullName || cleanEmail.split('@')[0],
+              target_exam: targetExam || 'Geral',
+              subscription_tier: 'aspirante',
+              subscription_status: 'active',
+            }, { onConflict: 'id' });
+          } catch {}
+        }
+
+        const supaRes = NextResponse.json({
           success: true,
-          user: data.user,
+          user: {
+            id: data.user?.id,
+            email: data.user?.email,
+            role: 'student',
+            ...complianceAudit,
+          },
           session: data.session,
           message: 'Conta criada com sucesso no Supabase!',
           mode: 'supabase',
         });
+
+        if (data.session?.access_token) {
+          supaRes.cookies.set('argus-session', data.session.access_token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 7,
+            path: '/',
+          });
+        }
+
+        return supaRes;
       }
     }
 
-    // Modo Local
-    const mockId = `usr_${Buffer.from(email).toString('base64').slice(0, 12)}`;
+    // 5. Falha fechada obrigatória em produção se o Supabase não estiver configurado
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        {
+          success: false,
+          code: 'AUTH_SERVICE_UNAVAILABLE',
+          error: 'Serviço de cadastro temporariamente indisponível. Supabase não configurado em produção.',
+        },
+        { status: 503 }
+      );
+    }
+
+    // Fallback offline exclusivo para dev/testes unitários
+    const cleanEmail = email.trim().toLowerCase();
+    const mockId = `usr_${Buffer.from(cleanEmail).toString('base64').slice(0, 12)}`;
     const mockToken = `jwt_mock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     const response = NextResponse.json({
       success: true,
       user: {
         id: mockId,
-        email,
-        name: fullName || email.split('@')[0],
+        email: cleanEmail,
+        name: fullName || cleanEmail.split('@')[0],
+        role: 'student',
         targetExam: targetExam || 'Concurso Público',
         ...complianceAudit,
       },
       session: {
         accessToken: mockToken,
-        expiresAt: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60),
+        expiresAt: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60,
       },
       message: 'Usuário registrado com sucesso!',
       mode: 'local_dev',
     });
 
     response.cookies.set('argus-session', mockToken, {
-      httpOnly: false,
+      httpOnly: true,
       secure: false,
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7,

@@ -27,6 +27,7 @@ import { isFreemiumAllowed } from '@/lib/abTesting';
 import { useCurrency } from '@/lib/currency';
 import { INITIAL_EXAMS } from '@/lib/mockData';
 import { AVAILABLE_COUPONS } from '@/lib/concursosData';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface PricingModalProps {
   isOpen: boolean;
@@ -130,16 +131,21 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     }
   };
 
-  // Buscar / Criar cobrança ao abrir ou alternar parâmetros
+  // Buscar / Criar cobrança apenas quando na aba checkout
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || activeTab !== 'checkout') return;
 
     let isMounted = true;
     const loadCheckout = async () => {
       try {
+        const token = useAuthStore.getState().token;
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token && !token.startsWith('jwt_mock_')) {
+          headers.Authorization = `Bearer ${token}`;
+        }
         const res = await fetch('/api/checkout', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ 
             planId: selectedPlanToBuy, 
             billingCycle: selectedPlanToBuy === 'lancamento' || selectedPlanToBuy === 'black' ? 'vitalicio' : billingCycle,
@@ -165,7 +171,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
     loadCheckout();
     return () => { isMounted = false; };
-  }, [isOpen, selectedPlanToBuy, billingCycle, paymentMethod, appliedCoupon, targetExamForLaunch, finalAmount]);
+  }, [isOpen, activeTab, selectedPlanToBuy, billingCycle, paymentMethod, appliedCoupon, targetExamForLaunch, finalAmount]);
 
   // Polling automático da confirmação do webhook a cada 3 segundos
   useEffect(() => {
@@ -241,13 +247,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           targetExamForLaunch.toLowerCase().includes(e.title.toLowerCase())
       ) || INITIAL_EXAMS[0];
 
-      // Cookie de autorização Edge para liberar o middleware com assinatura ativa
-      document.cookie = `learning_ai_user_access=${encodeURIComponent(JSON.stringify({
-        status: 'ativa',
-        isPayingOrCommitted: true,
-        planId: selectedPlanToBuy,
-        lockedExamId: selectedPlanToBuy === 'lancamento' ? matchedExamObj.id : undefined
-      }))}; Path=/; Max-Age=${365 * 24 * 60 * 60}; SameSite=Lax`;
+      // O acesso Edge/Middleware é validado estritamente por cookie HttpOnly assinado no servidor (/api/checkout ou /api/webhooks/payment)
 
       try {
         const invoiceEntry = {

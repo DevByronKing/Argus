@@ -5,6 +5,11 @@ import type { NextRequest } from 'next/server';
 import { getClientIp, checkRateLimitWithProfile, banIp, isIpBanned } from '@/lib/rateLimiter';
 import { detectSqlInjection, detectXss, detectPathTraversal, validateCsrfProtection } from '@/lib/securitySanitizer';
 import { siemEngine } from '@/lib/siemEngine';
+import {
+  verifySignedAccessCookie,
+  isValidJwtStructure,
+  constantTimeEqualStrings,
+} from '@/lib/signedAccessToken';
 
 // Rotas comuns de varredura automatizada (scanners de vulnerabilidades, WordPress, phpMyAdmin e painéis expostos)
 const BOT_PROBE_PATHS = [
@@ -57,7 +62,7 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(self)');
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.google.com https://*.gstatic.com https://connect.facebook.net https://*.facebook.net https://*.facebook.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline' https://vercel.live; font-src 'self' data: https://vercel.live https://assets.vercel.com; img-src 'self' data: blob: https: https://vercel.live https://vercel.com; connect-src 'self' https: wss: https://vercel.live https://*.pusher.com wss://*.pusher.com; frame-src 'self' https://vercel.live; frame-ancestors 'none';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://*.googleapis.com https://*.google.com https://*.gstatic.com https://connect.facebook.net https://*.facebook.net https://*.facebook.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline' https://vercel.live; font-src 'self' data: https://vercel.live https://assets.vercel.com; img-src 'self' data: blob: https: https://vercel.live https://vercel.com; connect-src 'self' https: wss: https://vercel.live https://*.pusher.com wss://*.pusher.com; frame-src 'self' https://challenges.cloudflare.com https://vercel.live; frame-ancestors 'none';"
   );
   return response;
 }
@@ -65,7 +70,7 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
 /**
  * Middleware Central de WAF, Segurança Ativa, Anti-Scanners, Rate Limiting e Monetização do Argus.
  */
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
   const clientIp = getClientIp(request);
 
@@ -182,8 +187,10 @@ export function middleware(request: NextRequest) {
 
   // 5. Rate Limiting por Perfil nos Endpoints de API
   if (pathname.startsWith('/api/')) {
-    let profile: 'auth' | 'admin' | 'ai' | 'general' = 'general';
-    if (pathname.startsWith('/api/auth')) profile = 'auth';
+    let profile: 'auth' | 'admin' | 'ai' | 'checkout' | 'password_reset' | 'general' = 'general';
+    if (pathname.startsWith('/api/auth/forgot-password')) profile = 'password_reset';
+    else if (pathname.startsWith('/api/auth')) profile = 'auth';
+    else if (pathname.startsWith('/api/checkout')) profile = 'checkout';
     else if (pathname.startsWith('/api/admin')) profile = 'admin';
     else if (pathname.startsWith('/api/copilot') || pathname.startsWith('/api/discursive')) profile = 'ai';
 
@@ -260,48 +267,57 @@ export function middleware(request: NextRequest) {
     return finalizeResponse(NextResponse.next());
   }
 
-  // 7. Verificação de Tokens de Autenticação / Sessão
+  // 7. Verificação Estrutural de Tokens de Autenticação / Sessão e Chave Admin
   const authHeader = request.headers.get('authorization');
-  const sessionCookie = request.cookies.get('argus-session')?.value || 
-                        request.cookies.get('learning-ai-session')?.value || 
-                        request.cookies.get('sb-access-token')?.value;
-
-  const hasToken = Boolean(
-    (authHeader && authHeader.startsWith('Bearer ') && authHeader.length > 15) ||
-    (sessionCookie && sessionCookie.length > 10)
+  const bearerValue = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+  const adminKeyHeader = request.headers.get('x-admin-key')?.trim() || null;
+  const configuredAdminKey = process.env.ADMIN_API_KEY?.trim();
+  const hasValidAdminKeyHeader = Boolean(
+    configuredAdminKey &&
+      ((adminKeyHeader && constantTimeEqualStrings(adminKeyHeader, configuredAdminKey)) ||
+        (bearerValue && constantTimeEqualStrings(bearerValue, configuredAdminKey)))
   );
 
-  // 8. Verificação de Acesso Pago ou Trial com Cartão Obrigatório
-  const userAccessCookie = request.cookies.get('argus_user_access')?.value ||
-                           request.cookies.get('learning_ai_user_access')?.value;
+  const sessionCookie =
+    request.cookies.get('argus-session')?.value ||
+    request.cookies.get('learning-ai-session')?.value ||
+    request.cookies.get('sb-access-token')?.value;
+
+  const hasValidBearerJwt = Boolean(bearerValue && isValidJwtStructure(bearerValue));
+  const hasValidCookieJwt = Boolean(sessionCookie && isValidJwtStructure(sessionCookie));
+  const hasToken = hasValidAdminKeyHeader || hasValidBearerJwt || hasValidCookieJwt;
+
+  // 8. Verificação Criptográfica HMAC-SHA256 de Acesso Pago (nunca aceita JSON editável do cliente)
+  const userAccessCookie =
+    request.cookies.get('argus_user_access')?.value ||
+    request.cookies.get('learning_ai_user_access')?.value;
   let hasValidPaidOrTrialAccess = false;
 
   if (userAccessCookie) {
-    try {
-      let rawAccess = userAccessCookie;
-      try { rawAccess = decodeURIComponent(rawAccess); } catch {}
-      const parsedAccess = JSON.parse(rawAccess);
-      
-      const isValidStatus = parsedAccess.status === 'ativa' || parsedAccess.status === 'trial_ativo';
-      const isCommitted = parsedAccess.isPayingOrCommitted === true || parsedAccess.is_paying_or_committed === true;
-      const notExpired = !parsedAccess.trialEndsAt || new Date(parsedAccess.trialEndsAt).getTime() > Date.now();
-
-      if (isValidStatus && isCommitted && notExpired) {
-        hasValidPaidOrTrialAccess = true;
-      }
-    } catch {}
+    const verifiedAccess = await verifySignedAccessCookie(userAccessCookie);
+    if (verifiedAccess) {
+      hasValidPaidOrTrialAccess = true;
+    } else if (userAccessCookie.trim().startsWith('{') || userAccessCookie.trim().startsWith('%7B')) {
+      siemEngine.logEvent({
+        eventType: 'PRIVILEGE_ESCALATION_ATTEMPT',
+        severity: 'HIGH',
+        sourceIp: clientIp,
+        details: { pathname, reason: 'Unsigned or forged user access cookie rejected' },
+      });
+    }
   }
 
-  const isFreemiumBypassAllowed = experimentFlags.freemium_vs_paid_experiment === 'variant_b';
+  // Zero Freemium: nunca permite bypass de paywall por cookie A/B editável no navegador
+  const isFreemiumBypassAllowed = false;
 
   // 9. Proteção de rotas da API Admin (AuthN/AuthZ & CSRF)
   if (pathname.startsWith('/api/admin')) {
     if (!hasToken) {
       const unauthorizedResponse = NextResponse.json(
-        { 
-          success: false, 
-          error: 'Acesso negado: Token JWT ausente ou expirado.',
-          code: 'UNAUTHORIZED' 
+        {
+          success: false,
+          error: 'Acesso negado: Token JWT válido ou chave administrativa ausente.',
+          code: 'UNAUTHORIZED',
         },
         { status: 401 }
       );
@@ -312,11 +328,18 @@ export function middleware(request: NextRequest) {
     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)) {
       const origin = request.headers.get('origin');
       const referer = request.headers.get('referer');
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'https://argus.app.br',
+        'https://argus.ia',
+        ...(process.env.NEXT_PUBLIC_APP_URL ? [process.env.NEXT_PUBLIC_APP_URL] : []),
+      ];
       const csrfCheck = validateCsrfProtection({
         method: request.method,
         origin,
         referer,
-        allowedOrigins: ['http://localhost:3000', 'https://argus.app.br', 'https://argus.ia'],
+        allowedOrigins,
       });
 
       if (!csrfCheck.isValid) {
@@ -345,7 +368,7 @@ export function middleware(request: NextRequest) {
       const paymentRequiredResponse = NextResponse.json(
         {
           success: false,
-          error: 'Acesso restrito. É necessário possuir uma assinatura ativa ou trial validado com cartão de crédito.',
+          error: 'Acesso restrito. É necessário possuir uma assinatura ativa validada pelo servidor.',
           code: 'PAYMENT_OR_TRIAL_REQUIRED',
         },
         { status: 402 }
@@ -355,19 +378,22 @@ export function middleware(request: NextRequest) {
   }
 
   // 11. Proteção de rotas privadas no frontend
-  const isProtectedAppRoute = 
-    pathname.startsWith('/admin') || 
-    pathname.startsWith('/dashboard') || 
-    pathname.startsWith('/app') || 
+  const isProtectedAppRoute =
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/app') ||
     pathname.startsWith('/study') ||
     pathname.startsWith('/simulado');
 
   if (isProtectedAppRoute) {
-    if (pathname.startsWith('/admin') && !hasToken) {
-      const loginUrl = new URL('/', request.url);
-      loginUrl.searchParams.set('auth', 'required');
-      loginUrl.searchParams.set('redirect', pathname);
-      return applySecurityHeaders(NextResponse.redirect(loginUrl));
+    if (pathname.startsWith('/admin')) {
+      if (!hasToken) {
+        const loginUrl = new URL('/', request.url);
+        loginUrl.searchParams.set('auth', 'required');
+        loginUrl.searchParams.set('redirect', pathname);
+        return applySecurityHeaders(NextResponse.redirect(loginUrl));
+      }
+      return finalizeResponse(NextResponse.next());
     }
 
     if (!hasValidPaidOrTrialAccess && !isFreemiumBypassAllowed) {

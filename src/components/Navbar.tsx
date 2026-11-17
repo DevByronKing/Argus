@@ -7,6 +7,7 @@ import {
   CalendarClock,
   Crosshair,
   ShieldAlert,
+  ShieldCheck,
   Scale,
   Feather,
   Activity,
@@ -61,6 +62,7 @@ interface NavbarProps {
   onOpenProfile?: () => void;
   onOpenAuth?: () => void;
   onOpenAdminIngest?: () => void;
+  isServerVerifiedAdmin?: boolean;
   onOpenSettings?: () => void;
   onOpenMobileModal?: () => void;
   onOpenFlashChallenge?: () => void;
@@ -85,6 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenProfile,
   onOpenAuth,
   onOpenAdminIngest,
+  isServerVerifiedAdmin = false,
   onOpenSettings,
   onOpenMobileModal,
   onOpenFlashChallenge,
@@ -968,6 +971,38 @@ export const Navbar: React.FC<NavbarProps> = ({
                         <HelpCircle className="w-4 h-4 text-slate-400" />
                         <span>Suporte & Central de Chamados</span>
                       </button>
+
+                      {isServerVerifiedAdmin && (
+                        <>
+                          <a
+                            href="/admin"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                              isLight
+                                ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                                : 'bg-indigo-500/15 text-indigo-300 hover:bg-indigo-500/25'
+                            }`}
+                          >
+                            <ShieldCheck className="w-4 h-4 shrink-0" />
+                            <span>Painel Admin & Segurança (/admin)</span>
+                          </a>
+                          {onOpenAdminIngest && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsUserMenuOpen(false);
+                                onOpenAdminIngest();
+                              }}
+                              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                                isLight ? 'hover:bg-slate-100 text-slate-700' : 'hover:bg-white/10 text-slate-200'
+                              }`}
+                            >
+                              <Zap className="w-4 h-4 text-indigo-500 shrink-0" />
+                              <span>Ingestão de Provas (Admin)</span>
+                            </button>
+                          )}
+                        </>
+                      )}
                     </div>
 
                     {/* Sair / Logout */}

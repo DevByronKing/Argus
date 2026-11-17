@@ -128,12 +128,11 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   // Proteção de PII (Personally Identifiable Information)
-  // Apenas contagem e resumo anônimo são públicos; PII completa requer chave administrativa
-  const authHeader = req.headers.get('authorization') || '';
-  const adminSecret = process.env.ADMIN_API_KEY;
-  const isAdmin = Boolean(adminSecret && authHeader === `Bearer ${adminSecret}`);
+  // Apenas contagem e resumo anônimo são públicos; PII completa requer validação admin no servidor
+  const { assertServerAdmin } = await import('@/lib/adminAuth');
+  const adminCheck = await assertServerAdmin(req, '/api/leads');
 
-  if (isAdmin) {
+  if (adminCheck.authorized) {
     return NextResponse.json({
       success: true,
       totalLeads: globalLeads.length,

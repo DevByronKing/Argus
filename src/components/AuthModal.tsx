@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { GoogleSignInButton } from './GoogleSignInButton';
 import { BrandLogo } from './BrandLogo';
+import { TurnstileField } from './TurnstileField';
 import { useAuthStore } from '@/store/useAuthStore';
 import { SupabaseService } from '@/lib/supabaseService';
 
@@ -35,12 +36,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   defaultMode = 'login',
 }) => {
-  const [mode, setMode] = useState<'login' | 'signup'>(defaultMode);
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>(defaultMode);
   const [loginMethod, setLoginMethod] = useState<'password' | 'magic'>('password');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
   // Verificação de Idade (ECA Digital - Lei 14.811/2024 e LGPD Art. 14)
   const [birthDate, setBirthDate] = useState('');
@@ -168,7 +171,41 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }, 400);
   };
 
-  // Submissão de Cadastro Oficial com Verificação Etária (ECA Digital & LGPD)
+  // Recuperação Segura de Senha (Rate Limit + CAPTCHA + anti-enumeração)
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    if (!email || !email.includes('@')) {
+      setErrorMessage('Informe um e-mail válido.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          turnstileToken: turnstileToken || undefined,
+        }),
+      });
+      const data = await res.json();
+      setTurnstileReset((v) => v + 1);
+      if (res.ok && data.success) {
+        setSuccessMessage(data.message);
+      } else {
+        setErrorMessage(data.error || 'Não foi possível enviar a recuperação de senha.');
+      }
+    } catch {
+      setErrorMessage('Falha de conexão ao solicitar redefinição de senha.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Rodapé legal e envio do formulário
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -211,10 +248,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           parentalConsent: ageCalculation >= 18 ? undefined : parentalConsent,
           guardianName: ageCalculation >= 18 ? undefined : guardianName.trim(),
           guardianContact: ageCalculation >= 18 ? undefined : guardianContact.trim(),
+          turnstileToken: turnstileToken || undefined,
         }),
       });
 
       const data = await res.json();
+      setTurnstileReset((v) => v + 1);
       if (res.ok && data.success) {
         setSuccessMessage('Conta verificada e criada com sucesso!');
         if (data.user) {
@@ -385,13 +424,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                       Senha:
                     </label>
-                    <button
-                      type="button"
-                      onClick={() => setLoginMethod('magic')}
-                      className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                    >
-                      Entrar sem senha (Link Mágico)
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setErrorMessage(null);
+                          setSuccessMessage(null);
+                          setMode('forgot');
+                        }}
+                        className="text-[11px] font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:underline cursor-pointer"
+                      >
+                        Esqueci minha senha
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLoginMethod('magic')}
+                        className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                      >
+                        Link Mágico
+                      </button>
+                    </div>
                   </div>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -631,6 +683,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               )}
             </div>
 
+            <TurnstileField
+              onTokenChange={setTurnstileToken}
+              resetTrigger={turnstileReset}
+            />
+
             <button
               type="submit"
               disabled={isLoading || (ageCalculation !== null && ageCalculation < 16)}
@@ -639,6 +696,52 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <Sparkles className="w-4 h-4" />
               <span>{isLoading ? 'Cadastrando...' : 'Criar Minha Conta no Argus'}</span>
               <ArrowRight className="w-4 h-4" />
+            </button>
+          </form>
+        )}
+
+        {mode === 'forgot' && (
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <div>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                E-mail cadastrado para recuperação:
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="exemplo@gmail.com"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-xs sm:text-sm font-medium focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <TurnstileField
+              onTokenChange={setTurnstileToken}
+              resetTrigger={turnstileReset}
+            />
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-black transition-all cursor-pointer disabled:opacity-50"
+            >
+              {isLoading ? 'Enviando...' : 'Enviar Instruções de Recuperação'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setErrorMessage(null);
+                setSuccessMessage(null);
+                setMode('login');
+              }}
+              className="w-full text-center text-xs font-bold text-slate-500 hover:text-blue-600 cursor-pointer"
+            >
+              Voltar para Login
             </button>
           </form>
         )}

@@ -1,5 +1,8 @@
+import { logger } from './logger';
+import { getSupabaseServiceRole, isSupabaseServiceRoleConfigured } from './supabase';
+
 /**
- * Argus - WAF & Rate Limiter em Memória (Sliding Window & IP Jail)
+ * Argus - WAF & Rate Limiter Híbrido (Memória L1 + Upstash Redis / Supabase RPC + IP Jail)
  * Proteção contra flood de requisições, ataques de força bruta, bots e esgotamento de infraestrutura.
  * Suporta Cloudflare Reverse Proxy (cf-connecting-ip), X-Forwarded-For e X-Real-IP.
  */
@@ -38,11 +41,20 @@ if (typeof setInterval !== 'undefined') {
   }
 }
 
-export type RateLimitProfile = 'general' | 'auth' | 'ai' | 'admin' | 'public_probes';
+export type RateLimitProfile =
+  | 'general'
+  | 'auth'
+  | 'ai'
+  | 'admin'
+  | 'checkout'
+  | 'password_reset'
+  | 'public_probes';
 
 export const RATE_LIMIT_PROFILES: Record<RateLimitProfile, { limit: number; windowMs: number }> = {
   general: { limit: 60, windowMs: 60000 },       // 60 req/min
   auth: { limit: 10, windowMs: 60000 },          // 10 tentativas de login/registro por min (anti-brute-force)
+  checkout: { limit: 5, windowMs: 60000 },       // 5 tentativas de checkout/min por IP e por e-mail
+  password_reset: { limit: 3, windowMs: 60000 }, // 3 pedidos de recuperação de senha/min
   ai: { limit: 20, windowMs: 60000 },            // 20 chamadas de LLM por min
   admin: { limit: 15, windowMs: 60000 },         // 15 req/min para rotas administrativas
   public_probes: { limit: 5, windowMs: 60000 },  // 5 tentativas em rotas suspeitas
@@ -72,6 +84,11 @@ export function banIp(ip: string, reason = 'Tentativas abusivas repetidas', dura
   ipJail.set(ip, {
     bannedUntil: Date.now() + durationMs,
     reason,
+  });
+  logger.warn('IP_JAILED', {
+    sourceIp: ip,
+    reason,
+    durationMs,
   });
 }
 
@@ -128,6 +145,144 @@ export function checkRateLimitWithProfile(
 ): { allowed: boolean; remaining: number; resetTime: number; isJailed?: boolean } {
   const config = RATE_LIMIT_PROFILES[profile] || RATE_LIMIT_PROFILES.general;
   return checkRateLimit(ip, config.limit, config.windowMs);
+}
+
+/**
+ * Rate limiter distribuído para ambiente Serverless:
+ * 1) Upstash Redis REST (`UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`), quando configurado;
+ * 2) Contador persistente via RPC PostgreSQL `increment_rate_limit` no Supabase;
+ * 3) Fallback em memória (`checkRateLimit`) para desenvolvimento local e testes unitários.
+ */
+export async function checkDistributedRateLimit(params: {
+  key: string;
+  limit: number;
+  windowMs: number;
+  ip?: string;
+}): Promise<{ allowed: boolean; remaining: number; resetTime: number; isJailed?: boolean; backend: 'upstash' | 'supabase' | 'memory' }> {
+  const { key, limit, windowMs, ip } = params;
+
+  if (ip) {
+    const banStatus = isIpBanned(ip);
+    if (banStatus.banned) {
+      return {
+        allowed: false,
+        remaining: 0,
+        resetTime: Date.now() + (banStatus.retryAfterSeconds || 60) * 1000,
+        isJailed: true,
+        backend: 'memory',
+      };
+    }
+  }
+
+  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL?.trim();
+  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+
+  if (upstashUrl && upstashToken) {
+    try {
+      const redisKey = `argus:rl:${key}`;
+      const res = await fetch(`${upstashUrl.replace(/\/$/, '')}/pipeline`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${upstashToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([
+          ['INCR', redisKey],
+          ['PEXPIRE', redisKey, windowMs, 'NX'],
+          ['PTTL', redisKey],
+        ]),
+      });
+
+      if (res.ok) {
+        const data = (await res.json()) as Array<{ result?: number }>;
+        const count = Number(data?.[0]?.result ?? 1);
+        const pttl = Math.max(1000, Number(data?.[2]?.result ?? windowMs));
+        return {
+          allowed: count <= limit,
+          remaining: Math.max(0, limit - count),
+          resetTime: Date.now() + pttl,
+          backend: 'upstash',
+        };
+      }
+    } catch {
+      // Continua para próxima camada
+    }
+  }
+
+  if (
+    typeof (globalThis as { EdgeRuntime?: unknown }).EdgeRuntime === 'undefined' &&
+    isSupabaseServiceRoleConfigured()
+  ) {
+    const client = getSupabaseServiceRole();
+    if (client) {
+      try {
+        const { data, error } = await client.rpc('increment_rate_limit', {
+          p_key: key,
+          p_limit: limit,
+          p_window_ms: windowMs,
+        });
+
+        if (!error && data && typeof data === 'object') {
+          const record = Array.isArray(data) ? data[0] : data;
+          if (record && typeof record.allowed === 'boolean') {
+            return {
+              allowed: record.allowed,
+              remaining: Number(record.remaining ?? 0),
+              resetTime: record.reset_at ? new Date(record.reset_at).getTime() : Date.now() + windowMs,
+              backend: 'supabase',
+            };
+          }
+        }
+      } catch {
+        // Fallback em memória garante disponibilidade caso a RPC ainda não tenha sido aplicada
+      }
+    }
+  }
+
+  const mem = checkRateLimit(key, limit, windowMs);
+  return { ...mem, backend: 'memory' };
+}
+
+/**
+ * Aplica rate limit duplo simultâneo por IP e por identificador (ex.: e-mail ou userId).
+ */
+export async function checkDualRateLimit(params: {
+  ip: string;
+  identifier?: string | null;
+  profile: RateLimitProfile;
+  namespace: string;
+}): Promise<{ allowed: boolean; remaining: number; resetTime: number; isJailed?: boolean; scope?: 'ip' | 'identifier' }> {
+  const config = RATE_LIMIT_PROFILES[params.profile] || RATE_LIMIT_PROFILES.general;
+
+  const ipResult = await checkDistributedRateLimit({
+    key: `${params.namespace}:ip:${params.ip}`,
+    limit: config.limit,
+    windowMs: config.windowMs,
+    ip: params.ip,
+  });
+
+  if (!ipResult.allowed) {
+    return { ...ipResult, scope: 'ip' };
+  }
+
+  const cleanId = params.identifier?.trim().toLowerCase();
+  if (cleanId) {
+    const idResult = await checkDistributedRateLimit({
+      key: `${params.namespace}:id:${cleanId}`,
+      limit: config.limit,
+      windowMs: config.windowMs,
+    });
+    if (!idResult.allowed) {
+      return { ...idResult, scope: 'identifier' };
+    }
+    return {
+      allowed: true,
+      remaining: Math.min(ipResult.remaining, idResult.remaining),
+      resetTime: Math.max(ipResult.resetTime, idResult.resetTime),
+    };
+  }
+
+  return ipResult;
 }
 
 /**

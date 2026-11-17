@@ -72,6 +72,11 @@ BEGIN
        AND NEW.daily_ai_requests_reset_at = OLD.daily_ai_requests_reset_at THEN
       RAISE EXCEPTION 'Apenas o motor autorizado de IA pode alterar os contadores diários de consumo.';
     END IF;
+    -- Blindagem adicional contra injeção de privilégio administrativo em perfis
+    IF (to_jsonb(NEW) ->> 'role') IS DISTINCT FROM (to_jsonb(OLD) ->> 'role')
+       OR (to_jsonb(NEW) ->> 'is_admin') IS DISTINCT FROM (to_jsonb(OLD) ->> 'is_admin') THEN
+      RAISE EXCEPTION 'Elevação de privilégio administrativo proibida pelo banco de dados.';
+    END IF;
   END IF;
   RETURN NEW;
 END;
@@ -182,6 +187,7 @@ CREATE TABLE IF NOT EXISTS public.leads (
 -- 10. Transactions Table (Asaas Pix / Stripe Checkout)
 CREATE TABLE IF NOT EXISTS public.transactions (
   id TEXT PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   plan_id TEXT NOT NULL,
   billing_cycle TEXT NOT NULL,
   amount NUMERIC NOT NULL,
@@ -195,6 +201,82 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
+
+ALTER TABLE public.transactions
+  ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL;
+
+-- 10.1 Webhook Events Idempotency Table (Resistente a Cold Starts Serverless)
+CREATE TABLE IF NOT EXISTS public.webhook_events (
+  event_id TEXT PRIMARY KEY,
+  provider TEXT NOT NULL,
+  transaction_id TEXT,
+  payload_summary JSONB DEFAULT '{}'::jsonb NOT NULL,
+  processed_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 10.2 Server-Only Admin Allowlist (Nunca editável por alunos ou role authenticated/anon)
+CREATE TABLE IF NOT EXISTS public.admin_allowlist (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT UNIQUE NOT NULL,
+  role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('admin', 'secops')),
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 10.3 Persistent Security Audit Logs (SIEM Append-Only via service_role)
+CREATE TABLE IF NOT EXISTS public.security_audit_logs (
+  id TEXT PRIMARY KEY,
+  event_type TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  source_ip TEXT NOT NULL,
+  user_id UUID,
+  actor_email TEXT,
+  route TEXT,
+  details JSONB DEFAULT '{}'::jsonb NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 10.4 Distributed Rate Limit Counters & Atomic Increment RPC
+CREATE TABLE IF NOT EXISTS public.rate_limit_counters (
+  rate_key TEXT PRIMARY KEY,
+  request_count INT NOT NULL DEFAULT 1,
+  reset_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE OR REPLACE FUNCTION public.increment_rate_limit(
+  p_key TEXT,
+  p_limit INT,
+  p_window_ms BIGINT
+)
+RETURNS TABLE(allowed BOOLEAN, remaining INT, reset_at TIMESTAMP WITH TIME ZONE)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_now TIMESTAMP WITH TIME ZONE := timezone('utc'::text, now());
+  v_new_reset TIMESTAMP WITH TIME ZONE := v_now + (p_window_ms * INTERVAL '1 millisecond');
+  v_count INT;
+  v_reset TIMESTAMP WITH TIME ZONE;
+BEGIN
+  INSERT INTO public.rate_limit_counters (rate_key, request_count, reset_at)
+  VALUES (p_key, 1, v_new_reset)
+  ON CONFLICT (rate_key) DO UPDATE
+    SET request_count = CASE
+          WHEN public.rate_limit_counters.reset_at <= v_now THEN 1
+          ELSE public.rate_limit_counters.request_count + 1
+        END,
+        reset_at = CASE
+          WHEN public.rate_limit_counters.reset_at <= v_now THEN v_new_reset
+          ELSE public.rate_limit_counters.reset_at
+        END
+  RETURNING public.rate_limit_counters.request_count, public.rate_limit_counters.reset_at
+    INTO v_count, v_reset;
+
+  RETURN QUERY SELECT (v_count <= p_limit), GREATEST(0, p_limit - v_count), v_reset;
+END;
+$$;
 
 -- ==============================================================================
 -- 11. ÍNDICES DE ALTA PERFORMANCE (CONSULTAS CRUZADAS SEM TABLE SCANS)
@@ -236,6 +318,12 @@ CREATE INDEX IF NOT EXISTS idx_transactions_user_status
 CREATE INDEX IF NOT EXISTS idx_transactions_external_id
   ON public.transactions (external_id);
 
+CREATE INDEX IF NOT EXISTS idx_transactions_user_id
+  ON public.transactions (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_security_audit_logs_created
+  ON public.security_audit_logs (event_type, created_at DESC);
+
 CREATE INDEX IF NOT EXISTS idx_profiles_email
   ON public.profiles (email);
 
@@ -254,6 +342,10 @@ ALTER TABLE public.flashcards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mistakes_notebook ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.webhook_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admin_allowlist ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.security_audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.rate_limit_counters ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ai_diagnostic_cache ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can manage their own profile" ON public.profiles;
@@ -277,25 +369,72 @@ CREATE POLICY "Users can manage their own mistakes" ON public.mistakes_notebook
   FOR ALL USING (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Anyone authenticated can view questions" ON public.questions;
-CREATE POLICY "Anyone authenticated can view questions" ON public.questions
-  FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Authenticated users can view questions" ON public.questions;
+CREATE POLICY "Authenticated users can view questions" ON public.questions
+  FOR SELECT TO authenticated
+  USING (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS "Service role manages questions" ON public.questions;
+CREATE POLICY "Service role manages questions" ON public.questions
+  FOR ALL TO service_role
+  USING (true)
+  WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Anyone authenticated can read diagnostic cache" ON public.ai_diagnostic_cache;
-CREATE POLICY "Anyone authenticated can read diagnostic cache" ON public.ai_diagnostic_cache
-  FOR SELECT USING (true);
-
 DROP POLICY IF EXISTS "Authenticated users can insert to diagnostic cache" ON public.ai_diagnostic_cache;
-CREATE POLICY "Authenticated users can insert to diagnostic cache" ON public.ai_diagnostic_cache
-  FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Authenticated users can read diagnostic cache" ON public.ai_diagnostic_cache;
+CREATE POLICY "Authenticated users can read diagnostic cache" ON public.ai_diagnostic_cache
+  FOR SELECT TO authenticated
+  USING (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS "Service role manages diagnostic cache" ON public.ai_diagnostic_cache;
+CREATE POLICY "Service role manages diagnostic cache" ON public.ai_diagnostic_cache
+  FOR ALL TO service_role
+  USING (true)
+  WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Public anonymous insert for leads" ON public.leads;
 CREATE POLICY "Public anonymous insert for leads" ON public.leads
   FOR INSERT WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Service role manages leads" ON public.leads;
+CREATE POLICY "Service role manages leads" ON public.leads
+  FOR ALL TO service_role
+  USING (true)
+  WITH CHECK (true);
+
 DROP POLICY IF EXISTS "Public read for transactions polling" ON public.transactions;
-CREATE POLICY "Public read for transactions polling" ON public.transactions
-  FOR SELECT USING (auth.jwt() ->> 'email' = user_email OR current_setting('request.jwt.claims', true)::json ->> 'role' = 'service_role');
+DROP POLICY IF EXISTS "Owner can view own transactions" ON public.transactions;
+CREATE POLICY "Owner can view own transactions" ON public.transactions
+  FOR SELECT TO authenticated
+  USING (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Service role can manage transactions" ON public.transactions;
 CREATE POLICY "Service role can manage transactions" ON public.transactions
-  FOR ALL USING (current_setting('request.jwt.claims', true)::json ->> 'role' = 'service_role');
+  FOR ALL TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Service role manages webhook events" ON public.webhook_events;
+CREATE POLICY "Service role manages webhook events" ON public.webhook_events
+  FOR ALL TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Service role manages admin allowlist" ON public.admin_allowlist;
+CREATE POLICY "Service role manages admin allowlist" ON public.admin_allowlist
+  FOR ALL TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Service role manages security audit logs" ON public.security_audit_logs;
+CREATE POLICY "Service role manages security audit logs" ON public.security_audit_logs
+  FOR ALL TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Service role manages rate limit counters" ON public.rate_limit_counters;
+CREATE POLICY "Service role manages rate limit counters" ON public.rate_limit_counters
+  FOR ALL TO service_role
+  USING (true)
+  WITH CHECK (true);

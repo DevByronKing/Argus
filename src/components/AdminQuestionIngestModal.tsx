@@ -38,6 +38,7 @@ import {
 } from './adminIngestSamples';
 import { TwoFactorAuthModal } from './TwoFactorAuthModal';
 import { isTwoFactorSessionVerified } from '@/lib/twoFactorAuth';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface AdminQuestionIngestModalProps {
   isOpen: boolean;
@@ -192,9 +193,14 @@ export const AdminQuestionIngestModal: React.FC<AdminQuestionIngestModalProps> =
     setSuccessMessage(null);
 
     try {
+      const token = useAuthStore.getState().token;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token && !token.startsWith('jwt_mock_')) {
+        headers.Authorization = `Bearer ${token}`;
+      }
       const response = await fetch('/api/admin/ingest-exam', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           action: 'preview',
           metadata,
@@ -231,9 +237,14 @@ export const AdminQuestionIngestModal: React.FC<AdminQuestionIngestModalProps> =
 
     setIsSaving(true);
     try {
+      const token = useAuthStore.getState().token;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token && !token.startsWith('jwt_mock_')) {
+        headers.Authorization = `Bearer ${token}`;
+      }
       const response = await fetch('/api/admin/ingest-exam', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           action: 'commit',
           metadata: result.metadata,

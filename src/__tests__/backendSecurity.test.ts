@@ -1,7 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { checkRateLimit, getClientIp, unbanIp } from '@/lib/rateLimiter';
 import { POST as loginHandler } from '@/app/api/auth/login/route';
 import { POST as registerHandler } from '@/app/api/auth/register/route';
+import { POST as forgotPasswordHandler } from '@/app/api/auth/forgot-password/route';
+import { POST as checkoutHandler } from '@/app/api/checkout/route';
 import { POST as leadsPostHandler, GET as leadsGetHandler } from '@/app/api/leads/route';
 import { NextRequest } from 'next/server';
 
@@ -73,6 +75,14 @@ describe('Auditoria de Segurança de Backend & Resiliência de APIs', () => {
   });
 
   describe('Rota de Registro (/api/auth/register) e Verificação de Idade (ECA Digital & LGPD)', () => {
+    beforeEach(() => {
+      process.env.ARGUS_UNIT_TEST_CAPTCHA_BYPASS = 'true';
+    });
+
+    afterEach(() => {
+      delete process.env.ARGUS_UNIT_TEST_CAPTCHA_BYPASS;
+    });
+
     it('deve validar comprimento mínimo de senha de 6 caracteres', async () => {
       const req = new Request('http://localhost:3000/api/auth/register', {
         method: 'POST',
@@ -256,6 +266,158 @@ describe('Auditoria de Segurança de Backend & Resiliência de APIs', () => {
 
       const res = await leadsPostHandler(invalidReq);
       expect(res.status).toBe(400);
+    });
+  });
+
+  describe('Defesa Anti-Bot (CAPTCHA Turnstile), Anti-Flood & Bloqueio de Role Admin', () => {
+    beforeEach(() => {
+      delete process.env.ARGUS_UNIT_TEST_CAPTCHA_BYPASS;
+      unbanIp('198.51.100.220');
+      unbanIp('198.51.100.221');
+      unbanIp('198.51.100.222');
+      unbanIp('198.51.100.223');
+      unbanIp('198.51.100.224');
+      unbanIp('198.51.100.225');
+    });
+
+    it('deve exigir CAPTCHA em /api/auth/register e bloquear tentativa de enviar role: admin', async () => {
+      const noCaptchaReq = new Request('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '198.51.100.220' },
+        body: JSON.stringify({
+          email: 'bot@exemplo.com',
+          password: 'senhaForte2026',
+          birthDate: '1998-05-10',
+        }),
+      });
+      const noCaptchaRes = await registerHandler(noCaptchaReq);
+      expect(noCaptchaRes.status).toBe(400);
+      expect((await noCaptchaRes.json()).code).toBe('CAPTCHA_REQUIRED');
+
+      process.env.ARGUS_UNIT_TEST_CAPTCHA_BYPASS = 'true';
+      const adminInjectReq = new Request('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '198.51.100.220' },
+        body: JSON.stringify({
+          email: 'atacante@exemplo.com',
+          password: 'senhaForte2026',
+          birthDate: '1998-05-10',
+          role: 'admin',
+          isAdmin: true,
+        }),
+      });
+      const adminInjectRes = await registerHandler(adminInjectReq);
+      expect(adminInjectRes.status).toBe(403);
+      expect((await adminInjectRes.json()).code).toBe('PRIVILEGE_ESCALATION_BLOCKED');
+      delete process.env.ARGUS_UNIT_TEST_CAPTCHA_BYPASS;
+    });
+
+    it('deve bloquear flood acima do limite em /api/auth/register (429)', async () => {
+      process.env.ARGUS_UNIT_TEST_CAPTCHA_BYPASS = 'true';
+      for (let i = 0; i < 5; i++) {
+        const res = await registerHandler(
+          new Request('http://localhost:3000/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '198.51.100.221' },
+            body: JSON.stringify({
+              email: `spam${i}@exemplo.com`,
+              password: 'senhaForte2026',
+              birthDate: '1995-03-20',
+            }),
+          })
+        );
+        expect(res.status).toBe(200);
+      }
+
+      const floodRes = await registerHandler(
+        new Request('http://localhost:3000/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '198.51.100.221' },
+          body: JSON.stringify({
+            email: 'spam6@exemplo.com',
+            password: 'senhaForte2026',
+            birthDate: '1995-03-20',
+          }),
+        })
+      );
+      expect(floodRes.status).toBe(429);
+      delete process.env.ARGUS_UNIT_TEST_CAPTCHA_BYPASS;
+    });
+
+    it('deve bloquear criação anônima em massa e flood no /api/checkout (400/403 e 429)', async () => {
+      const noCaptchaCheckout = new NextRequest('http://localhost:3000/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '198.51.100.224' },
+        body: JSON.stringify({
+          planId: 'pro',
+          userEmail: 'botcheckout@exemplo.com',
+        }),
+      });
+      const resNoCap = await checkoutHandler(noCaptchaCheckout);
+      expect([400, 403]).toContain(resNoCap.status);
+
+      process.env.ARGUS_UNIT_TEST_CAPTCHA_BYPASS = 'true';
+      for (let i = 0; i < 5; i++) {
+        const resOk = await checkoutHandler(
+          new NextRequest('http://localhost:3000/api/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '198.51.100.222' },
+            body: JSON.stringify({
+              planId: 'pro',
+              userEmail: `cliente${i}@exemplo.com`,
+            }),
+          })
+        );
+        expect(resOk.status).toBe(200);
+      }
+
+      const checkoutFloodRes = await checkoutHandler(
+        new NextRequest('http://localhost:3000/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '198.51.100.222' },
+          body: JSON.stringify({
+            planId: 'pro',
+            userEmail: 'cliente6@exemplo.com',
+          }),
+        })
+      );
+      expect(checkoutFloodRes.status).toBe(429);
+      delete process.env.ARGUS_UNIT_TEST_CAPTCHA_BYPASS;
+    });
+
+    it('deve proteger /api/auth/forgot-password com CAPTCHA, rate limit 3/min e anti-enumeração', async () => {
+      const missingCap = await forgotPasswordHandler(
+        new Request('http://localhost:3000/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '198.51.100.225' },
+          body: JSON.stringify({ email: 'qualquer@exemplo.com' }),
+        })
+      );
+      expect(missingCap.status).toBe(400);
+
+      process.env.ARGUS_UNIT_TEST_CAPTCHA_BYPASS = 'true';
+      for (let i = 0; i < 3; i++) {
+        const okRes = await forgotPasswordHandler(
+          new Request('http://localhost:3000/api/auth/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '198.51.100.223' },
+            body: JSON.stringify({ email: `alguem${i}@exemplo.com` }),
+          })
+        );
+        expect(okRes.status).toBe(200);
+        const body = await okRes.json();
+        expect(body.message).toContain('Se o e-mail informado estiver cadastrado');
+      }
+
+      const floodReset = await forgotPasswordHandler(
+        new Request('http://localhost:3000/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '198.51.100.223' },
+          body: JSON.stringify({ email: 'alguem4@exemplo.com' }),
+        })
+      );
+      expect(floodReset.status).toBe(429);
+      delete process.env.ARGUS_UNIT_TEST_CAPTCHA_BYPASS;
     });
   });
 });
