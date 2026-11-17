@@ -49,7 +49,7 @@ export default function AdminPortalPage() {
         if (token && !token.startsWith('jwt_mock_')) {
           headers.Authorization = `Bearer ${token}`;
         }
-        const keyToUse = explicitAdminKey ?? adminKeyInput;
+        const keyToUse = explicitAdminKey ?? '';
         if (keyToUse.trim()) {
           headers['x-admin-key'] = keyToUse.trim();
         }
@@ -82,7 +82,7 @@ export default function AdminPortalPage() {
         setIsChecking(false);
       }
     },
-    [token, adminKeyInput, user?.email]
+    [token, user?.email]
   );
 
   useEffect(() => {
