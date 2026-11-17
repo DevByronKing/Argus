@@ -40,11 +40,7 @@ import {
 import { SubscriptionPlan, StudentProfile } from '@/lib/types';
 import { GUARDIAN_ANIMALS } from '@/lib/guardianAnimals';
 import { MobileAppModal } from './MobileAppModal';
-import {
-  BrandLogo,
-  BRAND_LOGO_CONCEPTS,
-  setSavedLogoVariant,
-} from './BrandLogo';
+import { BrandLogo } from './BrandLogo';
 import { GoogleIcon } from './GoogleSignInButton';
 import { useAuthStore } from '@/store/useAuthStore';
 import { GoogleAIEngineBadge } from './GoogleAIEngineBadge';
@@ -858,27 +854,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                       </div>
                       <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-black border ${planMeta.badgeClass}`}>
                         <span>{planMeta.fullLabel}</span>
-                      </div>
-                    </div>
-
-                    {/* Seletor Rápido dos 5 Novos Logotipos */}
-                    <div className="px-2.5 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 mb-2">
-                      <div className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
-                        Identidade Visual (5 Logotipos):
-                      </div>
-                      <div className="grid grid-cols-5 gap-1">
-                        {BRAND_LOGO_CONCEPTS.map((c) => (
-                          <button
-                            key={c.id}
-                            type="button"
-                            onClick={() => setSavedLogoVariant(c.id)}
-                            className="p-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-500/20 border border-slate-200 dark:border-white/10 flex flex-col items-center gap-0.5 transition-all cursor-pointer"
-                            title={c.name}
-                          >
-                            <img src={c.imageUrl} alt={c.name} className="w-5 h-5 object-contain" />
-                            <span className="text-[9px] font-extrabold text-slate-700 dark:text-slate-300">#{c.number}</span>
-                          </button>
-                        ))}
                       </div>
                     </div>
 
