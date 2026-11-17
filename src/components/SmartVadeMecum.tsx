@@ -27,14 +27,19 @@ import {
   Crosshair,
   Star
 } from 'lucide-react';
-import { VadeMecumArticle, ExamNotice, StudentProfile } from '@/lib/types';
+import { VadeMecumArticle, ExamNotice, StudentProfile, SubscriptionPlan } from '@/lib/types';
 import { INITIAL_VADE_MECUM } from '@/lib/mockData';
+import { HardPaywallGate } from './HardPaywallGate';
 
 interface SmartVadeMecumProps {
   onGoToQuestion?: (questionId: string) => void;
   onGoToSimulator: (queryOrTopic?: string) => void;
   selectedExam?: ExamNotice;
   studentProfile?: StudentProfile;
+  userPlan?: SubscriptionPlan;
+  onOpenPricing?: () => void;
+  onSelectPlan?: (plan: SubscriptionPlan) => void;
+  onGoHome?: () => void;
 }
 
 interface TrapChallenge {
@@ -257,7 +262,11 @@ export const SmartVadeMecum: React.FC<SmartVadeMecumProps> = ({
   onGoToQuestion,
   onGoToSimulator,
   selectedExam,
-  studentProfile
+  studentProfile,
+  userPlan = 'aspirante',
+  onOpenPricing,
+  onSelectPlan,
+  onGoHome
 }) => {
   const [articles] = useState<VadeMecumArticle[]>(INITIAL_VADE_MECUM);
   const [selectedDiploma, setSelectedDiploma] = useState<string>('all');
@@ -445,6 +454,20 @@ export const SmartVadeMecum: React.FC<SmartVadeMecumProps> = ({
   };
 
   return (
+    <HardPaywallGate
+      moduleTitle="Leis & Artigos Mais Cobrados"
+      moduleSubtitle="Acesse a lei seca com marcações do que realmente cai na prova, alertas de alterações pelas bancas e leitura em áudio."
+      features={[
+        'Artigos de lei seca com maior índice de cobrança',
+        'Comparação direta entre texto legal e pegadinha de prova',
+        'Conexão automática com questões reais da banca',
+        'Narração em áudio para estudar em qualquer lugar',
+      ]}
+      userPlan={userPlan}
+      onOpenPricing={onOpenPricing}
+      onSelectPlan={onSelectPlan}
+      onGoHome={onGoHome}
+    >
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fadeIn">
       
       {/* Header Banner */}
@@ -965,6 +988,7 @@ export const SmartVadeMecum: React.FC<SmartVadeMecumProps> = ({
       )}
 
     </div>
+    </HardPaywallGate>
   );
 };
 

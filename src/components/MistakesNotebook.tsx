@@ -24,7 +24,8 @@ import {
   ChevronUp,
   Scale
 } from 'lucide-react';
-import { MistakeEntry, ErrorType, Question, ExamNotice } from '@/lib/types';
+import { MistakeEntry, ErrorType, Question, ExamNotice, SubscriptionPlan } from '@/lib/types';
+import { HardPaywallGate } from './HardPaywallGate';
 
 interface MistakesNotebookProps {
   mistakes: MistakeEntry[];
@@ -34,6 +35,10 @@ interface MistakesNotebookProps {
   selectedExam?: ExamNotice;
   onGoToVadeMecum?: (lawQuery?: string) => void;
   onGoToEdital?: () => void;
+  userPlan?: SubscriptionPlan;
+  onOpenPricing?: () => void;
+  onSelectPlan?: (plan: SubscriptionPlan) => void;
+  onGoHome?: () => void;
 }
 
 export const MistakesNotebook: React.FC<MistakesNotebookProps> = ({
@@ -43,7 +48,11 @@ export const MistakesNotebook: React.FC<MistakesNotebookProps> = ({
   onGoToSimulator,
   selectedExam,
   onGoToVadeMecum,
-  onGoToEdital
+  onGoToEdital,
+  userPlan = 'aspirante',
+  onOpenPricing,
+  onSelectPlan,
+  onGoHome
 }) => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'overcome'>('pending');
   const [filterErrorType, setFilterErrorType] = useState<string>('all');
@@ -199,6 +208,20 @@ export const MistakesNotebook: React.FC<MistakesNotebookProps> = ({
   };
 
   return (
+    <HardPaywallGate
+      moduleTitle="Meus Erros para Revisar (Modo Revanche)"
+      moduleSubtitle="Todas as questões que você errou ficam organizadas pelo motivo do erro para você refazer até dominar o conteúdo."
+      features={[
+        'Cadastro automático das questões erradas nos simulados',
+        'Anotações pessoais de bolso em cada questão',
+        'Modo Revanche para testar se você superou a armadilha',
+        'Vínculo direto com os artigos de lei da questão',
+      ]}
+      userPlan={userPlan}
+      onOpenPricing={onOpenPricing}
+      onSelectPlan={onSelectPlan}
+      onGoHome={onGoHome}
+    >
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fadeIn">
       
       {/* Header Banner */}
@@ -744,5 +767,6 @@ export const MistakesNotebook: React.FC<MistakesNotebookProps> = ({
       )}
 
     </div>
+    </HardPaywallGate>
   );
 };

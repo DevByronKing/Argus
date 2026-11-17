@@ -48,9 +48,9 @@ export const PostPaymentWelcomeTab: React.FC<PostPaymentWelcomeTabProps> = ({
   // Metadados do plano com cores específicas para superfície escura garantida (sem conflito com modo claro)
   const planTitles: Record<SubscriptionPlan, { name: string; tag: string; badgeColor: string }> = {
     aspirante: { 
-      name: 'Passe de 30 Dias (Edital Travado)', 
-      tag: 'Acesso Direto até a Prova', 
-      badgeColor: 'bg-orange-500/20 text-orange-300 border-orange-500/40' 
+      name: 'Visitante (Sem Assinatura Ativa)', 
+      tag: 'Escolha um Plano para Desbloquear', 
+      badgeColor: 'bg-slate-500/20 text-slate-300 border-slate-500/40' 
     },
     lancamento: { 
       name: 'Passe Até a Prova (Lote 1)', 

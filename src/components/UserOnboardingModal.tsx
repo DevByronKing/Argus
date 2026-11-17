@@ -21,7 +21,7 @@ import {
   CreditCard,
 } from 'lucide-react';
 import { GUARDIAN_ANIMALS } from '@/lib/guardianAnimals';
-import { GuardianAnimalId, StudentProfile } from '@/lib/types';
+import { GuardianAnimalId, StudentProfile, SubscriptionPlan } from '@/lib/types';
 import { analytics } from '@/lib/analytics';
 import { useExperiment } from '@/lib/abTesting';
 import { getRealAuthUser } from '@/lib/authIdentity';
@@ -53,7 +53,11 @@ import {
 export interface UserOnboardingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete: (profile: Partial<StudentProfile>, destinationTab?: 'cycle' | 'simulator' | 'pricing') => void;
+  onComplete: (
+    profile: Partial<StudentProfile>,
+    destinationTab?: 'cycle' | 'simulator' | 'pricing' | 'checkout',
+    selectedPlan?: SubscriptionPlan
+  ) => void;
   currentProfile?: StudentProfile;
   onOpenPricing?: () => void;
   theme?: 'dark' | 'light';
@@ -485,8 +489,9 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
   };
 
   const handleFinalSubmit = (
-    destinationTab: 'cycle' | 'simulator' | 'pricing' = 'pricing',
-    cta: 'pro' | 'trial' | 'close' = 'pro'
+    destinationTab: 'cycle' | 'simulator' | 'pricing' | 'checkout' = 'pricing',
+    cta: 'pro' | 'lancamento' | 'elite' | 'black' | 'close' = 'pro',
+    selectedPlan: SubscriptionPlan = 'pro'
   ) => {
     if (isSubmittedRef.current) return;
     isSubmittedRef.current = true;
@@ -565,7 +570,7 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
     // Regra 11: Onboarding concluído com sucesso, limpa o rascunho temporário
     clearOnboardingDraft();
 
-    onComplete(finalProfile, destinationTab);
+    onComplete(finalProfile, destinationTab, selectedPlan);
   };
 
   // Botão X: antes do passo 5 dispensa o fluxo; no passo 5 salva o perfil e segue o funil linear
@@ -1394,22 +1399,23 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
                     <Button
                       variant="primary"
                       size="lg"
-                      onClick={() => handleFinalSubmit('pricing', 'pro')}
+                      onClick={() => handleFinalSubmit('pricing', 'pro', 'pro')}
                       leftIcon={<Sparkles className="w-4 h-4 text-amber-300" />}
                       rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
                       className="w-full uppercase tracking-wider"
                     >
-                      Liberar Acesso Pro Imediato
+                      Escolher Plano (PRO / ELITE / BLACK)
                     </Button>
 
                     <Button
                       variant="secondary"
                       size="lg"
-                      onClick={() => handleFinalSubmit('simulator', 'trial')}
-                      leftIcon={<Zap className="w-4 h-4 text-[var(--brand-accent)]" />}
+                      onClick={() => handleFinalSubmit('checkout', 'lancamento', 'lancamento')}
+                      leftIcon={<CreditCard className="w-4 h-4 text-[var(--brand-accent)]" />}
+                      rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
                       className="w-full uppercase tracking-wider"
                     >
-                      Ir Direto para Minha 1ª Bateria de Questões
+                      Garantir Passe R$ 97 (Checkout)
                     </Button>
                   </div>
 

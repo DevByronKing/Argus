@@ -15,10 +15,9 @@ import {
   Lightbulb,
   Share2,
   Bookmark,
-  PlayCircle
+  Lock
 } from 'lucide-react';
 import { Question, ErrorType, Flashcard, SubscriptionPlan } from '@/lib/types';
-import { RewardedAdModal } from './RewardedAdModal';
 import { AIFeedbackVote } from './AIFeedbackVote';
 
 interface CognitiveDiagnosisCardProps {
@@ -47,7 +46,6 @@ export const CognitiveDiagnosisCard: React.FC<CognitiveDiagnosisCardProps> = ({
   onRewardGranted
 }) => {
   const [flashcardAdded, setFlashcardAdded] = useState(false);
-  const [isRewardedAdOpen, setIsRewardedAdOpen] = useState(false);
 
   const selectedOption = question.options.find((o) => o.id === selectedOptionId);
   const correctOption = question.options.find((o) => o.isCorrect);
@@ -133,52 +131,36 @@ export const CognitiveDiagnosisCard: React.FC<CognitiveDiagnosisCardProps> = ({
         </button>
       </div>
 
-      {/* Opção A: Alerta Sutil de Cota Diária Atingida no Freemium (Fallback Determinístico) */}
-      {quotaExceeded && userPlan === 'aspirante' && (
+      {/* Hard Paywall Banner quando visitante sem assinatura ativa (Zero Freemium) */}
+      {(userPlan === 'aspirante' || quotaExceeded) && (
         <div className="mt-5 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-fadeIn">
-          <div className="flex items-center gap-2.5 text-amber-700 dark:text-amber-300">
-            <Sparkles className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" />
+          <div className="flex items-center gap-2.5 text-amber-800 dark:text-amber-300">
+            <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
             <div>
-              <p className="font-bold text-amber-800 dark:text-amber-200">
-                ⚡ Modo Resolução Contínua (Cota de IA Diária Utilizada: 5/5)
+              <p className="font-black text-amber-900 dark:text-amber-200">
+                {userPlan === 'aspirante'
+                  ? 'Acesso Completo ao Diagnóstico IA Exclusivo para Assinantes'
+                  : 'Limite Diário de Análises IA Atingido no Seu Plano'}
               </p>
-              <p className="text-slate-600 dark:text-slate-300 text-[11px] mt-0.5">
-                Você continua resolvendo questões normalmente com <strong>gabarito oficial e fundamentação em lei seca</strong> (Custo R$ 0,00). Assine o PRO para análises cognitivas ilimitadas.
+              <p className="text-slate-700 dark:text-slate-300 text-[11px] mt-0.5">
+                {userPlan === 'aspirante'
+                  ? 'Escolha Passe Até a Prova (R$ 97), PRO, ELITE VIP ou BLACK Vitalício para liberar diagnósticos ilimitados e estudo contínuo.'
+                  : 'Faça upgrade para o plano PRO, ELITE VIP ou BLACK Vitalício para diagnósticos neurais com Google Gemini 4 Carbon.'}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+          {onOpenPricing && (
             <button
               type="button"
-              onClick={() => setIsRewardedAdOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-black flex items-center gap-1.5 shadow-md shadow-blue-600/25 transition-all shrink-0"
-              title="Assista a um vídeo curto de patrocinador para liberar +2 diagnósticos de IA"
+              onClick={onOpenPricing}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 text-xs font-black shrink-0 hover:opacity-95 transition-opacity shadow-md shadow-amber-500/20 cursor-pointer flex items-center gap-1.5"
             >
-              <PlayCircle className="w-4 h-4 text-amber-300 animate-pulse" />
-              <span>Ver Vídeo (+2 IAs)</span>
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Escolher Plano Agora</span>
             </button>
-            {onOpenPricing && (
-              <button
-                type="button"
-                onClick={onOpenPricing}
-                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-black text-xs font-black shrink-0 hover:opacity-95 transition-opacity shadow-md shadow-amber-500/20"
-              >
-                Assinar Pro
-              </button>
-            )}
-          </div>
+          )}
         </div>
       )}
-
-      {/* Rewarded Ad Modal */}
-      <RewardedAdModal
-        isOpen={isRewardedAdOpen}
-        onClose={() => setIsRewardedAdOpen(false)}
-        onRewardGranted={(bonus) => {
-          if (onRewardGranted) onRewardGranted(bonus);
-        }}
-        onOpenPricing={onOpenPricing}
-      />
 
       {/* AI Cognitive Breakdown */}
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">

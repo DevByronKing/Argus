@@ -147,7 +147,12 @@ export const UserSettingsTab: React.FC<UserSettingsTabProps> = ({
                 </h1>
                 
                 {/* Plan Badge */}
-                {(currentPlan === 'aspirante' || currentPlan === 'lancamento') && (
+                {currentPlan === 'aspirante' && (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-black bg-slate-500/15 text-slate-600 dark:text-slate-300 border border-slate-500/30">
+                    Visitante (Sem Assinatura)
+                  </span>
+                )}
+                {currentPlan === 'lancamento' && (
                   <span className="px-2.5 py-1 rounded-full text-xs font-black bg-orange-500/15 text-orange-600 dark:text-orange-300 border border-orange-500/30">
                     Passe Até a Prova (1 Edital)
                   </span>
@@ -442,7 +447,7 @@ export const UserSettingsTab: React.FC<UserSettingsTabProps> = ({
             
             {/* TIER 1: PASSE ATÉ A PROVA */}
             <div className={`rounded-3xl p-6 border transition-all flex flex-col justify-between ${
-              currentPlan === 'aspirante' || currentPlan === 'lancamento'
+              currentPlan === 'lancamento'
                 ? 'bg-white dark:bg-dark-surface border-orange-500 ring-2 ring-orange-500/20 shadow-lg'
                 : 'bg-white/60 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800'
             }`}>
@@ -451,7 +456,7 @@ export const UserSettingsTab: React.FC<UserSettingsTabProps> = ({
                   <span className="text-xs font-black px-2.5 py-1 rounded-full bg-orange-500/15 text-orange-600 dark:text-orange-300">
                     Passe Até a Prova
                   </span>
-                  {(currentPlan === 'aspirante' || currentPlan === 'lancamento') && (
+                  {currentPlan === 'lancamento' && (
                     <span className="text-xs font-bold text-orange-600 dark:text-orange-400 flex items-center gap-1">
                       <CheckCircle2 className="w-4 h-4" /> Plano Atual
                     </span>
@@ -498,7 +503,7 @@ export const UserSettingsTab: React.FC<UserSettingsTabProps> = ({
 
               <div className="mt-8 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <span className="text-xs font-bold text-slate-400 block text-center">
-                  {currentPlan === 'aspirante' ? 'Você está neste plano' : 'Plano de entrada'}
+                  {currentPlan === 'lancamento' ? 'Você está neste plano' : 'Plano de entrada (R$ 97)'}
                 </span>
               </div>
             </div>

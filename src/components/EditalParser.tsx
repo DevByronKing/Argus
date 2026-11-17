@@ -27,16 +27,18 @@ import {
   Send, 
   MessageSquare, 
   HelpCircle, 
-  Bot, 
+  Bot,
+  Target,
   ShieldCheck, 
   Lock,
   Star,
   Zap,
   BarChart3
 } from 'lucide-react';
-import { ExamNotice, ExamSubject } from '@/lib/types';
+import { ExamNotice, ExamSubject, SubscriptionPlan } from '@/lib/types';
 import { INITIAL_EXAMS } from '@/lib/mockData';
 import { getStatusColor } from '@/lib/utils';
+import { HardPaywallGate } from './HardPaywallGate';
 
 interface EditalParserProps {
   exams: ExamNotice[];
@@ -46,6 +48,10 @@ interface EditalParserProps {
   onSetDefaultExam?: (exam: ExamNotice) => void;
   onGenerateCycle: (exam: ExamNotice) => void;
   onAddCustomExam: (newExam: ExamNotice) => void;
+  userPlan?: SubscriptionPlan;
+  onOpenPricing?: () => void;
+  onSelectPlan?: (plan: SubscriptionPlan) => void;
+  onGoHome?: () => void;
 }
 
 // Helper to generate realistic, area-specific syllabus based on file keywords
@@ -292,7 +298,11 @@ export const EditalParser: React.FC<EditalParserProps> = ({
   onSelectExam,
   onSetDefaultExam,
   onGenerateCycle,
-  onAddCustomExam
+  onAddCustomExam,
+  userPlan = 'aspirante',
+  onOpenPricing,
+  onSelectPlan,
+  onGoHome
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progressStage, setProgressStage] = useState(0);
@@ -640,6 +650,20 @@ export const EditalParser: React.FC<EditalParserProps> = ({
   })).filter((sub) => sub.topics.length > 0);
 
   return (
+    <HardPaywallGate
+      moduleTitle="Meu Edital Organizado & Upload de PDF"
+      moduleSubtitle="Envie qualquer edital em PDF ou escolha entre nossos concursos oficiais já mapeados com distribuição estatística das matérias e chat com Tutor IA."
+      features={[
+        'Upload de editais em PDF com organização automática',
+        'Distribuição estatística real das matérias por peso na banca',
+        'Checklist completo de tópicos do concurso escolhido',
+        'Tutor IA para tirar dúvidas sobre regras e pesos do edital',
+      ]}
+      userPlan={userPlan}
+      onOpenPricing={onOpenPricing}
+      onSelectPlan={onSelectPlan}
+      onGoHome={onGoHome}
+    >
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
       {/* Header & Preset Switcher */}
@@ -1601,5 +1625,6 @@ export const EditalParser: React.FC<EditalParserProps> = ({
       )}
 
     </div>
+    </HardPaywallGate>
   );
 };

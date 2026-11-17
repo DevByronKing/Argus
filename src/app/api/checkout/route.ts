@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { TransactionManager } from '@/lib/transactions';
 import { PaymentGateway } from '@/lib/paymentGateways';
 import { SubscriptionPlan } from '@/lib/types';
+import { isFreemiumAllowed } from '@/lib/abTesting';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,9 +19,9 @@ export async function POST(req: NextRequest) {
       customerCpf,
     } = body;
 
-    // Tabela de Preços Unificada e Blindada
+    // Tabela de Preços Unificada e Blindada (Zero Freemium)
     const prices: Record<string, { name: string; monthly: number; trimestral: number; annual: number; vitalicio: number }> = {
-      aspirante: { name: 'Aspirante (Gratuito)', monthly: 0, trimestral: 0, annual: 0, vitalicio: 0 },
+      aspirante: { name: 'Visitante (Sem Assinatura Ativa)', monthly: 0, trimestral: 0, annual: 0, vitalicio: 0 },
       lancamento: { name: 'Oferta Fechada: Passe Até a Prova (Lote 1)', monthly: 97.00, trimestral: 97.00, annual: 97.00, vitalicio: 97.00 },
       pro: { name: 'Concurseiro PRO (Copiloto Cognitivo)', monthly: 99.00, trimestral: 252.45, annual: 588.00, vitalicio: 588.00 },
       elite: { name: 'Carreiras Elite & Discursivas com IA', monthly: 189.00, trimestral: 481.95, annual: 1068.00, vitalicio: 1068.00 },
@@ -41,12 +42,23 @@ export async function POST(req: NextRequest) {
       amount = planConfig.monthly;
     }
 
+    if (!isFreemiumAllowed() && (planId === 'aspirante' || amount <= 0)) {
+      return NextResponse.json(
+        {
+          success: false,
+          code: 'PAID_PLAN_REQUIRED',
+          error: 'O acesso gratuito (Freemium) foi desativado. Selecione Passe Até a Prova (R$ 97), PRO, ELITE ou BLACK para continuar.',
+        },
+        { status: 400 }
+      );
+    }
+
     if (amount === 0) {
       return NextResponse.json({
         success: true,
         planId,
         status: 'confirmed',
-        message: 'Plano gratuito ativado com sucesso!',
+        message: 'Acesso visitante registrado.',
       });
     }
 

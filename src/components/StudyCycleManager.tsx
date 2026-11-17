@@ -18,12 +18,17 @@ import {
   Sliders,
   Printer
 } from 'lucide-react';
-import { ExamNotice, StudyMethodology, DailyScheduleItem, StudentProfile } from '@/lib/types';
+import { ExamNotice, StudyMethodology, DailyScheduleItem, StudentProfile, SubscriptionPlan } from '@/lib/types';
+import { HardPaywallGate } from './HardPaywallGate';
 
 interface StudyCycleManagerProps {
   selectedExam: ExamNotice;
   onGoToSimulator: (subjectId?: string) => void;
   studentProfile?: StudentProfile;
+  userPlan?: SubscriptionPlan;
+  onOpenPricing?: () => void;
+  onSelectPlan?: (plan: SubscriptionPlan) => void;
+  onGoHome?: () => void;
 }
 
 import { generateDynamicSchedule } from '@/lib/studyCycleUtils';
@@ -32,7 +37,11 @@ export { generateDynamicSchedule };
 export const StudyCycleManager: React.FC<StudyCycleManagerProps> = ({
   selectedExam,
   onGoToSimulator,
-  studentProfile
+  studentProfile,
+  userPlan = 'aspirante',
+  onOpenPricing,
+  onSelectPlan,
+  onGoHome
 }) => {
   const [methodology, setMethodology] = useState<StudyMethodology>('ciclo_meirelles');
   const [dailyHours, setDailyHours] = useState(studentProfile?.dailyHoursGoal || 3.5);
@@ -112,6 +121,20 @@ export const StudyCycleManager: React.FC<StudyCycleManagerProps> = ({
   const todayProgressPercentage = totalTodayBlocks > 0 ? Math.round((completedTodayBlocks / totalTodayBlocks) * 100) : 0;
 
   return (
+    <HardPaywallGate
+      moduleTitle="Plano de Estudos Diário"
+      moduleSubtitle="Tenha seu cronograma semanal calculado automaticamente de acordo com as horas que você tem disponíveis e as matérias de maior peso do seu edital."
+      features={[
+        'Distribuição diária automática pelo peso real das matérias',
+        'Priorização dos seus focos e pontos fracos',
+        'Recálculo automático conforme seu desempenho nos treinos',
+        'Impressão e acompanhamento diário de metas',
+      ]}
+      userPlan={userPlan}
+      onOpenPricing={onOpenPricing}
+      onSelectPlan={onSelectPlan}
+      onGoHome={onGoHome}
+    >
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
       {/* Header */}
@@ -443,5 +466,6 @@ export const StudyCycleManager: React.FC<StudyCycleManagerProps> = ({
       </div>
 
     </div>
+    </HardPaywallGate>
   );
 };

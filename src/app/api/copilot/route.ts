@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
 import {
-  INITIAL_QUESTIONS,
-  INITIAL_LAWS,
+  MOCK_QUESTIONS,
+  INITIAL_VADE_MECUM,
   INITIAL_MICRO_SUMMARIES,
   INITIAL_EXAMS,
 } from '@/lib/mockData';
-import { EXPANDED_QUESTIONS } from '@/lib/expandedQuestionsData';
+import { ALL_OFFICIAL_QUESTIONS } from '@/lib/questions';
 
-const ALL_QUESTIONS = [...INITIAL_QUESTIONS, ...EXPANDED_QUESTIONS];
+const ALL_QUESTIONS =
+  ALL_OFFICIAL_QUESTIONS.length > 0 ? ALL_OFFICIAL_QUESTIONS : MOCK_QUESTIONS;
 
 function normalizeText(str: string): string {
   return str
@@ -310,30 +311,24 @@ function answerStudentQueryDirectly(
     };
   }
 
-  // 3. Busca Direta na Base de Leis & Artigos (`INITIAL_LAWS`) e Micro-Resumos (`INITIAL_MICRO_SUMMARIES`)
+  // 3. Busca Direta na Base de Leis & Artigos (`INITIAL_VADE_MECUM`) e Micro-Resumos (`INITIAL_MICRO_SUMMARIES`)
   if (keywords.length > 0) {
-    const scoredArticles: { lawName: string; article: any; score: number }[] = [];
-    for (const law of INITIAL_LAWS) {
-      const lawNorm = normalizeText(`${law.name} ${law.nickname} ${law.category}`);
-      for (const art of law.articles) {
-        const artNorm = normalizeText(
-          `${art.number} ${art.title} ${art.text} ${art.bancaTrap || ''} ${art.jurisprudenceNote || ''}`
-        );
-        let score = 0;
-        for (const kw of keywords) {
-          if (artNorm.includes(kw)) score += 3;
-          if (lawNorm.includes(kw)) score += 2;
-        }
-        if (score >= 4) {
-          scoredArticles.push({ lawName: `${law.nickname} (${law.name})`, article: art, score });
-        }
+    const scoredArticles = INITIAL_VADE_MECUM.map((art) => {
+      const artNorm = normalizeText(
+        `${art.diploma} ${art.numberStr} ${art.title} ${art.text} ${art.bancaTrapNote || ''} ${(art.tags || []).join(' ')}`
+      );
+      let score = 0;
+      for (const kw of keywords) {
+        if (artNorm.includes(kw)) score += 3;
       }
-    }
-    scoredArticles.sort((a, b) => b.score - a.score);
+      return { article: art, score };
+    })
+      .filter((x) => x.score >= 3)
+      .sort((a, b) => b.score - a.score);
 
     const scoredSummaries = INITIAL_MICRO_SUMMARIES.map((sum) => {
       const sumNorm = normalizeText(
-        `${sum.subject} ${sum.topic} ${sum.essentialRule} ${sum.mnemonic} ${sum.classicTrap}`
+        `${sum.subjectName} ${sum.topicName} ${sum.title} ${sum.coreConcept} ${sum.mnemonic} ${sum.bancaTrapAlert}`
       );
       let score = 0;
       for (const kw of keywords) {
@@ -344,10 +339,10 @@ function answerStudentQueryDirectly(
       .filter((x) => x.score >= 3)
       .sort((a, b) => b.score - a.score);
 
-    // Busca também nas 278 questões comentadas
+    // Busca também nas questões oficiais auditadas
     const scoredQuestions = ALL_QUESTIONS.map((q) => {
       const qTextNorm = normalizeText(
-        `${q.subject} ${q.topic} ${q.statement} ${q.reverseEngineeringDiagnosis || ''} ${q.lawReference || ''}`
+        `${q.subjectName} ${q.topicName} ${q.statement} ${q.explanation || ''} ${q.codeCitation || ''}`
       );
       let score = 0;
       for (const kw of keywords) {
@@ -365,17 +360,15 @@ function answerStudentQueryDirectly(
       if (scoredSummaries.length > 0) {
         const topSum = scoredSummaries[0].sum;
         parts.push(
-          `\n**Resumo Simples (${topSum.subject} — ${topSum.topic}):**\n• **Regra Principal:** ${topSum.essentialRule}\n• **Como não esquecer (Macete):** *${topSum.mnemonic}*\n• **Pegadinha clássica de prova:** ${topSum.classicTrap}`
+          `\n**Resumo Simples (${topSum.subjectName} — ${topSum.topicName}):**\n• **Regra Principal:** ${topSum.coreConcept}\n• **Como não esquecer (Macete):** *${topSum.mnemonic}*\n• **Pegadinha clássica de prova:** ${topSum.bancaTrapAlert}`
         );
       }
 
       if (scoredArticles.length > 0) {
-        const topArt = scoredArticles[0];
+        const topArt = scoredArticles[0].article;
         parts.push(
-          `\n**O que diz a Lei (${topArt.lawName} — ${topArt.article.number}):**\n> *"${topArt.article.text}"*\n${
-            topArt.article.bancaTrap ? `\n⚠️ **Atenção na prova:** ${topArt.article.bancaTrap}` : ''
-          }${
-            topArt.article.jurisprudenceNote ? `\n⚖️ **Entendimento dos Tribunais:** ${topArt.article.jurisprudenceNote}` : ''
+          `\n**O que diz a Lei (${topArt.diploma} — ${topArt.numberStr}):**\n> *"${topArt.text}"*${
+            topArt.bancaTrapNote ? `\n⚠️ **Atenção na prova:** ${topArt.bancaTrapNote}` : ''
           }`
         );
       }
@@ -383,7 +376,7 @@ function answerStudentQueryDirectly(
       if (scoredQuestions.length > 0) {
         const topQ = scoredQuestions[0].q;
         parts.push(
-          `\n**Como as bancas cobram isso (${topQ.banca} • ${topQ.year}):**\n• **Tema:** ${topQ.subject} (${topQ.topic})\n• **Explicação prática:** ${topQ.reverseEngineeringDiagnosis}`
+          `\n**Como as bancas cobram isso (${topQ.banca} • ${topQ.year}):**\n• **Tema:** ${topQ.subjectName} (${topQ.topicName})\n• **Explicação prática:** ${topQ.explanation}`
         );
       }
 

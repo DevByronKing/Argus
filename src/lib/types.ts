@@ -306,7 +306,7 @@ export type MockExam = {
   historicalCutoffScore?: number;
   historicalCutoffDescription?: string;
   isFreeDemo?: boolean;
-  requiredPlan?: 'pro' | 'elite' | 'aspirante';
+  requiredPlan?: 'lancamento' | 'pro' | 'elite' | 'black' | 'aspirante';
 };
 
 export type MockExamAnswer = {

@@ -306,10 +306,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
   const planPrices: Record<SubscriptionPlan, { name: string; price: string; period: string; annualTotal: string }> = {
     aspirante: {
-      name: 'PASSE ATÉ A PROVA (EDITAL TRAVADO)',
-      price: formatPrice(97),
-      period: 'dose única',
-      annualTotal: `Pagamento único de R$ 97,00 • Vinculado a 1 Concurso (${targetExamForLaunch})`
+      name: 'VISITANTE (SEM ASSINATURA ATIVA)',
+      price: formatPrice(0),
+      period: 'pré-assinatura',
+      annualTotal: 'Grátis apenas Calculadora 80/20, Desafio 3 Pegadinhas e Passaporte da Anamnese'
     },
     lancamento: {
       name: 'PASSE ATÉ A PROVA (1 CONCURSO)',

@@ -20,7 +20,8 @@ import {
   Trophy,
   FileText
 } from 'lucide-react';
-import { UserMetrics, ExamNotice, Flashcard, StudentProfile } from '@/lib/types';
+import { UserMetrics, ExamNotice, Flashcard, StudentProfile, SubscriptionPlan } from '@/lib/types';
+import { HardPaywallGate } from './HardPaywallGate';
 import { GUARDIAN_ANIMALS } from '@/lib/guardianAnimals';
 import { getStatusColor } from '@/lib/utils';
 import { SRSFlashcardPlayer } from './SRSFlashcardPlayer';
@@ -50,6 +51,10 @@ interface AnalyticsDashboardProps {
   selectedExam: ExamNotice;
   flashcards: Flashcard[];
   studentProfile?: StudentProfile;
+  userPlan?: SubscriptionPlan;
+  onOpenPricing?: () => void;
+  onSelectPlan?: (plan: SubscriptionPlan) => void;
+  onGoHome?: () => void;
   onReviewFlashcard: (flashcardId: string, rating: 'facil' | 'bom' | 'dificil' | 'errei') => void;
   onAddNewFlashcard?: (card: Flashcard) => void;
   onGoToSimulator: (subjectId?: string) => void;
@@ -61,6 +66,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   selectedExam,
   flashcards,
   studentProfile,
+  userPlan = 'aspirante',
+  onOpenPricing,
+  onSelectPlan,
+  onGoHome,
   onReviewFlashcard,
   onAddNewFlashcard,
   onGoToSimulator,
@@ -114,11 +123,29 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         onReviewCard={onReviewFlashcard}
         onAddNewCard={onAddNewFlashcard}
         onClose={() => setShowSRSPlayer(false)}
+        userPlan={userPlan}
+        onOpenPricing={onOpenPricing}
+        onSelectPlan={onSelectPlan}
+        onGoHome={onGoHome}
       />
     );
   }
 
   return (
+    <HardPaywallGate
+      moduleTitle="Painel de Evolução e Desempenho Cognitivo"
+      moduleSubtitle="Acompanhe taxa de acerto líquida, precisão por disciplina, histórico de simulados e pontos de atenção em tempo real."
+      features={[
+        'Mapa completo de rendimento líquido descontando chutes',
+        'Diagnóstico por disciplina para priorizar exatamente o que cai mais',
+        'Acompanhamento de constância, horas líquidas e revisões',
+        'Disponível para todos os assinantes ativos do Argus',
+      ]}
+      userPlan={userPlan}
+      onOpenPricing={onOpenPricing}
+      onSelectPlan={onSelectPlan}
+      onGoHome={onGoHome}
+    >
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
       {/* Header */}
@@ -701,5 +728,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       )}
 
     </div>
+    </HardPaywallGate>
   );
 };

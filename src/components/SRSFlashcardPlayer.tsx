@@ -19,21 +19,30 @@ import {
   Award,
   Filter
 } from 'lucide-react';
-import { Flashcard } from '@/lib/types';
+import { Flashcard, SubscriptionPlan } from '@/lib/types';
 import { nativeHaptics } from '@/lib/nativeHaptics';
+import { HardPaywallGate } from './HardPaywallGate';
 
 interface SRSFlashcardPlayerProps {
   flashcards: Flashcard[];
   onReviewCard: (id: string, rating: 'facil' | 'bom' | 'dificil' | 'errei') => void;
   onAddNewCard?: (card: Flashcard) => void;
   onClose?: () => void;
+  userPlan?: SubscriptionPlan;
+  onOpenPricing?: () => void;
+  onSelectPlan?: (plan: SubscriptionPlan) => void;
+  onGoHome?: () => void;
 }
 
 export const SRSFlashcardPlayer: React.FC<SRSFlashcardPlayerProps> = ({
   flashcards,
   onReviewCard,
   onAddNewCard,
-  onClose
+  onClose,
+  userPlan = 'aspirante',
+  onOpenPricing,
+  onSelectPlan,
+  onGoHome
 }) => {
   const [viewMode, setViewMode] = useState<'overview' | 'reviewing' | 'complete' | 'create'>('overview');
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<string>('todas');
@@ -194,6 +203,20 @@ export const SRSFlashcardPlayer: React.FC<SRSFlashcardPlayerProps> = ({
   };
 
   return (
+    <HardPaywallGate
+      moduleTitle="Cartões de Memorização Inteligente"
+      moduleSubtitle="Revise prazos, súmulas e regras essenciais com repetição programada para não esquecer na hora da prova."
+      features={[
+        'Baralhos interativos com revisão programada (1, 7 e 30 dias)',
+        'Criação ilimitada de cartões próprios ou automáticos pelos erros',
+        'Filtros por matéria e acompanhamento diário de retenção',
+        'Funciona junto com seu Caderno de Erros e Leis',
+      ]}
+      userPlan={userPlan}
+      onOpenPricing={onOpenPricing}
+      onSelectPlan={onSelectPlan}
+      onGoHome={onGoHome}
+    >
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
       
       {/* Top Breadcrumb & Actions */}
@@ -728,5 +751,6 @@ export const SRSFlashcardPlayer: React.FC<SRSFlashcardPlayerProps> = ({
       )}
 
     </div>
+    </HardPaywallGate>
   );
 };

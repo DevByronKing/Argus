@@ -29,11 +29,14 @@ import {
 } from 'lucide-react';
 import { DiscursivePrompt, DiscursiveEvaluation, DiscursiveSubmission, SubscriptionPlan, ExamNotice, StudentProfile } from '@/lib/types';
 import { MOCK_DISCURSIVE_PROMPTS } from '@/lib/mockData';
+import { HardPaywallGate } from './HardPaywallGate';
 
 interface DiscursiveStudioProps {
   onRecordSubmission?: (submission: DiscursiveSubmission) => void;
   userPlan?: SubscriptionPlan;
   onOpenPricing?: () => void;
+  onSelectPlan?: (plan: SubscriptionPlan) => void;
+  onGoHome?: () => void;
   selectedExam?: ExamNotice;
   studentProfile?: StudentProfile;
 }
@@ -42,6 +45,8 @@ export const DiscursiveStudio: React.FC<DiscursiveStudioProps> = ({
   onRecordSubmission,
   userPlan = 'aspirante',
   onOpenPricing,
+  onSelectPlan,
+  onGoHome,
   selectedExam,
   studentProfile
 }) => {
@@ -289,6 +294,20 @@ Por derradeiro, a lavagem de dinheiro (Lei nº 9.613/1998) consubstancia tipo pe
   };
 
   return (
+    <HardPaywallGate
+      moduleTitle="Laboratório de Redação e Discursivas com IA"
+      moduleSubtitle="Treine redações, pareceres e questões discursivas no espelho exato da sua banca com correção detalhada linha a linha."
+      features={[
+        'Temas inéditos calibrados pelo seu concurso e banca',
+        'Correção criteriosa com espelho de nota e apontamento de desvios',
+        'Histórico de evolução na nota final e domínio argumentativo',
+        'Desbloqueado nos planos de assinatura ativa do Argus',
+      ]}
+      userPlan={userPlan}
+      onOpenPricing={onOpenPricing}
+      onSelectPlan={onSelectPlan}
+      onGoHome={onGoHome}
+    >
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn space-y-6">
       
       {/* Banner de Upgrade para Discursivas */}
@@ -920,5 +939,6 @@ Por derradeiro, a lavagem de dinheiro (Lei nº 9.613/1998) consubstancia tipo pe
       )}
 
     </div>
+    </HardPaywallGate>
   );
 };

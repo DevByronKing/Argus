@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { SmartSubjectSummary, Flashcard, SubscriptionPlan, ExamNotice, StudentProfile } from '@/lib/types';
 import { INITIAL_MICRO_SUMMARIES } from '@/lib/mockData';
+import { HardPaywallGate } from './HardPaywallGate';
 
 interface SmartSubjectSummariesProps {
   onAddFlashcard?: (card: Flashcard) => void;
@@ -33,6 +34,8 @@ interface SmartSubjectSummariesProps {
   onGoToSimulator?: (subjectName?: string) => void;
   userPlan?: SubscriptionPlan;
   onOpenPricing?: () => void;
+  onSelectPlan?: (plan: SubscriptionPlan) => void;
+  onGoHome?: () => void;
   showToast: (msg: string) => void;
   selectedExam?: ExamNotice;
   studentProfile?: StudentProfile;
@@ -42,8 +45,10 @@ export const SmartSubjectSummaries: React.FC<SmartSubjectSummariesProps> = ({
   onAddFlashcard,
   onGoToVadeMecum,
   onGoToSimulator,
-  userPlan = 'pro',
+  userPlan = 'aspirante',
   onOpenPricing,
+  onSelectPlan,
+  onGoHome,
   showToast,
   selectedExam,
   studentProfile
@@ -198,6 +203,20 @@ export const SmartSubjectSummaries: React.FC<SmartSubjectSummariesProps> = ({
   };
 
   return (
+    <HardPaywallGate
+      moduleTitle="Resumos Guiados com Jurisprudência e IA"
+      moduleSubtitle="Sínteses de alto rendimento estruturadas pela regra 80/20, prontas para virar cards de revisão e bateria de questões."
+      features={[
+        'Resumos diretos ao ponto filtrados pelo edital ativo',
+        'Conversão em 1 clique para Flashcards de repetição espaçada',
+        'Integração direta com Lei Seca e simulado da matéria',
+        'Acesso completo incluído a partir do Passe R$ 97 e planos PRO/ELITE',
+      ]}
+      userPlan={userPlan}
+      onOpenPricing={onOpenPricing}
+      onSelectPlan={onSelectPlan}
+      onGoHome={onGoHome}
+    >
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fadeIn">
       
       {/* HEADER DE ALTO IMPACTO */}
@@ -581,5 +600,6 @@ export const SmartSubjectSummaries: React.FC<SmartSubjectSummariesProps> = ({
       )}
 
     </div>
+    </HardPaywallGate>
   );
 };

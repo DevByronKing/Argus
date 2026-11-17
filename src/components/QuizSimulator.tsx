@@ -39,6 +39,7 @@ import { AIFeedbackVote } from './AIFeedbackVote';
 import { ExamNotice, SubscriptionPlan } from '@/lib/types';
 import { useStudyStore } from '@/store/useStudyStore';
 import { nativeHaptics } from '@/lib/nativeHaptics';
+import { HardPaywallGate } from './HardPaywallGate';
 
 interface QuizSimulatorProps {
   onAddFlashcard: (flashcard: Flashcard) => void;
@@ -51,6 +52,8 @@ interface QuizSimulatorProps {
   userPlan?: SubscriptionPlan;
   dailyAiCount?: number;
   onOpenPricing?: () => void;
+  onSelectPlan?: (plan: SubscriptionPlan) => void;
+  onGoHome?: () => void;
   studentProfile?: StudentProfile;
 }
 
@@ -72,6 +75,8 @@ export const QuizSimulator: React.FC<QuizSimulatorProps> = ({
   userPlan = 'aspirante',
   dailyAiCount = 0,
   onOpenPricing,
+  onSelectPlan,
+  onGoHome,
   studentProfile
 }) => {
   const [simulatorMode, setSimulatorMode] = useState<'quick' | 'full_mock' | 'ai_generator'>('quick');
@@ -447,6 +452,20 @@ export const QuizSimulator: React.FC<QuizSimulatorProps> = ({
   };
 
   return (
+    <HardPaywallGate
+      moduleTitle="Simulador de Questões & Modo Foco"
+      moduleSubtitle="Treine baterias comentadas no formato oficial da sua banca (Cebraspe, FGV, FCC, Vunesp), com explicação passo a passo por IA e modo foco sem distrações."
+      features={[
+        'Questões comentadas no estilo exato da sua banca',
+        'Explicação automática dos erros pela IA',
+        'Modo Foco Tela Cheia + atalhos rápidos',
+        'Registro automático das questões erradas para revisão',
+      ]}
+      userPlan={userPlan}
+      onOpenPricing={onOpenPricing}
+      onSelectPlan={onSelectPlan}
+      onGoHome={onGoHome}
+    >
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-20 animate-fadeIn">
       {simulatorMode === 'full_mock' ? (
         <FullMockExamSimulator
@@ -1567,5 +1586,6 @@ export const QuizSimulator: React.FC<QuizSimulatorProps> = ({
       )}
 
     </div>
+    </HardPaywallGate>
   );
 };

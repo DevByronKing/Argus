@@ -2616,8 +2616,8 @@ export const MOCK_FULL_EXAMS: MockExam[] = [
     careerCategory: 'bancaria',
     historicalCutoffScore: 82.0,
     historicalCutoffDescription: 'Nota de corte real do concurso Caixa 2024 (Cesgranrio) para o Polo SP/DF: 82,0% de aproveitamento.',
-    isFreeDemo: true,
-    requiredPlan: 'aspirante',
+    isFreeDemo: false,
+    requiredPlan: 'lancamento',
     description: 'Caderno oficial da prova aplicada pela Fundação Cesgranrio em maio de 2024. Questões de Conhecimentos Bancários, Pix Automático, Atendimento e LGPD no Sistema Financeiro Nacional.',
     questions: [
       {

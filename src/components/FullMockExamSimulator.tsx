@@ -422,7 +422,7 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
             return (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {filteredExams.map((exam) => {
-                  const isLocked = userPlan === 'aspirante' && !exam.isFreeDemo;
+                  const isLocked = userPlan === 'aspirante';
 
                   return (
                     <div
@@ -454,11 +454,6 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
                           </div>
 
                           <div className="flex items-center gap-2">
-                            {exam.isFreeDemo && (
-                              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-black text-[10px] border border-emerald-500/30">
-                                LIBERADO
-                              </span>
-                            )}
                             <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
                               <Clock className="w-3.5 h-3.5" />
                               <span>{exam.durationMinutes} min</span>
@@ -497,14 +492,6 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
                             </strong>
                           </div>
                         </div>
-
-                        {/* Free demo badge banner */}
-                        {exam.isFreeDemo && userPlan === 'aspirante' && (
-                          <div className="mt-3 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-bold flex items-center gap-1.5">
-                            <span>🎁</span>
-                            <span>Degustação Gratuita Liberada para o Plano Aspirante!</span>
-                          </div>
-                        )}
 
                       </div>
 

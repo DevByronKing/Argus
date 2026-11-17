@@ -28,15 +28,27 @@ import {
 import { 
   BancaPsychometricProfile, 
   PsychometricDistractorDef, 
-  PsychometricDistractorType 
+  PsychometricDistractorType,
+  SubscriptionPlan
 } from '@/lib/types';
 import { analytics } from '@/lib/analytics';
+import { HardPaywallGate } from './HardPaywallGate';
 
 interface BancaPsychometricsProps {
   onGoToSimulator?: (banca?: string) => void;
+  userPlan?: SubscriptionPlan;
+  onOpenPricing?: () => void;
+  onSelectPlan?: (plan: SubscriptionPlan) => void;
+  onGoHome?: () => void;
 }
 
-export const BancaPsychometrics: React.FC<BancaPsychometricsProps> = ({ onGoToSimulator }) => {
+export const BancaPsychometrics: React.FC<BancaPsychometricsProps> = ({
+  onGoToSimulator,
+  userPlan = 'aspirante',
+  onOpenPricing,
+  onSelectPlan,
+  onGoHome
+}) => {
   const [selectedBancaName, setSelectedBancaName] = useState<'Cebraspe' | 'FGV' | 'FCC' | 'Vunesp'>('Cebraspe');
   const [selectedDistractorId, setSelectedDistractorId] = useState<PsychometricDistractorType>('generalizacao_indevida');
   const [isDiagnosing, setIsDiagnosing] = useState<boolean>(false);
@@ -86,6 +98,20 @@ export const BancaPsychometrics: React.FC<BancaPsychometricsProps> = ({ onGoToSi
   };
 
   return (
+    <HardPaywallGate
+      moduleTitle="Análise de Pegadinhas da Banca (TRI)"
+      moduleSubtitle="Entenda exatamente como Cebraspe, FGV, FCC e Vunesp montam alternativas erradas para eliminar candidatos preparados."
+      features={[
+        'Mapa dos 8 tipos de pegadinhas mais usadas pelas bancas',
+        'Perfil detalhado por banca (Cebraspe, FGV, FCC e Vunesp)',
+        'Estratégia prática para desarmar cada armadilha antes de marcar',
+        'Simulação direcionada para treinar cada tipo de pegadinha',
+      ]}
+      userPlan={userPlan}
+      onOpenPricing={onOpenPricing}
+      onSelectPlan={onSelectPlan}
+      onGoHome={onGoHome}
+    >
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fadeIn">
       
       {/* Top Banner de Apresentação */}
@@ -487,5 +513,6 @@ export const BancaPsychometrics: React.FC<BancaPsychometricsProps> = ({ onGoToSi
       )}
 
     </div>
+    </HardPaywallGate>
   );
 };

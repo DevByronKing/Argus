@@ -41,14 +41,14 @@ export interface LegalDiagnosticResult {
 // Matriz de Cotas, Modelos Oficiais Google AI Engine e Limites por Plano
 export const PLAN_LIMITS = {
   aspirante: {
-    name: 'Passe de 30 Dias (Edital Travado)',
-    aiModel: 'gemini-3.8-flash',
-    aiModelLabel: 'Google Gemini 3.8 Flash',
-    maxDailyAiRequests: 15,
+    name: 'Visitante (Sem Assinatura Ativa)',
+    aiModel: 'none',
+    aiModelLabel: 'Requer Assinatura Ativa',
+    maxDailyAiRequests: 0,
     canAccessDiscursivas: false,
-    maxFlashcards: 100,
-    maxActiveEditais: 1,
-    hasSpeechSynthesis: true,
+    maxFlashcards: 0,
+    maxActiveEditais: 0,
+    hasSpeechSynthesis: false,
   },
   pro: {
     name: 'Gabarito PRO (Copiloto Cognitivo)',
@@ -125,15 +125,20 @@ export class AIEngine {
     const currentCount = req.userDailyAiCount || 0;
     const planLimit = PLAN_LIMITS[plan] || PLAN_LIMITS.aspirante;
 
-    // 1. Verificação de Cota do Plano (Opção A acordada: Fallback determinístico após atingir limite)
+    // 1. Verificação de Cota do Plano / Zero Freemium Hard Paywall
     if (currentCount >= planLimit.maxDailyAiRequests) {
+      const isNoPlan = planLimit.maxDailyAiRequests <= 0;
       const fallback = this.generateDeterministicFallback(
-        req, 
-        startTime, 
-        'Cota diária de inteligência artificial atingida'
+        req,
+        startTime,
+        isNoPlan
+          ? 'Acesso às análises com IA restrito a assinantes ativos'
+          : 'Cota diária de inteligência artificial atingida'
       );
       fallback.quotaExceeded = true;
-      fallback.quotaMessage = `Você utilizou seus ${planLimit.maxDailyAiRequests} diagnósticos com IA de hoje. Assine o Plano Pro para diagnósticos neurais ilimitados!`;
+      fallback.quotaMessage = isNoPlan
+        ? 'Assinatura necessária para análises com IA e estudo contínuo. Escolha Passe R$ 97, PRO, ELITE ou BLACK.'
+        : `Você utilizou seus ${planLimit.maxDailyAiRequests} diagnósticos com IA de hoje. Assine o Plano Pro para diagnósticos neurais ilimitados!`;
       return fallback;
     }
 

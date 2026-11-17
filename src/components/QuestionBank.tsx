@@ -28,9 +28,10 @@ import {
   FileText,
   Target
 } from 'lucide-react';
-import { Question, QuestionAttempt, Flashcard, QuestionBankFilter, PsychometricDistractorType, StudentProfile } from '@/lib/types';
+import { Question, QuestionAttempt, Flashcard, QuestionBankFilter, PsychometricDistractorType, StudentProfile, SubscriptionPlan } from '@/lib/types';
 import { MOCK_QUESTIONS, MASCOTS_DATA } from '@/lib/mockData';
 import { PSYCHOMETRIC_DISTRACTORS, BANCA_PSYCHOMETRIC_PROFILES } from '@/lib/psychometricsData';
+import { HardPaywallGate } from './HardPaywallGate';
 
 interface QuestionBankProps {
   onAddFlashcard: (flashcard: Flashcard) => void;
@@ -38,6 +39,10 @@ interface QuestionBankProps {
   onGoToSimulator?: () => void;
   onGoToMistakes?: () => void;
   studentProfile?: StudentProfile;
+  userPlan?: SubscriptionPlan;
+  onOpenPricing?: () => void;
+  onSelectPlan?: (plan: SubscriptionPlan) => void;
+  onGoHome?: () => void;
 }
 
 // Classificação psicométrica e parâmetros TRI para a questão
@@ -93,7 +98,11 @@ export const QuestionBank: React.FC<QuestionBankProps> = ({
   onRecordAttempt,
   onGoToSimulator,
   onGoToMistakes,
-  studentProfile
+  studentProfile,
+  userPlan = 'aspirante',
+  onOpenPricing,
+  onSelectPlan,
+  onGoHome
 }) => {
   const [selectedExamPack, setSelectedExamPack] = useState<string>('todos');
   const [filter, setFilter] = useState<QuestionBankFilter>(() => ({
@@ -361,6 +370,20 @@ export const QuestionBank: React.FC<QuestionBankProps> = ({
   };
 
   return (
+    <HardPaywallGate
+      moduleTitle="Banco de Questões Comentadas & Últimas Provas"
+      moduleSubtitle="Resolva e baixe cadernos das últimas provas famosas (PF, PRF, INSS, TRT, OAB, TJ-SP, CNU) com comentários por IA e filtros por banca."
+      features={[
+        'Cadernos das últimas provas oficiais (50+ questões por banca)',
+        'Download de cadernos comentados em arquivo',
+        'Filtros por banca, matéria, ano e dificuldade',
+        'Explicação em áudio e vínculo automático com Meus Erros',
+      ]}
+      userPlan={userPlan}
+      onOpenPricing={onOpenPricing}
+      onSelectPlan={onSelectPlan}
+      onGoHome={onGoHome}
+    >
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 animate-fadeIn">
       
       {/* Header com Apresentação */}
@@ -1120,5 +1143,6 @@ export const QuestionBank: React.FC<QuestionBankProps> = ({
       )}
 
     </div>
+    </HardPaywallGate>
   );
 };

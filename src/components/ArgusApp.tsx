@@ -32,6 +32,7 @@ import { CookieConsentBanner } from '@/components/CookieConsentBanner';
 import { SplashScreen } from '@/components/SplashScreen';
 import { GoogleAdSense } from '@/components/GoogleAdSense';
 import { analytics } from '@/lib/analytics';
+import { isFreemiumAllowed } from '@/lib/abTesting';
 
 // Code Splitting Dinâmico de Abas Pesadas (Performance Otimizada)
 const EditalParser = dynamic(
@@ -161,6 +162,19 @@ export function ArgusApp() {
 
   const handleGoHome = () => {
     handleNavigateWithHistory('landing');
+  };
+
+  const handleOpenPricing = () => {
+    setPricingModalInitialTab('plans');
+    setIsPricingOpen(true);
+  };
+
+  const handleSelectPlanForPaywall = (targetPlan: SubscriptionPlan) => {
+    const safePlan: SubscriptionPlan =
+      targetPlan === 'aspirante' && !isFreemiumAllowed() ? 'lancamento' : targetPlan;
+    setPendingCheckoutPlan(safePlan);
+    setPricingModalInitialTab('checkout');
+    setIsPricingOpen(true);
   };
   const [exams, setExams] = useState<ExamNotice[]>(INITIAL_EXAMS);
   const [selectedExam, setSelectedExam] = useState<ExamNotice>(INITIAL_EXAMS[0]);
@@ -383,12 +397,28 @@ export function ArgusApp() {
       window.addEventListener('open-auth-modal', handleOpenAuth);
       window.addEventListener('argus_open_auth', handleOpenAuth);
 
-      // Listeners de Retenção & Viral Loops
+      // Listeners de Retenção, Paywall & Viral Loops
       const handleOpenFlash = () => setIsFlashChallengeOpen(true);
       window.addEventListener('open-flash-challenge', handleOpenFlash);
 
       const handleOpenReferral = () => setIsReferralModalOpen(true);
       window.addEventListener('open-referral-modal', handleOpenReferral);
+
+      const handleOpenPricingEvent = (e: Event) => {
+        const detail = (e as CustomEvent<{ plan?: SubscriptionPlan; tab?: 'plans' | 'checkout' }>).detail;
+        if (detail?.plan && detail.plan !== 'aspirante') {
+          setPendingCheckoutPlan(detail.plan);
+        }
+        setPricingModalInitialTab(detail?.tab === 'checkout' ? 'checkout' : 'plans');
+        setIsPricingOpen(true);
+      };
+      window.addEventListener('argus-open-pricing', handleOpenPricingEvent);
+
+      const handleOpenOnboardingEvent = () => setIsOnboardingTerminalOpen(true);
+      window.addEventListener('argus-open-onboarding', handleOpenOnboardingEvent);
+
+      const handleGoHomeEvent = () => handleNavigateWithHistory('landing');
+      window.addEventListener('argus-go-home', handleGoHomeEvent);
 
       return () => {
         window.removeEventListener('open-pmf-survey', handleOpenSurvey);
@@ -396,58 +426,71 @@ export function ArgusApp() {
         window.removeEventListener('argus_open_auth', handleOpenAuth);
         window.removeEventListener('open-flash-challenge', handleOpenFlash);
         window.removeEventListener('open-referral-modal', handleOpenReferral);
+        window.removeEventListener('argus-open-pricing', handleOpenPricingEvent);
+        window.removeEventListener('argus-open-onboarding', handleOpenOnboardingEvent);
+        window.removeEventListener('argus-go-home', handleGoHomeEvent);
       };
     } catch {}
   }, []);
 
-  // Sincronização em tempo real da Sessão Google OAuth com o Zustand useAuthStore
+  // Sincronização em tempo real da Sessão Supabase Auth + Plano Ativo com o Zustand useAuthStore
   useEffect(() => {
     const supabase = getSupabase();
     if (!supabase) return;
 
+    const syncAuthAndPlan = async (
+      u: { id: string; email?: string; user_metadata?: Record<string, unknown> },
+      accessToken: string
+    ) => {
+      const fullName = typeof u.user_metadata?.full_name === 'string' ? u.user_metadata.full_name : undefined;
+      const metaName = typeof u.user_metadata?.name === 'string' ? u.user_metadata.name : undefined;
+      const name = fullName || metaName || u.email?.split('@')[0] || 'Aluno Concurseiro';
+
+      useAuthStore.getState().setAuth(
+        {
+          id: u.id,
+          email: u.email || '',
+          name,
+          role: 'student',
+        },
+        accessToken
+      );
+
+      try {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('subscription_tier, subscription_status')
+          .eq('id', u.id)
+          .single();
+
+        if (
+          profileData &&
+          profileData.subscription_status === 'active' &&
+          ['lancamento', 'pro', 'elite', 'black'].includes(profileData.subscription_tier)
+        ) {
+          setPlan(profileData.subscription_tier as SubscriptionPlan);
+        }
+      } catch {
+        // Perfil sem assinatura paga confirmada mantém plano Visitante
+      }
+    };
+
     // Carrega sessão atual ativa no Supabase
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        const u = session.user;
-        const name =
-          u.user_metadata?.full_name ||
-          u.user_metadata?.name ||
-          u.email?.split('@')[0] ||
-          'Aluno Concurseiro';
-
-        useAuthStore.getState().setAuth(
-          {
-            id: u.id,
-            email: u.email || '',
-            name,
-            role: 'student',
-          },
-          session.access_token
-        );
+        syncAuthAndPlan(session.user, session.access_token);
       }
     });
 
     // Monitora eventos de login/logout em tempo real
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        const u = session.user;
-        const name =
-          u.user_metadata?.full_name ||
-          u.user_metadata?.name ||
-          u.email?.split('@')[0] ||
-          'Aluno Concurseiro';
-
-        useAuthStore.getState().setAuth(
-          {
-            id: u.id,
-            email: u.email || '',
-            name,
-            role: 'student',
-          },
-          session.access_token
-        );
+        syncAuthAndPlan(session.user, session.access_token);
       } else if (event === 'SIGNED_OUT') {
         useAuthStore.getState().logout();
+        if (!isFreemiumAllowed()) {
+          setPlan('aspirante');
+        }
       }
     });
     return () => {
@@ -945,8 +988,8 @@ export function ArgusApp() {
             onUpdateProfile={handleSaveProfile}
           />
 
-          {/* Alerta de Resgate por Inatividade - Modo Pílula (Pilar 3: Anti-Churn) - Exibido apenas em abas de estudo, nunca na Landing Page */}
-          {activeTab !== 'landing' && isSplashDone && hasLgpdConsent && !isOnboardingTerminalOpen && (
+          {/* Alerta de Resgate por Inatividade - Modo Pílula (Pilar 3: Anti-Churn) - Exibido apenas em abas de estudo para assinantes */}
+          {activeTab !== 'landing' && (isFreemiumAllowed() || plan !== 'aspirante') && isSplashDone && hasLgpdConsent && !isOnboardingTerminalOpen && (
             <InactivityRecoveryBanner
               studentName={studentProfile?.warName || studentProfile?.name || 'Guerreiro(a)'}
               streakDays={metrics.streakDays}
@@ -977,15 +1020,7 @@ export function ArgusApp() {
               setPricingModalInitialTab('plans');
               setIsPricingOpen(true);
             }}
-            onSelectPlan={(p) => {
-              if (p === 'aspirante') {
-                handleUpgradePlan('aspirante');
-              } else {
-                setPendingCheckoutPlan(p);
-                setPricingModalInitialTab('checkout');
-                setIsPricingOpen(true);
-              }
-            }}
+            onSelectPlan={(p) => handleSelectPlanForPaywall(p)}
             onOpenPsychometrics={() => handleNavigateWithHistory('psychometrics')}
             onNavigateTab={(tab) => handleNavigateWithHistory(tab)}
             onOpenFlashChallenge={() => setIsFlashChallengeOpen(true)}
@@ -1001,6 +1036,10 @@ export function ArgusApp() {
             onSetDefaultExam={handleSetDefaultExam}
             onGenerateCycle={handleGenerateCycle}
             onAddCustomExam={handleAddCustomExam}
+            userPlan={plan}
+            onOpenPricing={handleOpenPricing}
+            onSelectPlan={handleSelectPlanForPaywall}
+            onGoHome={handleGoHome}
           />
         )}
 
@@ -1009,6 +1048,10 @@ export function ArgusApp() {
             selectedExam={selectedExam}
             onGoToSimulator={() => handleNavigateWithHistory('simulator')}
             studentProfile={studentProfile}
+            userPlan={plan}
+            onOpenPricing={handleOpenPricing}
+            onSelectPlan={handleSelectPlanForPaywall}
+            onGoHome={handleGoHome}
           />
         )}
 
@@ -1023,7 +1066,9 @@ export function ArgusApp() {
             onSelectExam={handleSelectExam}
             userPlan={plan}
             dailyAiCount={dailyAiCount}
-            onOpenPricing={() => setIsPricingOpen(true)}
+            onOpenPricing={handleOpenPricing}
+            onSelectPlan={handleSelectPlanForPaywall}
+            onGoHome={handleGoHome}
             studentProfile={studentProfile}
           />
         )}
@@ -1034,6 +1079,10 @@ export function ArgusApp() {
               flashcards={flashcards}
               onReviewCard={handleReviewFlashcard}
               onAddNewCard={handleAddFlashcard}
+              userPlan={plan}
+              onOpenPricing={handleOpenPricing}
+              onSelectPlan={handleSelectPlanForPaywall}
+              onGoHome={handleGoHome}
             />
           </div>
         )}
@@ -1050,6 +1099,10 @@ export function ArgusApp() {
               if (query) showToast(`Buscando no Vade Mecum: ${query}`);
             }}
             onGoToEdital={() => handleNavigateWithHistory('edital')}
+            userPlan={plan}
+            onOpenPricing={handleOpenPricing}
+            onSelectPlan={handleSelectPlanForPaywall}
+            onGoHome={handleGoHome}
           />
         )}
 
@@ -1062,6 +1115,10 @@ export function ArgusApp() {
               handleNavigateWithHistory('simulator');
               showToast(`Carregando questão de prova vinculada: ${qid}`);
             }}
+            userPlan={plan}
+            onOpenPricing={handleOpenPricing}
+            onSelectPlan={handleSelectPlanForPaywall}
+            onGoHome={handleGoHome}
           />
         )}
 
@@ -1079,7 +1136,9 @@ export function ArgusApp() {
               if (subj) showToast(`Iniciando bateria de questões: ${subj}`);
             }}
             userPlan={plan}
-            onOpenPricing={() => setIsPricingOpen(true)}
+            onOpenPricing={handleOpenPricing}
+            onSelectPlan={handleSelectPlanForPaywall}
+            onGoHome={handleGoHome}
             showToast={showToast}
           />
         )}
@@ -1089,7 +1148,9 @@ export function ArgusApp() {
             selectedExam={selectedExam}
             studentProfile={studentProfile}
             userPlan={plan}
-            onOpenPricing={() => setIsPricingOpen(true)}
+            onOpenPricing={handleOpenPricing}
+            onSelectPlan={handleSelectPlanForPaywall}
+            onGoHome={handleGoHome}
             onRecordSubmission={(sub) => {
               showToast(`Redação avaliada! Nota: ${sub.evaluation.finalScore.toFixed(1)} pts`);
             }}
@@ -1102,6 +1163,10 @@ export function ArgusApp() {
             selectedExam={selectedExam}
             flashcards={flashcards}
             studentProfile={studentProfile}
+            userPlan={plan}
+            onOpenPricing={handleOpenPricing}
+            onSelectPlan={handleSelectPlanForPaywall}
+            onGoHome={handleGoHome}
             onReviewFlashcard={handleReviewFlashcard}
             onAddNewFlashcard={handleAddFlashcard}
             onGoToSimulator={(subj) => {
@@ -1119,6 +1184,10 @@ export function ArgusApp() {
             onGoToSimulator={() => handleNavigateWithHistory('simulator')}
             onGoToMistakes={() => handleNavigateWithHistory('mistakes')}
             studentProfile={studentProfile}
+            userPlan={plan}
+            onOpenPricing={handleOpenPricing}
+            onSelectPlan={handleSelectPlanForPaywall}
+            onGoHome={handleGoHome}
           />
         )}
 
@@ -1128,6 +1197,10 @@ export function ArgusApp() {
                 handleNavigateWithHistory('simulator');
                 if (banca) showToast(`Carregando simulado calibrado para a banca: ${banca}`);
               }}
+              userPlan={plan}
+              onOpenPricing={handleOpenPricing}
+              onSelectPlan={handleSelectPlanForPaywall}
+              onGoHome={handleGoHome}
             />
           )}
 
@@ -1274,9 +1347,9 @@ export function ArgusApp() {
         isOpen={isOnboardingTerminalOpen}
         onClose={() => setIsOnboardingTerminalOpen(false)}
         currentProfile={studentProfile}
-        onOpenPricing={() => setIsPricingOpen(true)}
+        onOpenPricing={handleOpenPricing}
         theme={theme}
-        onComplete={(partialProfile, destinationTab) => {
+        onComplete={(partialProfile, destinationTab, selectedPlan) => {
           setIsOnboardingTerminalOpen(false);
           const newProfile: StudentProfile = {
             ...studentProfile,
@@ -1313,11 +1386,30 @@ export function ArgusApp() {
             }
           }
 
-          // 7 Leis de UX & Ativação D0 Instantânea:
-          // Direciona imediatamente para a 1ª bateria prática personalizada no simulador sem forçar paywall inicial
-          if (destinationTab === 'pricing') {
+          // Modelo Zero Freemium / Hard Paywall:
+          // Após o Passaporte da Anamnese, direciona o visitante para escolha de plano ou checkout sem liberar acesso gratuito ao simulador
+          if (!isFreemiumAllowed() && plan === 'aspirante') {
+            const targetPlan: SubscriptionPlan =
+              selectedPlan && selectedPlan !== 'aspirante'
+                ? selectedPlan
+                : destinationTab === 'checkout'
+                  ? 'lancamento'
+                  : 'pro';
+            setPendingCheckoutPlan(targetPlan);
+            setPricingModalInitialTab(destinationTab === 'checkout' ? 'checkout' : 'plans');
             setIsPricingOpen(true);
-            showToast(`🎯 Diagnóstico concluído! Conheça os recursos do seu plano.`);
+            showToast(
+              destinationTab === 'checkout'
+                ? '🎯 Passaporte concluído! Finalize o pagamento para liberar todos os módulos do seu edital.'
+                : '🎯 Passaporte concluído! Escolha seu plano (Passe R$ 97, PRO, ELITE ou BLACK) para começar.'
+            );
+          } else if (destinationTab === 'pricing' || destinationTab === 'checkout') {
+            const targetPlan: SubscriptionPlan =
+              selectedPlan && selectedPlan !== 'aspirante' ? selectedPlan : 'pro';
+            setPendingCheckoutPlan(targetPlan);
+            setPricingModalInitialTab(destinationTab === 'checkout' ? 'checkout' : 'plans');
+            setIsPricingOpen(true);
+            showToast('🎯 Diagnóstico concluído! Conheça os recursos do seu plano.');
           } else {
             setActiveTab('simulator');
             showToast(`🎯 Diagnóstico concluído! Sua primeira bateria personalizada de ${partialProfile.targetExamTitle || 'questões'} está pronta.`);
