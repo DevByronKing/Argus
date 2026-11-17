@@ -1,63 +1,63 @@
 export const CANONICAL_MODULES = {
   edital: {
     id: 'edital',
-    title: 'Edital Verticalizado 80/20',
-    shortName: 'Edital 80/20',
-    description: 'Mapeamento matemático do conteúdo e pesos da banca examinadora',
+    title: 'Meu Edital Organizado',
+    shortName: 'Meu Edital',
+    description: 'Veja todas as matérias do seu concurso por ordem de importância',
   },
   simulator: {
     id: 'simulator',
-    title: 'Arena de Combate 60/40',
-    shortName: 'Arena de Combate',
-    description: 'Baterias cirúrgicas com 25.000+ questões oficiais comentadas por IA',
+    title: 'Simulador de Questões',
+    shortName: 'Simulador',
+    description: 'Treine questões comentadas no formato oficial da sua prova',
   },
   mistakes: {
     id: 'mistakes',
-    title: 'Caderno de Erros & Revanche',
-    shortName: 'Caderno de Erros',
-    description: 'Repetição espaçada com algoritmo SM-2 e classificação de armadilhas',
+    title: 'Meus Erros para Revisar',
+    shortName: 'Meus Erros',
+    description: 'Refaça as questões que você errou até dominar o assunto',
   },
   vademecum: {
     id: 'vademecum',
-    title: 'Smart Vade Mecum (Radar 80/20)',
-    shortName: 'Smart Vade Mecum',
-    description: 'Artigos de lei seca com 80% de incidência real cobrados em prova',
+    title: 'Leis & Artigos Mais Cobrados',
+    shortName: 'Leis & Artigos',
+    description: 'A lei seca destacada com o que realmente cai na sua prova',
   },
   discursivas: {
     id: 'discursivas',
-    title: 'Estúdio de Discursivas & Peças',
-    shortName: 'Estúdio Discursivas',
-    description: 'Simulação e correção com critérios de espelhos oficiais Cebraspe/FGV/OAB',
+    title: 'Treino de Redação & Discursivas',
+    shortName: 'Redação & Peças',
+    description: 'Escreva sua redação ou peça prática e receba correção na hora',
   },
   cycle: {
     id: 'cycle',
-    title: 'Ciclo Adaptativo (Meirelles)',
-    shortName: 'Ciclo Adaptativo',
-    description: 'Cronograma dinâmico que recalibra sua carga horária conforme sua precisão',
+    title: 'Plano de Estudos Diário',
+    shortName: 'Plano Diário',
+    description: 'Seu cronograma automático do que estudar a cada dia',
   },
   flashcards: {
     id: 'flashcards',
-    title: 'Flashcards SRS (Repetição Espaçada)',
-    shortName: 'Flashcards SRS',
-    description: 'Baralhos inteligentes para fixação de prazos, súmulas e artigos quentes',
+    title: 'Cartões de Memorização',
+    shortName: 'Memorização',
+    description: 'Cartões rápidos de perguntas e respostas para não esquecer prazos e regras',
   },
   radar: {
     id: 'radar',
-    title: 'Radar de Concursos & Tribunais',
-    shortName: 'Radar de Concursos',
-    description: 'Mapeamento de certames abertos, previstos e com comissões formadas',
+    title: 'Radar de Concursos & TRTs',
+    shortName: 'Concursos Abertos',
+    description: 'Concursos abertos, previstos e com rumores atualizados',
   },
   analytics: {
     id: 'analytics',
-    title: 'Cockpit de Desempenho (TRI)',
-    shortName: 'Cockpit TRI',
-    description: 'Estatísticas psicométricas preditivas de probabilidade de posse',
+    title: 'Meu Desempenho',
+    shortName: 'Desempenho',
+    description: 'Acompanhe sua evolução, acertos e metas de estudo',
   },
   copilot: {
     id: 'copilot',
-    title: 'Copiloto Cognitivo Argus',
-    shortName: 'Copiloto IA',
-    description: 'IA onisciente com domínio completo de todos os editais e bancas',
+    title: 'Tutor IA (Tire Dúvidas)',
+    shortName: 'Tutor IA',
+    description: 'Tire dúvidas de qualquer matéria, lei ou edital na hora',
   }
 } as const;
 
@@ -540,6 +540,7 @@ export interface StudentProfile {
   targetExamTitle?: string;
   targetBanca?: string;
   weakSubject?: string;
+  focusSubjects?: string[];
   dailyHoursGoal: number;
   experienceLevel: 'iniciante' | 'intermediario' | 'veterano';
   guardianAnimalId: GuardianAnimalId;

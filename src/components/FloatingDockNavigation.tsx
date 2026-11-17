@@ -165,23 +165,23 @@ export const FloatingDockNavigation: React.FC<FloatingDockNavigationProps> = ({
     };
   }, []);
 
-  // Catálogo com Nomes Padronizados Oficiais
+  // Catálogo com Nomes Padronizados e Autoexplicativos
   const dockGroups: { groupName: string; items: DockItem[] }[] = [
     {
       groupName: 'Praticar',
       items: [
         {
           id: 'simulator',
-          label: 'Arena 60/40',
-          fullName: 'Arena de Combate 60/40',
+          label: 'Simulador',
+          fullName: 'Simulador de Questões',
           category: 'Praticar',
           icon: Crosshair,
           badge: null
         },
         {
           id: 'mistakes',
-          label: 'Caderno de Erros',
-          fullName: 'Caderno de Erros & Revanche',
+          label: 'Meus Erros',
+          fullName: 'Meus Erros para Revisar',
           category: 'Praticar',
           icon: ShieldAlert,
           badge: pendingMistakesCount > 0 ? `${pendingMistakesCount}` : null,
@@ -189,8 +189,8 @@ export const FloatingDockNavigation: React.FC<FloatingDockNavigationProps> = ({
         },
         {
           id: 'flashcards',
-          label: 'Flashcards',
-          fullName: 'Flashcards SRS (Repetição Espaçada)',
+          label: 'Memorização',
+          fullName: 'Cartões de Memorização',
           category: 'Praticar',
           icon: Layers,
           badge: null
@@ -202,24 +202,24 @@ export const FloatingDockNavigation: React.FC<FloatingDockNavigationProps> = ({
       items: [
         {
           id: 'vademecum',
-          label: 'Smart Vade Mecum',
-          fullName: 'Smart Vade Mecum (Radar 80/20)',
+          label: 'Leis & Artigos',
+          fullName: 'Leis & Artigos Mais Cobrados',
           category: 'Conteúdo',
           icon: Scale,
           badge: null
         },
         {
           id: 'summaries',
-          label: 'Resumos 80/20',
-          fullName: 'Resumos Inteligentes 80/20',
+          label: 'Resumos',
+          fullName: 'Resumos Direto ao Ponto',
           category: 'Conteúdo',
           icon: BookOpen,
           badge: null
         },
         {
           id: 'discursivas',
-          label: 'Estúdio Discursivas',
-          fullName: 'Estúdio de Discursivas & Peças',
+          label: 'Redação & Peças',
+          fullName: 'Treino de Redação & Discursivas',
           category: 'Conteúdo',
           icon: Feather,
           badge: null
@@ -231,16 +231,16 @@ export const FloatingDockNavigation: React.FC<FloatingDockNavigationProps> = ({
       items: [
         {
           id: 'edital',
-          label: 'Edital 80/20',
-          fullName: 'Edital Verticalizado 80/20',
+          label: 'Meu Edital',
+          fullName: 'Meu Edital Organizado',
           category: 'Planejar',
           icon: ScrollText,
           badge: null
         },
         {
           id: 'cycle',
-          label: 'Ciclo Adaptativo',
-          fullName: 'Ciclo Adaptativo (Meirelles)',
+          label: 'Plano Diário',
+          fullName: 'Plano de Estudos Diário',
           category: 'Planejar',
           icon: CalendarClock,
           badge: null
@@ -252,8 +252,8 @@ export const FloatingDockNavigation: React.FC<FloatingDockNavigationProps> = ({
       items: [
         {
           id: 'dashboard',
-          label: 'Cockpit TRI',
-          fullName: 'Cockpit de Desempenho (TRI)',
+          label: 'Desempenho',
+          fullName: 'Meu Desempenho',
           category: 'Evolução',
           icon: Activity,
           badge: null

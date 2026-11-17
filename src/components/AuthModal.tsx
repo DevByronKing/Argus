@@ -242,7 +242,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 sm:p-6 bg-black/75 backdrop-blur-md animate-fadeIn overflow-y-auto">
+    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 sm:p-6 argus-modal-backdrop animate-fadeIn overflow-y-auto">
       
       {/* Container Principal do Modal de Login com Design Luxury */}
       <div

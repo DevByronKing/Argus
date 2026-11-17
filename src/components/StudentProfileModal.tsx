@@ -76,7 +76,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 argus-modal-backdrop animate-fade-in overflow-y-auto">
       <div 
         className="relative w-full max-w-3xl my-4 sm:my-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[88vh] sm:max-h-[92vh] transition-colors"
         onClick={(e) => e.stopPropagation()}

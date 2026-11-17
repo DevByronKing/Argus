@@ -131,7 +131,7 @@ export const TwoFactorAuthModal: React.FC<TwoFactorAuthModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto"
+      className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 argus-modal-backdrop animate-fade-in overflow-y-auto"
       onClick={onClose}
     >
       <div 

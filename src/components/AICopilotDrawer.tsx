@@ -156,9 +156,10 @@ export const AICopilotDrawer: React.FC<AICopilotDrawerProps> = ({
 
     setMessages(prev => [...prev, userMsg]);
     if (!textToSend) setInputQuery('');
+    setActiveSubTab('chat');
     setIsTyping(true);
 
-    // Chama a API de IA Real (Gemini) do Copiloto
+    // Chama a API do Tutor IA (/api/copilot)
     try {
       const res = await fetch('/api/copilot', {
         method: 'POST',
@@ -172,19 +173,24 @@ export const AICopilotDrawer: React.FC<AICopilotDrawerProps> = ({
       });
 
       if (!res.ok) {
-        throw new Error('Falha ao comunicar com o Copiloto IA');
+        throw new Error('Falha ao comunicar com o Tutor IA');
       }
 
       const data = await res.json();
+      const replyText = data.text || data.reply || 'Aqui está a explicação solicitada.';
+      const actionObj = data.quickAction || (data.recommendedAction ? {
+        label: data.recommendedAction.label || 'Ver no Simulador',
+        actionTab: data.recommendedAction.tab || 'simulator'
+      } : undefined);
       
       const botMsg: CopilotMessage = {
         id: `bot-${Date.now()}`,
         sender: 'assistant',
-        text: data.reply,
+        text: replyText,
         timestamp: 'Agora',
-        quickAction: data.recommendedAction ? {
-          label: data.recommendedAction.label || 'Ver no Simulador',
-          actionTab: data.recommendedAction.tab || 'simulator'
+        quickAction: actionObj ? {
+          label: actionObj.label || 'Treinar no Simulador',
+          actionTab: actionObj.actionTab || actionObj.tab || 'simulator'
         } : undefined
       };
 

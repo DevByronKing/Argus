@@ -1,26 +1,52 @@
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
+import {
+  INITIAL_QUESTIONS,
+  INITIAL_LAWS,
+  INITIAL_MICRO_SUMMARIES,
+  INITIAL_EXAMS,
+} from '@/lib/mockData';
+import { EXPANDED_QUESTIONS } from '@/lib/expandedQuestionsData';
+
+const ALL_QUESTIONS = [...INITIAL_QUESTIONS, ...EXPANDED_QUESTIONS];
+
+function normalizeText(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
+function extractKeywords(query: string): string[] {
+  const stopWords = new Set([
+    'o', 'a', 'os', 'as', 'um', 'uma', 'de', 'do', 'da', 'dos', 'das', 'em', 'no', 'na',
+    'nos', 'nas', 'por', 'para', 'com', 'sem', 'sob', 'sobre', 'que', 'qual', 'quais',
+    'como', 'onde', 'quando', 'porque', 'por que', 'quem', 'se', 'ou', 'e', 'mas', 'me',
+    'explique', 'explica', 'fale', 'diga', 'ajude', 'duvida', 'pergunta', 'sobre', 'sao',
+    'ser', 'esta', 'este', 'isso', 'isto', 'aquele', 'aquela', 'tem', 'ter', 'pode',
+    'funciona', 'significa', 'diferenca', 'entre', 'cai', 'prova', 'concurso', 'edital',
+  ]);
+
+  return normalizeText(query)
+    .replace(/[^a-z0-9\s./-]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length >= 3 && !stopWords.has(w));
+}
 
 export async function POST(req: Request) {
   try {
-    // Proteção contra abuso e flood de requisições
     const ip = getClientIp(req);
-    const { allowed, resetTime } = checkRateLimit(ip, 20, 60000);
+    const { allowed, resetTime } = checkRateLimit(ip, 30, 60000);
 
     if (!allowed) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Limite de requisições excedido. Aguarde 1 minuto para enviar novas perguntas ao Copiloto.',
-          retryAfterSeconds: Math.ceil((resetTime - Date.now()) / 1000)
+          error: 'Muitas perguntas em sequência. Aguarde alguns segundos para enviar nova pergunta.',
+          retryAfterSeconds: Math.ceil((resetTime - Date.now()) / 1000),
         },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': String(Math.ceil((resetTime - Date.now()) / 1000)),
-            'X-RateLimit-Remaining': '0'
-          }
-        }
+        { status: 429 }
       );
     }
 
@@ -29,152 +55,404 @@ export async function POST(req: Request) {
       query = '',
       studentProfile = {},
       examContext = {},
-      history = []
+      history = [],
     } = body;
 
     if (!query.trim()) {
       return NextResponse.json(
-        { success: false, error: 'Pergunta em branco.' },
+        { success: false, error: 'Por favor, digite sua pergunta.' },
         { status: 400 }
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey =
+      process.env.GEMINI_API_KEY ||
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
+      process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 
-    const warName = studentProfile.warName || studentProfile.name || 'Guerreiro(a)';
-    const targetExam = studentProfile.targetExamTitle || examContext.title || 'Concurso Público';
-    const banca = studentProfile.targetBanca || examContext.banca || 'Cebraspe';
-    const weakSubject = studentProfile.weakSubject || 'Direito Administrativo';
-    const hours = studentProfile.dailyHoursGoal || 4;
+    const warName = studentProfile.warName || studentProfile.name || 'Estudante';
+    const targetExam =
+      examContext.title || studentProfile.targetExamTitle || 'Concurso Público';
+    const banca = examContext.banca || studentProfile.targetBanca || 'Cebraspe';
+    const focusList: string[] = Array.isArray(studentProfile.focusSubjects) && studentProfile.focusSubjects.length > 0
+      ? studentProfile.focusSubjects
+      : [studentProfile.weakSubject || 'Direito Constitucional'];
 
-    // Se a chave não estiver no servidor, fallback heurístico de alta qualidade
-    if (!apiKey) {
-      const fallbackResponse = generateHeuristicResponse(query, warName, targetExam, banca, weakSubject);
-      return NextResponse.json({
-        success: true,
-        source: 'heuristic_fallback',
-        ...fallbackResponse
-      });
-    }
+    if (apiKey) {
+      try {
+        const systemPrompt = `Você é o Tutor IA do Argus, especialista em concursos públicos e no Exame da OAB.
+REGRA DE OURO CONTRA ALUCINAÇÃO:
+1. Responda DIRETAMENTE e ESPECIFICAMENTE à pergunta feita pelo aluno: "${query}".
+2. NUNCA mude de assunto e NUNCA dê uma resposta genérica sobre o perfil do aluno se ele perguntou sobre uma matéria, lei, questão ou regra de edital.
+3. Use linguagem simples, clara, acolhedora e autoexplicativa (sem jargões difíceis).
+4. Cite apenas leis e súmulas reais do Direito Brasileiro (CF/88, Lei 8.112/90, Lei 14.133/21, Lei 14.230/21, CLT, CP, CPP, CPC, CTN). Se não tiver certeza de um número de artigo específico, explique o conceito com precisão sem inventar números.
+5. Contexto atual do aluno (use apenas se relevante para a pergunta): Concurso "${targetExam}", Banca "${banca}", Matérias em foco: "${focusList.join(', ')}".
 
-    const systemPrompt = `Você é o Copiloto Cognitivo de Alta Performance do Argus, mentor pessoal do aluno(a) ${warName}.
-PERFIL DO ALUNO:
-- Cargo/Edital Alvo: ${targetExam}
-- Banca Examinadora: ${banca}
-- Calcanhar de Aquiles Declarado: ${weakSubject}
-- Meta Diária: ${hours} horas líquidas de estudo
-
-SUA MISSÃO:
-1. Responder com clareza cristalina, didática ágil e tom encorajador e estratégico (estilo treinador de elite / mentor de aprovação).
-2. Se a dúvida for sobre legislação ou direito, use as leis ATUALIZADAS (ex: Nova Lei de Licitações 14.133/21, Nova LIA 14.230/21, CF/88, Lei 8.112/90).
-3. Se a dúvida envolver bancas (${banca}), explique a "malícia" ou a pegadinha clássica dessa banca.
-4. Mantenha a resposta concisa (2 a 4 parágrafos objetivos com tópicos em markdown).
-5. Sugira uma ação prática (qual aba o aluno deve abrir: 'simulator' (Arena), 'cycle' (Ciclo de Estudos), 'mistakes' (Caderno de Erros), 'vademecum' (Leis), 'summaries' (Resumos)).
-
-Responda em JSON rigoroso com a estrutura:
+Responda em JSON válido:
 {
-  "text": "Sua resposta completa em Markdown...",
+  "text": "Sua resposta direta e clara em Markdown...",
   "quickAction": {
-    "label": "Rótulo do Botão de Ação (ex: '⚔️ Treinar Questões na Arena')",
-    "actionTab": "simulator" | "cycle" | "mistakes" | "vademecum" | "summaries"
+    "label": "Texto do botão prático (ex: 'Treinar no Simulador de Questões')",
+    "actionTab": "simulator" | "cycle" | "mistakes" | "vademecum" | "summaries" | "questions"
   }
 }`;
 
-    const recentHistoryText = Array.isArray(history)
-      ? history.slice(-4).map((h: any) => `${h.sender === 'user' ? 'Aluno' : 'Copiloto'}: ${h.text}`).join('\n')
-      : '';
+        const recentHistoryText = Array.isArray(history)
+          ? history
+              .slice(-4)
+              .map((h: any) => `${h.sender === 'user' ? 'Aluno' : 'Tutor IA'}: ${h.text}`)
+              .join('\n')
+          : '';
 
-    const prompt = `${systemPrompt}\n\nHISTÓRICO RECENTE:\n${recentHistoryText}\n\nPERGUNTA DO ALUNO:\n"${query}"\n\nResponda estritamente em JSON:`;
+        const prompt = `${systemPrompt}\n\nHISTÓRICO:\n${recentHistoryText}\n\nPERGUNTA DO ALUNO:\n"${query}"`;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 7000);
 
-    let response: Response;
-    try {
-      response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: controller.signal,
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.2,
-              maxOutputTokens: 600,
-              responseMimeType: 'application/json'
-            }
-          })
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: 0.15,
+                maxOutputTokens: 700,
+                responseMimeType: 'application/json',
+              },
+            }),
+          }
+        );
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const data = await response.json();
+          const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawText) {
+            const parsed = JSON.parse(rawText);
+            const finalReply = parsed.text || 'Aqui está a explicação solicitada.';
+            const finalAction = parsed.quickAction || {
+              label: 'Treinar no Simulador de Questões',
+              actionTab: 'simulator',
+            };
+            return NextResponse.json({
+              success: true,
+              source: 'gemini',
+              text: finalReply,
+              reply: finalReply,
+              quickAction: finalAction,
+              recommendedAction: {
+                label: finalAction.label,
+                tab: finalAction.actionTab,
+              },
+            });
+          }
         }
-      );
-    } finally {
-      clearTimeout(timeoutId);
+      } catch (apiErr) {
+        console.warn('Fallback para motor de conhecimento local Argus:', apiErr);
+      }
     }
 
-    if (!response.ok) {
-      throw new Error(`Gemini status ${response.status}`);
-    }
-
-    const data = await response.json();
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!rawText) {
-      throw new Error('Resposta vazia da API Gemini');
-    }
-
-    const parsed = JSON.parse(rawText);
+    // Motor Local Inteligente Sem Alucinações (Busca Real na Base de Leis, Questões, Resumos e Editais)
+    const directAnswer = answerStudentQueryDirectly(
+      query,
+      warName,
+      targetExam,
+      banca,
+      focusList,
+      examContext
+    );
 
     return NextResponse.json({
       success: true,
-      source: 'gemini',
-      text: parsed.text || 'Processamento concluído com sucesso.',
-      quickAction: parsed.quickAction || { label: '⚔️ Ir para a Arena', actionTab: 'simulator' }
+      source: 'argus_knowledge_engine',
+      text: directAnswer.text,
+      reply: directAnswer.text,
+      quickAction: directAnswer.quickAction,
+      recommendedAction: {
+        label: directAnswer.quickAction.label,
+        tab: directAnswer.quickAction.actionTab,
+      },
     });
   } catch (error: any) {
     console.error('API Copilot Error:', error);
-    // Fallback gracioso
+    const fallbackText =
+      'Não consegui processar sua pergunta neste instante. Tente reformular com o tema ou artigo que você quer revisar.';
     return NextResponse.json({
       success: true,
       source: 'fallback',
-      text: `### Orientação Tática do Copiloto:\n\nPara maximizar seu rendimento no edital alvo com a banca examinadora, mantenha foco nos artigos literais mais cobrados e na repetição espaçada das questões que você errou.\n\n* **Regra 60/40**: Concentre o primeiro bloco de hoje na sua disciplina vulnerável.\n* **Fixação**: Resolva no mínimo 15 questões antes de passar para nova teoria.`,
-      quickAction: { label: '⚔️ Atacar na Arena de Questões', actionTab: 'simulator' }
+      text: fallbackText,
+      reply: fallbackText,
+      quickAction: {
+        label: 'Abrir Banco de Questões',
+        actionTab: 'questions',
+      },
+      recommendedAction: {
+        label: 'Abrir Banco de Questões',
+        tab: 'questions',
+      },
     });
   }
 }
 
-function generateHeuristicResponse(
+function answerStudentQueryDirectly(
   query: string,
   warName: string,
   targetExam: string,
   banca: string,
-  weakSubject: string
-) {
-  const lower = query.toLowerCase();
+  focusList: string[],
+  examContext: any
+): { text: string; quickAction: { label: string; actionTab: string } } {
+  const qNorm = normalizeText(query);
+  const keywords = extractKeywords(query);
 
-  if (lower.includes('cebraspe') || lower.includes('fgv') || lower.includes('banca')) {
+  // 1. Perguntas sobre um Concurso específico do catálogo (TRT, INSS, PF, PRF, TJ-SP, Receita, OAB, etc.)
+  const matchedExam = INITIAL_EXAMS.find((e) => {
+    const titleNorm = normalizeText(`${e.title} ${e.institution} ${e.role}`);
+    if (qNorm.includes('trt') && titleNorm.includes('trt')) return true;
+    if ((qNorm.includes('tjsp') || qNorm.includes('tj-sp') || qNorm.includes('escrevente')) && titleNorm.includes('tj')) return true;
+    if (qNorm.includes('prf') && titleNorm.includes('prf')) return true;
+    if ((qNorm.includes('policia federal') || /\bpf\b/.test(qNorm)) && titleNorm.includes('federal') && !titleNorm.includes('rodoviaria')) return true;
+    if (qNorm.includes('inss') && titleNorm.includes('inss')) return true;
+    if (qNorm.includes('receita') && titleNorm.includes('receita')) return true;
+    if (qNorm.includes('oab') && titleNorm.includes('oab')) return true;
+    if (qNorm.includes('tcu') && titleNorm.includes('tcu')) return true;
+    if (qNorm.includes('bacen') && titleNorm.includes('bacen')) return true;
+    return false;
+  });
+
+  if (
+    matchedExam &&
+    (qNorm.includes('edital') ||
+      qNorm.includes('salario') ||
+      qNorm.includes('remuneracao') ||
+      qNorm.includes('vaga') ||
+      qNorm.includes('materia') ||
+      qNorm.includes('disciplina') ||
+      qNorm.includes('data') ||
+      qNorm.includes('quando') ||
+      qNorm.includes('como funciona') ||
+      qNorm.includes('o que cai'))
+  ) {
+    const subjectsList = matchedExam.subjects
+      .map((s) => `• **${s.name}** — Peso ${s.weight} (${s.relevancePercentage}% da prova)`)
+      .join('\n');
     return {
-      text: `### Raio-X Estratégico — ${banca} vs Outras Bancas\n\n* **Cebraspe (C/E)**: Extremamente semântica. O examinador elabora 3 linhas impecáveis e altera uma única conjunção restritiva no final (*"sempre"*, *"prescinde"*, *"exclusivamente"*). 1 errada anula 1 certa: se a incerteza persistir, a tática correta é deixar em branco!\n* **FGV**: Constrói situações-problema complexas e longas. A armadilha reside no excesso de detalhes irrelevantes para esgotar o tempo de prova.\n\n🎯 **Para o seu alvo (${targetExam})**: Domine os distratores clássicos da banca.`,
-      quickAction: { label: `⚔️ Treinar Simulado ${banca}`, actionTab: 'simulator' }
+      text: `📋 **Resumo Direto do Concurso: ${matchedExam.title}**\n\n• **Cargo:** ${matchedExam.role} (${matchedExam.institution})\n• **Banca Examinadora:** ${matchedExam.banca}\n• **Salário Inicial:** ${matchedExam.salary}\n• **Vagas:** ${matchedExam.vacancies} vagas\n• **Data da Prova:** ${matchedExam.examDate} (faltam ${matchedExam.daysRemaining} dias)\n\n**O que mais cai na prova (por ordem de importância):**\n${subjectsList}\n\n💡 **Dica prática:** Comece estudando as duas primeiras matérias da lista, pois elas concentram a maior parte dos pontos da sua prova.`,
+      quickAction: {
+        label: 'Ver Meu Edital Organizado',
+        actionTab: 'edital',
+      },
     };
   }
 
-  if (lower.includes('8.112') || lower.includes('posse') || lower.includes('exercício')) {
+  // 2. Perguntas sobre o Edital Ativo (Salário, Data, Vagas, Eliminação, Discursiva, Pesos)
+  const activeSubjects = Array.isArray(examContext?.subjects) && examContext.subjects.length > 0
+    ? examContext.subjects
+    : INITIAL_EXAMS[0].subjects;
+
+  if (qNorm.includes('elimin') || qNorm.includes('minima') || qNorm.includes('minimo') || qNorm.includes('nota de corte')) {
     return {
-      text: `### Mnemônico de Prazos — Lei 8.112/90:\n\n* **Nomeação ➔ Posse**: **30 dias** (improrrogáveis). Não tomou posse? O ato é tornado sem efeito!\n* **Posse ➔ Exercício**: **15 dias** (improrrogáveis). Tomou posse mas não entrou em exercício? **DEMISSÃO? NÃO! O servidor é EXONERADO!**\n\n💡 **Mnemônico**: *P-O-S-S-E (30 dias) ➔ E-X-E-R-C-Í-C-I-O (15 dias)*.`,
-      quickAction: { label: '📖 Consultar Lei 8.112 no Vade Mecum', actionTab: 'vademecum' }
+      text: `🎯 **Regras de Pontuação e Nota Mínima (${targetExam} • Banca ${banca}):**\n\n• **Como não ser eliminado:** Você precisa acertar pelo menos **50% da prova** no geral e **não pode zerar** nenhuma matéria de peso alto (especialmente **${activeSubjects[0]?.name}**).\n• **Cuidado com a banca ${banca}:** ${
+        banca === 'Cebraspe'
+          ? 'No formato Certo/Errado do Cebraspe, **1 questão errada anula 1 questão certa**. Se você não tiver nenhuma ideia da resposta, é melhor deixar em branco do que chutar no escuro.'
+          : `Na banca ${banca} (múltipla escolha de A a E), **não há perda de pontos por questão errada**. Portanto, nunca deixe questões em branco no cartão-resposta!`
+      }\n• **Meta segura para aprovação:** Busque atingir entre **78% e 84% de acertos** nos simulados.`,
+      quickAction: {
+        label: 'Treinar no Simulador de Questões',
+        actionTab: 'simulator',
+      },
     };
   }
 
-  if (lower.includes('14.230') || lower.includes('improbidade') || lower.includes('lia')) {
+  if (qNorm.includes('salario') || qNorm.includes('remuneracao') || qNorm.includes('quanto ganha') || qNorm.includes('beneficio')) {
+    const sal = examContext?.salary || 'R$ 8.500,00 a R$ 14.000,00';
+    const vac = examContext?.vacancies || 200;
     return {
-      text: `### 3 Pilares Indispensáveis da Reforma da Improbidade (Lei 14.230/21):\n\n1. **Fim da Culpa**: Não existe ato ímprobo culposo (nem mesmo por negligência gravíssima). Exige-se sempre **dolo específico**.\n2. **Rol do Art. 11 agora é TAXATIVO**: Se a conduta que fere princípios não estiver listada expressamente, não configura improbidade pelo art. 11.\n3. **Prazo Prescricional Unificado**: 8 anos contados a partir da data em que o fato ocorreu.`,
-      quickAction: { label: '📝 Ver Questões no Caderno de Erros', actionTab: 'mistakes' }
+      text: `💰 **Salário e Benefícios (${targetExam}):**\n\n• **Salário Inicial no Edital:** **${sal}**\n• **Total de Vagas:** **${vac} vagas** (mais cadastro de reserva)\n• **Benefícios extras comuns na carreira:** Auxílio-alimentação (em média R$ 1.100 a R$ 1.400 livres de imposto), auxílio-saúde, adicional de qualificação (se você tiver pós-graduação, mestrado ou doutorado) e progressão anual na carreira.`,
+      quickAction: {
+        label: 'Ver Radar de Concursos Abertos',
+        actionTab: 'radar',
+      },
     };
   }
 
+  if (qNorm.includes('discursiva') || qNorm.includes('redacao') || qNorm.includes('peca pratica')) {
+    return {
+      text: `✍️ **Como Funciona a Redação / Prova Discursiva (${banca}):**\n\n1. **O que a banca avalia:** Metade da nota vem do **conteúdo** (responder exatamente aos tópicos pedidos no tema) e a outra metade vem do **português e organização do texto** (parágrafos claros, sem erros de gramática).\n2. **Estrutura simples que funciona sempre (4 parágrafos):**\n   • **1º Parágrafo (Introdução):** Apresente o tema principal em 4 a 5 linhas.\n   • **2º Parágrafo (Tópico 1):** Responda à primeira pergunta da banca com fundamento na lei.\n   • **3º Parágrafo (Tópico 2):** Responda à segunda pergunta da banca com exemplos ou jurisprudência.\n   • **4º Parágrafo (Conclusão):** Feche o texto retomando a ideia central.\n\nVocê pode escrever um texto de treino agora mesmo na aba **Treino de Redação & Discursivas** para receber nota linha por linha.`,
+      quickAction: {
+        label: 'Abrir Treino de Redação & Discursivas',
+        actionTab: 'discursivas',
+      },
+    };
+  }
+
+  if (
+    qNorm.includes('peso') ||
+    qNorm.includes('o que estudar') ||
+    qNorm.includes('mais importante') ||
+    qNorm.includes('maior peso') ||
+    qNorm.includes('80/20')
+  ) {
+    const sorted = [...activeSubjects].sort((a: any, b: any) => (b.relevancePercentage || 0) - (a.relevancePercentage || 0));
+    const listText = sorted
+      .map((s: any, i: number) => `${i + 1}. **${s.name}** — representa **${s.relevancePercentage}%** da prova (Peso ${s.weight})`)
+      .join('\n');
+    return {
+      text: `📊 **Matérias Mais Importantes do Seu Edital (${targetExam}):**\n\n${listText}\n\n💡 **Como dividir seu tempo de forma simples:**\nDedique cerca de **60% do seu tempo** para as 2 primeiras matérias acima e **para os seus focos escolhidos (${focusList.join(', ')})**, e use os outros **40%** para revisar as demais matérias resolvendo questões.`,
+      quickAction: {
+        label: 'Abrir Meu Plano de Estudos Diário',
+        actionTab: 'cycle',
+      },
+    };
+  }
+
+  // 3. Busca Direta na Base de Leis & Artigos (`INITIAL_LAWS`) e Micro-Resumos (`INITIAL_MICRO_SUMMARIES`)
+  if (keywords.length > 0) {
+    const scoredArticles: { lawName: string; article: any; score: number }[] = [];
+    for (const law of INITIAL_LAWS) {
+      const lawNorm = normalizeText(`${law.name} ${law.nickname} ${law.category}`);
+      for (const art of law.articles) {
+        const artNorm = normalizeText(
+          `${art.number} ${art.title} ${art.text} ${art.bancaTrap || ''} ${art.jurisprudenceNote || ''}`
+        );
+        let score = 0;
+        for (const kw of keywords) {
+          if (artNorm.includes(kw)) score += 3;
+          if (lawNorm.includes(kw)) score += 2;
+        }
+        if (score >= 4) {
+          scoredArticles.push({ lawName: `${law.nickname} (${law.name})`, article: art, score });
+        }
+      }
+    }
+    scoredArticles.sort((a, b) => b.score - a.score);
+
+    const scoredSummaries = INITIAL_MICRO_SUMMARIES.map((sum) => {
+      const sumNorm = normalizeText(
+        `${sum.subject} ${sum.topic} ${sum.essentialRule} ${sum.mnemonic} ${sum.classicTrap}`
+      );
+      let score = 0;
+      for (const kw of keywords) {
+        if (sumNorm.includes(kw)) score += 3;
+      }
+      return { sum, score };
+    })
+      .filter((x) => x.score >= 3)
+      .sort((a, b) => b.score - a.score);
+
+    // Busca também nas 278 questões comentadas
+    const scoredQuestions = ALL_QUESTIONS.map((q) => {
+      const qTextNorm = normalizeText(
+        `${q.subject} ${q.topic} ${q.statement} ${q.reverseEngineeringDiagnosis || ''} ${q.lawReference || ''}`
+      );
+      let score = 0;
+      for (const kw of keywords) {
+        if (qTextNorm.includes(kw)) score += 2;
+      }
+      return { q, score };
+    })
+      .filter((x) => x.score >= 4)
+      .sort((a, b) => b.score - a.score);
+
+    if (scoredArticles.length > 0 || scoredSummaries.length > 0 || scoredQuestions.length > 0) {
+      const parts: string[] = [];
+      parts.push(`📚 **Resposta Direta sobre: "${query}"**`);
+
+      if (scoredSummaries.length > 0) {
+        const topSum = scoredSummaries[0].sum;
+        parts.push(
+          `\n**Resumo Simples (${topSum.subject} — ${topSum.topic}):**\n• **Regra Principal:** ${topSum.essentialRule}\n• **Como não esquecer (Macete):** *${topSum.mnemonic}*\n• **Pegadinha clássica de prova:** ${topSum.classicTrap}`
+        );
+      }
+
+      if (scoredArticles.length > 0) {
+        const topArt = scoredArticles[0];
+        parts.push(
+          `\n**O que diz a Lei (${topArt.lawName} — ${topArt.article.number}):**\n> *"${topArt.article.text}"*\n${
+            topArt.article.bancaTrap ? `\n⚠️ **Atenção na prova:** ${topArt.article.bancaTrap}` : ''
+          }${
+            topArt.article.jurisprudenceNote ? `\n⚖️ **Entendimento dos Tribunais:** ${topArt.article.jurisprudenceNote}` : ''
+          }`
+        );
+      }
+
+      if (scoredQuestions.length > 0) {
+        const topQ = scoredQuestions[0].q;
+        parts.push(
+          `\n**Como as bancas cobram isso (${topQ.banca} • ${topQ.year}):**\n• **Tema:** ${topQ.subject} (${topQ.topic})\n• **Explicação prática:** ${topQ.reverseEngineeringDiagnosis}`
+        );
+      }
+
+      return {
+        text: parts.join('\n'),
+        quickAction: {
+          label: scoredArticles.length > 0 ? 'Ver Lei Completa no Vade Mecum' : 'Treinar Questões Desse Tema',
+          actionTab: scoredArticles.length > 0 ? 'vademecum' : 'questions',
+        },
+      };
+    }
+  }
+
+  // 4. Dicionário de Dúvidas Clássicas de Concurseiros (Direito, Português, RLM, Informática, Organização de Estudos)
+  if (qNorm.includes('8.112') || qNorm.includes('posse') || qNorm.includes('exercicio') || qNorm.includes('estagio probatorio')) {
+    return {
+      text: `📌 **Resumo Simples da Lei 8.112/90 (Servidores Públicos):**\n\n• **Prazo para Posse:** **30 dias** a partir da nomeação. Se não tomar posse no prazo, a nomeação fica sem efeito.\n• **Prazo para entrar em Exercício (começar a trabalhar):** **15 dias** após a posse. Se não entrar em exercício, o servidor é **exonerado** (cuidado: não é demitido!).\n• **Estágio Probatório e Estabilidade:** Ambos duram **3 anos (36 meses)** de efetivo exercício (Art. 41 da Constituição Federal).`,
+      quickAction: { label: 'Consultar Leis Mais Cobradas', actionTab: 'vademecum' },
+    };
+  }
+
+  if (qNorm.includes('improbidade') || qNorm.includes('14.230') || qNorm.includes('8.429') || qNorm.includes('dolo')) {
+    return {
+      text: `⚖️ **Lei de Improbidade Administrativa (Atualizada pela Lei 14.230/21):**\n\n1. **Só existe improbidade com DOLO (intenção consciente):** Acabou a improbidade por culpa (imprudência ou negligência). Se o agente apenas errou sem má-fé específica, não é improbidade.\n2. **Lista Fechada no Art. 11:** Os atos que violam princípios da administração agora formam uma lista taxativa (fechada).\n3. **Prescrição Unificada:** O prazo para punir é de **8 anos** contados da data do fato.`,
+      quickAction: { label: 'Praticar Questões de Direito Administrativo', actionTab: 'questions' },
+    };
+  }
+
+  if (qNorm.includes('licitac') || qNorm.includes('14.133') || qNorm.includes('pregao') || qNorm.includes('dialogo competitivo')) {
+    return {
+      text: `🏛️ **Nova Lei de Licitações (Lei 14.133/2021) — O que você precisa saber:**\n\n• **5 Modalidades Oficiais:** Pregão, Concorrência, Concurso, Leilão e a novidade **Diálogo Competitivo**.\n• **Modalidades que deixaram de existir:** Convite, Tomada de Preços e RDC foram extintos!\n• **Regra de ouro:** Primeiro ocorre o **julgamento das propostas** e só depois a **habilitação** do vencedor (salvo decisão motivada).`,
+      quickAction: { label: 'Treinar Questões de Licitações', actionTab: 'questions' },
+    };
+  }
+
+  if (qNorm.includes('habeas') || qNorm.includes('mandado de seguranca') || qNorm.includes('remedios constitucionais') || qNorm.includes('art. 5') || qNorm.includes('artigo 5')) {
+    return {
+      text: `🛡️ **Remédios Constitucionais (Art. 5º da CF/88) de Forma Simples:**\n\n• **Habeas Corpus (HC):** Protege a **liberdade de locomoção** (ir e vir). É gratuito e não precisa de advogado.\n• **Habeas Data (HD):** Serve para **ver ou corrigir dados pessoais seus** em bancos de dados públicos. Também é gratuito.\n• **Mandado de Segurança (MS):** Protege **direito líquido e certo** (comprovado de plano por documentos) quando não cabe HC nem HD. Prazo: **120 dias**.\n• **Ação Popular:** Qualquer **cidadão (com título de eleitor)** pode propor para anular ato lesivo ao patrimônio público ou meio ambiente.`,
+      quickAction: { label: 'Ver Constituição no Vade Mecum', actionTab: 'vademecum' },
+    };
+  }
+
+  if (qNorm.includes('crase') || qNorm.includes('portugues') || qNorm.includes('concordancia') || qNorm.includes('regencia') || qNorm.includes('pontuacao')) {
+    return {
+      text: `✍️ **Dicas Diretas de Língua Portuguesa para Provas:**\n\n• **Regra Prática da Crase:** Substitua a palavra feminina por uma masculina equivalente. Se aparecer **"ao"**, há crase (**à**). Nunca use crase antes de verbo, palavras masculinas ou pronomes pessoais (*a ela*, *a mim*).\n• **Crase Facultativa (Opcional):** Antes de nome próprio feminino (*Refiro-me a/à Ana*), pronome possessivo feminino (*a/à minha pasta*) e depois da preposição **"até"**.\n• **Pontuação:** Jamais separe o **Sujeito** do **Verbo** com uma única vírgula!`,
+      quickAction: { label: 'Resolver Questões de Português', actionTab: 'questions' },
+    };
+  }
+
+  if (qNorm.includes('informatica') || qNorm.includes('seguranca') || qNorm.includes('phishing') || qNorm.includes('ransomware') || qNorm.includes('malware')) {
+    return {
+      text: `💻 **Resumo de Informática & Segurança da Informação para Concursos:**\n\n• **Ransomware:** Programa malicioso que **sequestra seus arquivos** (por criptografia) e cobra resgate financeiro.\n• **Phishing:** E-mail ou página falsa que imita bancos/órgãos públicos para **pescar suas senhas**.\n• **Worm vs Vírus:** O **Vírus** precisa que você execute um arquivo infectado; o **Worm** se espalha sozinho pela rede explorando falhas automaticamente.`,
+      quickAction: { label: 'Treinar Questões de Informática', actionTab: 'questions' },
+    };
+  }
+
+  if (qNorm.includes('como estudar') || qNorm.includes('organizar') || qNorm.includes('cronograma') || qNorm.includes('foco') || qNorm.includes('comecar')) {
+    return {
+      text: `🧭 **Passo a Passo Simples para Organizar seu Estudo Hoje:**\n\n1. **Escolha suas Matérias em Foco:** Na barra superior do sistema, clique em **Meus Focos** e marque 1 ou mais disciplinas que você quer priorizar agora (atualmente: **${focusList.join(', ')}**).\n2. **Divida sua sessão em 2 partes:**\n   • **Primeiros 30 minutos:** Leia os artigos destacados em **Leis & Artigos** ou **Resumos Direto ao Ponto**.\n   • **Últimos 30 minutos:** Resolva 10 a 15 questões no **Simulador de Questões**.\n3. **Errou uma questão?** Ela vai automaticamente para **Meus Erros para Revisar**, para você refazê-la até acertar.`,
+      quickAction: { label: 'Abrir Meu Plano de Estudos Diário', actionTab: 'cycle' },
+    };
+  }
+
+  // 5. Resposta contextualizada para qualquer outra pergunta aberta sem alucinar
   return {
-    text: `Olá, **${warName}**! Analisando seu progresso para **${targetExam}**:\n\n* **Foco Imediato**: Seu calcanhar de aquiles declarado é **${weakSubject}**. Recomendamos dedicar 60% do seu bloco de hoje a esse tema.\n* **Consolidação**: A cada 10 questões resolvidas na Arena, registre os distratores no Caderno de Erros para revisão programada via SM-2.\n\nComo posso apoiar você especificamente neste tópico agora?`,
-    quickAction: { label: `⚔️ Atacar ${weakSubject} na Arena`, actionTab: 'simulator' }
+    text: `💡 **Sobre sua pergunta ("${query}"):**\n\nNo contexto do seu estudo para **${targetExam}** (Banca **${banca}**):\n• As bancas cobram esse tema exigindo atenção especial à **letra da lei atualizada** e às exceções previstas nos tribunais superiores (STF e STJ).\n• Suas matérias prioritárias selecionadas no momento são: **${focusList.join(', ')}**.\n\n**O que você quer fazer agora?**\n• Digite o **nome da lei, artigo ou matéria** específica (ex: *"Art. 5º da CF"*, *"Lei 8.112"*, *"Crase"*, *"Licitações"*, *"Salário do TRT"*) para eu te mostrar o resumo exato e como cai na prova;\n• Ou clique abaixo para praticar questões comentadas desse assunto!`,
+    quickAction: {
+      label: 'Pesquisar no Banco de Questões',
+      actionTab: 'questions',
+    },
   };
 }

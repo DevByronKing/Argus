@@ -918,26 +918,39 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
                   PONTO CRÍTICO • MATRIZ DE RISCO
                 </Badge>
                 <h3 className="text-xl sm:text-2xl font-black tracking-tight leading-tight text-[var(--text-primary)]">
-                  Qual é o seu &quot;Calcanhar de Aquiles&quot; nesta Prova?
+                  Quais Matérias Você Quer Priorizar Agora?
                 </h3>
                 <p className="text-xs sm:text-sm mt-1 leading-relaxed text-[var(--text-secondary)]">
-                  Identifique a disciplina que mais ameaça sua aprovação. Vamos priorizá-la nas primeiras 24 horas:
+                  Você pode escolher <strong>uma ou mais matérias em foco</strong>. E fique tranquilo: você poderá mudar seus focos a qualquer hora direto na barra superior do sistema!
                 </p>
               </div>
 
-              {/* 1. Seleção da Matéria Mais Fraca */}
+              {/* 1. Seleção de Múltiplas Matérias em Foco */}
               <div className="max-w-3xl mx-auto space-y-1.5">
                 <p className="block text-xs font-mono font-bold uppercase tracking-wider text-[var(--text-secondary)]">
-                  Matéria que mais tira o seu sono:
+                  Selecione 1 ou mais matérias para focar (clique para marcar/desmarcar):
                 </p>
-                <div role="group" aria-label="Matéria mais fraca" className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div role="group" aria-label="Matérias em foco" className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {WEAK_SUBJECT_OPTIONS.map((sub) => {
-                    const isSelected = weakSubject === sub.name;
+                    const currentList = (weakSubject || '')
+                      .split(',')
+                      .map((s) => s.trim())
+                      .filter(Boolean);
+                    const isSelected = currentList.includes(sub.name) || weakSubject === sub.name;
                     return (
                       <OptionCard
                         key={sub.name}
                         selected={isSelected}
-                        onClick={() => patchForm({ weakSubject: sub.name })}
+                        onClick={() => {
+                          let nextList: string[];
+                          if (currentList.includes(sub.name)) {
+                            nextList = currentList.filter((item) => item !== sub.name);
+                            if (nextList.length === 0) nextList = [sub.name];
+                          } else {
+                            nextList = [...currentList, sub.name];
+                          }
+                          patchForm({ weakSubject: nextList.join(', ') });
+                        }}
                         className="p-2.5 rounded-[var(--radius-md)]"
                       >
                         <p className={`text-xs font-black truncate ${isSelected ? 'text-[var(--brand-primary)]' : 'text-[var(--text-primary)]'}`}>

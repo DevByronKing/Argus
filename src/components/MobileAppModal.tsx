@@ -39,7 +39,7 @@ export const MobileAppModal: React.FC<MobileAppModalProps> = ({ isOpen, onClose 
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-6 bg-slate-900/40 dark:bg-black/80 backdrop-blur-xl animate-fadeIn">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-6 argus-modal-backdrop animate-fadeIn">
       <div className="relative w-full max-w-xl glass-panel bg-white/80 dark:bg-dark-surface/80 border border-slate-200/80 dark:border-white/10 rounded-[2rem] shadow-2xl overflow-hidden transition-all">
         
         {/* Glow de fundo */}

@@ -113,14 +113,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const currentGuardian = GUARDIAN_ANIMALS.find((a) => a.id === studentProfile?.guardianAnimalId) || GUARDIAN_ANIMALS[0];
 
-  // Catálogo dos 4 Pilares da Aprovação + Conta & Sistema
+  // Catálogo dos 4 Pilares da Aprovação + Conta & Sistema (Nomes 100% Autoexplicativos e Simples)
   const navTabs = [
     {
       id: 'landing',
       label: 'Início',
       shortLabel: 'Início',
       icon: Compass,
-      desc: 'Visão Geral & Apresentação da Plataforma',
+      desc: 'Página inicial e visão geral da plataforma',
       badge: null,
       badgeColor: '',
       category: 'Geral',
@@ -129,10 +129,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     // Pilar 1: Praticar
     {
       id: 'simulator',
-      label: 'Arena de Combate 60/40',
-      shortLabel: 'Arena 60/40',
+      label: 'Simulador de Questões',
+      shortLabel: 'Simulador',
       icon: Crosshair,
-      desc: 'Simulador 60/40 com Atalhos de Teclado & Modo Zen',
+      desc: 'Resolva questões comentadas no formato da sua prova com Modo Foco',
       badge: null,
       badgeColor: '',
       category: 'Praticar',
@@ -140,10 +140,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'mistakes',
-      label: 'Caderno de Erros & Revanche',
-      shortLabel: 'Caderno de Erros',
+      label: 'Meus Erros para Revisar',
+      shortLabel: 'Meus Erros',
       icon: ShieldAlert,
-      desc: 'Mapeamento de Armadilhas da Banca & Revanche SM-2',
+      desc: 'Refaça as questões que você errou até dominar o assunto',
       badge: pendingMistakesCount > 0 ? `${pendingMistakesCount}` : null,
       badgeColor: 'bg-rose-500 text-white',
       category: 'Praticar',
@@ -151,10 +151,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'flashcards',
-      label: 'Flashcards SRS (Repetição Espaçada)',
-      shortLabel: 'Flashcards',
+      label: 'Cartões de Memorização',
+      shortLabel: 'Memorização',
       icon: Layers,
-      desc: 'Repetição Espaçada com Flip 3D (SM-2)',
+      desc: 'Cartões rápidos de perguntas e respostas para fixar a matéria',
       badge: null,
       badgeColor: '',
       category: 'Praticar',
@@ -162,10 +162,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'questions',
-      label: 'Banco de Questões',
+      label: 'Banco de Questões & Provas',
       shortLabel: 'Questões',
       icon: BookCheck,
-      desc: 'Banco Extenso com Filtros e Banca',
+      desc: 'Últimas provas famosas comentadas e filtro por banca e matéria',
       badge: null,
       badgeColor: '',
       category: 'Praticar',
@@ -174,10 +174,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     // Pilar 2: Conteúdo
     {
       id: 'vademecum',
-      label: 'Smart Vade Mecum (Radar 80/20)',
-      shortLabel: 'Smart Vade Mecum',
+      label: 'Leis & Artigos Mais Cobrados',
+      shortLabel: 'Leis & Artigos',
       icon: Scale,
-      desc: 'Lei Seca com Backlinks para Caderno de Erros',
+      desc: 'A lei seca destacada com os artigos que realmente caem na prova',
       badge: null,
       badgeColor: '',
       category: 'Conteúdo',
@@ -185,10 +185,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'summaries',
-      label: 'Resumos Inteligentes 80/20',
-      shortLabel: 'Resumos 80/20',
+      label: 'Resumos Direto ao Ponto',
+      shortLabel: 'Resumos',
       icon: BookOpen,
-      desc: 'Sínteses 80/20 com Mnemônicos e Áudio IA',
+      desc: 'Resumos prontos, macetes de memorização e explicação em áudio',
       badge: null,
       badgeColor: '',
       category: 'Conteúdo',
@@ -196,10 +196,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'discursivas',
-      label: 'Estúdio de Discursivas & Peças',
-      shortLabel: 'Estúdio Discursivas',
+      label: 'Treino de Redação & Discursivas',
+      shortLabel: 'Redação & Peças',
       icon: Feather,
-      desc: 'Correção de Redações & Peças OAB com IA',
+      desc: 'Escreva sua redação ou peça da OAB e receba correção na hora',
       badge: null,
       badgeColor: '',
       category: 'Conteúdo',
@@ -208,10 +208,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     // Pilar 3: Planejar
     {
       id: 'edital',
-      label: 'Edital Verticalizado 80/20',
-      shortLabel: 'Edital 80/20',
+      label: 'Meu Edital Organizado',
+      shortLabel: 'Meu Edital',
       icon: ScrollText,
-      desc: 'Edital Verticalizado & Matriz de Pesos 80/20',
+      desc: 'Todas as matérias do seu concurso organizadas por importância',
       badge: null,
       badgeColor: '',
       category: 'Planejar',
@@ -219,10 +219,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'cycle',
-      label: 'Ciclo Adaptativo (Meirelles)',
-      shortLabel: 'Ciclo Adaptativo',
+      label: 'Plano de Estudos Diário',
+      shortLabel: 'Plano Diário',
       icon: CalendarClock,
-      desc: 'Cronograma Adaptativo de Estudos Meirelles',
+      desc: 'Seu cronograma simples do que estudar em cada dia da semana',
       badge: null,
       badgeColor: '',
       category: 'Planejar',
@@ -230,10 +230,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'radar',
-      label: 'Radar de Concursos & Tribunais',
-      shortLabel: 'Radar de Concursos',
+      label: 'Radar de Concursos & TRTs',
+      shortLabel: 'Concursos Abertos',
       icon: Radar,
-      desc: 'Concursos Abertos, Previstos, OAB & ENEM',
+      desc: 'Concursos abertos, previstos, rumores de TRTs, OAB e ENEM',
       badge: null,
       badgeColor: '',
       category: 'Planejar',
@@ -242,10 +242,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     // Pilar 4: Evolução
     {
       id: 'dashboard',
-      label: 'Cockpit de Dados',
-      shortLabel: 'Cockpit',
+      label: 'Meu Desempenho',
+      shortLabel: 'Desempenho',
       icon: Activity,
-      desc: 'Heatmap GitHub 365d & Blindagem de Disciplinas',
+      desc: 'Veja sua evolução semanal, taxa de acertos e matérias dominadas',
       badge: null,
       badgeColor: '',
       category: 'Evolução',
@@ -253,10 +253,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'psychometrics',
-      label: 'Psicometria TRI',
-      shortLabel: 'Psico',
+      label: 'Análise de Pegadinhas da Banca',
+      shortLabel: 'Pegadinhas',
       icon: Microscope,
-      desc: 'Skeleton Narrativo & Engenharia Reversa da Banca',
+      desc: 'Entenda como a sua banca monta pegadinhas e sua nota estimada',
       badge: null,
       badgeColor: '',
       category: 'Evolução',
@@ -265,10 +265,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     // Conta & Ajustes
     {
       id: 'settings',
-      label: 'Configurações',
+      label: 'Configurações & Meu Perfil',
       shortLabel: 'Ajustes',
       icon: Settings,
-      desc: 'Perfil, Opções de Estudo & LGPD',
+      desc: 'Altere seus focos de estudo, meta diária, concurso e privacidade',
       badge: null,
       badgeColor: '',
       category: 'Conta & Sistema',
@@ -279,7 +279,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       label: 'Minha Assinatura',
       shortLabel: 'Assinatura',
       icon: CreditCard,
-      desc: 'Faturas, Recibos Fiscais & Upgrade',
+      desc: 'Seus recibos, plano atual e opções de upgrade',
       badge: null,
       badgeColor: '',
       category: 'Conta & Sistema',
@@ -290,7 +290,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       label: 'Planos & Preços',
       shortLabel: 'Planos',
       icon: Crown,
-      desc: 'Comparativo Detalhado de Assinaturas',
+      desc: 'Compare os planos e escolha o ideal para sua preparação',
       badge: null,
       badgeColor: '',
       category: 'Conta & Sistema',
@@ -301,7 +301,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       label: 'Ajuda & Suporte',
       shortLabel: 'Ajuda',
       icon: HelpCircle,
-      desc: 'Quem Somos, Segurança & Denuncie Pirataria',
+      desc: 'Dúvidas frequentes, guia rápido de uso e contato direto',
       badge: null,
       badgeColor: '',
       category: 'Conta & Sistema',
@@ -317,32 +317,32 @@ export const Navbar: React.FC<NavbarProps> = ({
       key: 'Praticar',
       name: 'Praticar',
       icon: Crosshair,
-      tagline: 'Simulados com IA, Caderno de Erros & Flashcards',
+      tagline: 'Resolva questões, revise seus erros e memorize mais rápido',
       items: [
         {
           id: 'simulator',
-          label: 'Arena de Combate 60/40',
-          desc: 'Simulador 60/40 com atalhos de alta velocidade e foco',
+          label: 'Simulador de Questões',
+          desc: 'Treine questões comentadas no formato da prova com Modo Foco',
           icon: Crosshair
         },
         {
+          id: 'questions',
+          label: 'Banco de Questões & Últimas Provas',
+          desc: 'Cadernos das últimas provas famosas (PF, PRF, INSS, TRT, OAB, TJ)',
+          icon: BookCheck
+        },
+        {
           id: 'mistakes',
-          label: 'Caderno de Erros & Revanche',
-          desc: 'Mapeamento de armadilhas da banca com revanche SM-2',
+          label: 'Meus Erros para Revisar',
+          desc: 'Refaça as questões que você errou até fixar 100% do conteúdo',
           icon: ShieldAlert,
           badge: pendingMistakesCount > 0 ? `${pendingMistakesCount}` : null
         },
         {
           id: 'flashcards',
-          label: 'Flashcards SRS (Repetição Espaçada)',
-          desc: 'Repetição espaçada com algoritmo SM-2 e flip 3D',
+          label: 'Cartões de Memorização',
+          desc: 'Perguntas e respostas rápidas para lembrar prazos e conceitos',
           icon: Layers
-        },
-        {
-          id: 'questions',
-          label: 'Banco de Questões',
-          desc: 'Filtros avançados por banca, ano, cargo e matéria',
-          icon: BookCheck
         }
       ]
     },
@@ -350,13 +350,25 @@ export const Navbar: React.FC<NavbarProps> = ({
       key: 'Conteúdo',
       name: 'Conteúdo',
       icon: BookOpen,
-      tagline: 'Sínteses Estratégicas & Mnemônicos 80/20',
+      tagline: 'Estude a lei destacada, resumos diretos e treine redação',
       items: [
         {
           id: 'summaries',
-          label: 'Resumos Inteligentes 80/20',
-          desc: 'Sínteses focadas nas pegadinhas com áudio IA e jurisprudência',
+          label: 'Resumos Direto ao Ponto',
+          desc: 'Explicações simples com macetes de memorização e áudio',
           icon: BookOpen
+        },
+        {
+          id: 'vademecum',
+          label: 'Leis & Artigos Mais Cobrados',
+          desc: 'A lei seca com destaque nos artigos que mais caem na prova',
+          icon: Scale
+        },
+        {
+          id: 'discursivas',
+          label: 'Treino de Redação & Discursivas',
+          desc: 'Escreva sua redação ou peça prática e receba correção na hora',
+          icon: Feather
         }
       ]
     },
@@ -364,24 +376,24 @@ export const Navbar: React.FC<NavbarProps> = ({
       key: 'Planejar',
       name: 'Planejar',
       icon: ScrollText,
-      tagline: 'Verticalização de Edital & Cronograma Meirelles',
+      tagline: 'Organize seu edital, seu plano diário e acompanhe concursos',
       items: [
         {
           id: 'edital',
-          label: 'Edital Verticalizado 80/20',
-          desc: 'Mapeamento de tópicos com matriz de peso e relevância',
+          label: 'Meu Edital Organizado',
+          desc: 'Veja todas as matérias do seu concurso por ordem de importância',
           icon: ScrollText
         },
         {
           id: 'cycle',
-          label: 'Ciclo Adaptativo (Meirelles)',
-          desc: 'Cronograma adaptativo balanceado por peso e dificuldade',
+          label: 'Plano de Estudos Diário',
+          desc: 'Saiba exatamente o que estudar hoje de acordo com seu tempo',
           icon: CalendarClock
         },
         {
           id: 'radar',
-          label: 'Radar de Concursos & Tribunais',
-          desc: 'Editais abertos, autorizados, OAB e grandes certames',
+          label: 'Radar de Concursos & TRTs',
+          desc: 'Concursos abertos, previstos e rumores de TRTs e Tribunais',
           icon: Radar
         }
       ]
@@ -390,18 +402,18 @@ export const Navbar: React.FC<NavbarProps> = ({
       key: 'Evolução',
       name: 'Evolução',
       icon: Activity,
-      tagline: 'Métricas Reais & Análise Psicométrica TRI',
+      tagline: 'Acompanhe seus acertos e entenda as pegadinhas da banca',
       items: [
         {
           id: 'dashboard',
-          label: 'Cockpit de Métricas',
-          desc: 'Heatmap de constância 365d e radar de matérias',
+          label: 'Meu Desempenho',
+          desc: 'Gráficos simples da sua evolução, constância e acertos por matéria',
           icon: Activity
         },
         {
           id: 'psychometrics',
-          label: 'Psicometria & Curva TRI',
-          desc: 'Imunidade a pegadinhas e previsão de nota de corte',
+          label: 'Análise de Pegadinhas da Banca',
+          desc: 'Descubra os padrões de pegadinhas da sua banca examinadora',
           icon: Microscope
         }
       ]
@@ -730,7 +742,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               )}
 
-              {/* Copiloto Cognitivo IA */}
+              {/* Botão Rápido: Escolher Focos de Estudo & Modo Foco */}
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-focus-selector'))}
+                className={`hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-extrabold transition-all cursor-pointer shrink-0 ${
+                  isLight
+                    ? 'bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-700 shadow-2xs'
+                    : 'bg-rose-500/15 hover:bg-rose-500/25 border-rose-400/35 text-rose-300'
+                }`}
+                title="Escolher suas matérias em foco (uma ou mais) e ativar Modo Foco a qualquer hora"
+              >
+                <Crosshair className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                <span>Meus Focos</span>
+              </button>
+
+              {/* Tutor IA (Tire Dúvidas) */}
               {onOpenCopilot && (
                 <button
                   onClick={onOpenCopilot}
@@ -739,12 +766,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                       ? 'bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700' 
                       : 'bg-gradient-to-r from-blue-500/15 via-cyan-500/10 to-blue-500/15 border-blue-400/35 text-blue-200 hover:border-blue-400 hover:bg-blue-500/25'
                   }`}
-                  title="Abrir Copiloto Cognitivo IA"
-                  aria-label="Abrir Copiloto Cognitivo IA"
+                  title="Abrir Tutor IA para tirar dúvidas de qualquer matéria"
+                  aria-label="Abrir Tutor IA"
                 >
                   <Sparkles className={`w-3.5 h-3.5 ${isLight ? 'text-blue-600' : 'text-cyan-400'} animate-pulse`} />
                   <span className="hidden xl:inline whitespace-nowrap">
-                    {studentProfile?.guardianAnimalId ? GUARDIAN_ANIMALS.find(a => a.id === studentProfile.guardianAnimalId)?.name : 'Copiloto'}
+                    Tutor IA
                   </span>
                   <span className="inline xl:hidden whitespace-nowrap text-[11px]">
                     IA
@@ -875,6 +902,20 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                     {/* Navigation Actions */}
                     <div className="space-y-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          window.dispatchEvent(new CustomEvent('open-focus-selector'));
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          isLight ? 'bg-rose-50/70 hover:bg-rose-100 text-rose-800' : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-300'
+                        }`}
+                      >
+                        <Crosshair className="w-4 h-4 text-rose-500 shrink-0" />
+                        <span>Escolher Meus Focos & Modo Foco</span>
+                      </button>
+
                       {onOpenProfile && (
                         <button
                           onClick={() => {
@@ -890,7 +931,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                             alt={currentGuardian.name}
                             className="w-5 h-5 rounded-full object-cover border border-indigo-500/40 shrink-0"
                           />
-                          <span>Passaporte Cognitivo</span>
+                          <span>Meu Perfil de Estudos</span>
                         </button>
                       )}
 

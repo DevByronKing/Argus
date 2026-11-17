@@ -363,13 +363,12 @@ export const EditalParser: React.FC<EditalParserProps> = ({
     ]);
   }, [selectedExam.id]);
 
-  const handleAskEditalQuestion = (queryText: string) => {
+  const handleAskEditalQuestion = async (queryText: string) => {
     const q = queryText.trim();
     if (!q || isAnswering) return;
 
     const currentTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-    // 1. Adicionar mensagem do usuário
     const userMsg: EditalChatMessage = {
       id: `usr-${Date.now()}`,
       sender: 'user',
@@ -385,78 +384,47 @@ export const EditalParser: React.FC<EditalParserProps> = ({
       chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 50);
 
-    setTimeout(() => {
-      setIsAnswering(false);
-      const lower = q.toLowerCase();
-      let answer = '';
-      let itemRef = 'Item Regulamentar do Edital';
-
-      // 1. O Chat entende e compara com QUALQUER outro concurso do catálogo
-      const matchedOtherExam = exams.find(e => {
-        if (e.id === selectedExam.id) return false;
-        const eTitle = e.title.toLowerCase();
-        const eInst = e.institution.toLowerCase();
-        const eRole = e.role.toLowerCase();
-        if ((lower.includes('trt') || lower.includes('trabalho')) && (eTitle.includes('trt') || eInst.includes('trt'))) return true;
-        if ((lower.includes('tj') || lower.includes('justiça sp') || lower.includes('escrevente')) && (eTitle.includes('tj') || eInst.includes('tj'))) return true;
-        if (lower.includes('prf') && (eTitle.includes('prf') || eInst.includes('prf'))) return true;
-        if (lower.includes('pf') && !lower.includes('prf') && (eTitle.includes('federal') || eInst.includes('polícia federal') || eTitle.includes('pf'))) return true;
-        if (lower.includes('inss') && (eTitle.includes('inss') || eInst.includes('inss'))) return true;
-        if ((lower.includes('receita') || lower.includes('auditor fiscal')) && (eTitle.includes('receita') || eInst.includes('receita'))) return true;
-        if (lower.includes('oab') && (eTitle.includes('oab') || eInst.includes('oab'))) return true;
-        return false;
+    try {
+      const res = await fetch('/api/copilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: q,
+          examContext: selectedExam,
+          history: editalChatMessages.slice(-4)
+        })
       });
 
-      if (matchedOtherExam) {
-        answer = `📊 **Comparativo Cognitivo Argus:**\n\nVocê perguntou sobre o **${matchedOtherExam.title}** (${matchedOtherExam.role}):\n• **Banca Examinadora:** ${matchedOtherExam.banca}\n• **Remuneração Inicial:** ${matchedOtherExam.salary}\n• **Vagas:** ${matchedOtherExam.vacancies} vagas previstas/autorizadas\n• **Data / Prazo:** ${matchedOtherExam.examDate} (${matchedOtherExam.daysRemaining} dias)\n• **Disciplinas Centrais (80/20):** ${matchedOtherExam.subjects.map(s => s.name).slice(0, 3).join(', ')}.\n\n*Em comparação com o seu concurso ativo (**${selectedExam.role}** - ${selectedExam.institution}, banca ${selectedExam.banca}):* enquanto a banca ${selectedExam.banca} exige foco específico em ${selectedExam.subjects[0]?.name || 'Legislação'}, a ${matchedOtherExam.banca} adota peso diferenciado para ${matchedOtherExam.subjects[0]?.name}. Você pode alternar seu edital a qualquer momento no seletor de certames acima!`;
-        itemRef = `Catálogo Argus • ${matchedOtherExam.institution} vs ${selectedExam.institution}`;
-      } else if (lower.includes('elimina') || lower.includes('mínim') || lower.includes('minima') || lower.includes('corte')) {
-        if (selectedExam.banca === 'Cebraspe') {
-          answer = `⚠️ **Critérios de Eliminação e Nota de Corte (Padrão Cebraspe):**\n• **Sistema de Penalização:** 1 questão errada anula 1 certa (fator de correção 1:1). Não chute sem técnica!\n• **Notas Mínimas Eliminatórias:** É exigido aproveitamento mínimo de 10.00 pontos em Conhecimentos Básicos, 21.00 em Conhecimentos Específicos e 36.00 pontos no somatório total.\n• **Disciplina de Maior Risco:** Não zerar nenhum módulo de ${selectedExam.subjects[0]?.name || 'Conhecimentos Específicos'}.`;
-        } else if (selectedExam.banca === 'FGV') {
-          answer = `⚠️ **Critérios de Eliminação e Nota de Corte (Padrão FGV):**\n• **Modelo:** Prova objetiva de múltipla escolha (A, B, C, D, E) com alto teor de interpretação textual e casos hipotéticos.\n• **Eliminação Direta:** O candidato será eliminado se obtiver aproveitamento inferior a 50% do total de pontos da prova ou zerar qualquer uma das disciplinas.\n• **Nota de Corte Estimada:** Historicamente entre 74% e 82% da pontuação total para figurar dentro das vagas imediatas.`;
-        } else if (selectedExam.banca === 'Vunesp') {
-          answer = `⚠️ **Critérios de Eliminação e Nota de Corte (Padrão Vunesp):**\n• **Modelo:** Múltipla escolha (5 alternativas). A Vunesp prioriza a literalidade da lei seca.\n• **Nota de Corte Mínima:** Exige-se nota mínima de 50% em cada bloco temático (Gerais e Específicos). Para figurar na ampla concorrência, o ponto de corte médio histórico gira em torno de 80% a 86%.`;
-        } else {
-          answer = `⚠️ **Critérios de Eliminação (Banca ${selectedExam.banca}):**\nPara não ser eliminado neste certame de **${selectedExam.role}**, é necessário obter no mínimo 50% de aproveitamento geral nas questões objetivas e não zerar disciplinas com peso 3 (${selectedExam.subjects[0]?.name || 'Conhecimentos Específicos'}).`;
+      if (res.ok) {
+        const data = await res.json();
+        const replyText = data.text || data.reply;
+        if (replyText) {
+          const botMsg: EditalChatMessage = {
+            id: `bot-${Date.now()}`,
+            sender: 'assistant',
+            text: replyText,
+            itemReference: `${selectedExam.institution} • Banca ${selectedExam.banca}`,
+            timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+          };
+          setEditalChatMessages((prev) => [...prev, botMsg]);
+          setIsAnswering(false);
+          setTimeout(() => {
+            chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }, 50);
+          return;
         }
-        itemRef = 'Item 9.1 - Dos Critérios de Habilitação e Eliminação';
-      } else if (lower.includes('discursiv') || lower.includes('redação') || lower.includes('redacao') || lower.includes('peça') || lower.includes('peca')) {
-        answer = `✍️ **Prova Discursiva & Estúdio de Peças (${selectedExam.banca}):**\n• **Caráter:** Eliminatório e classificatório.\n• **Nota Mínima:** 50% a 60% da pontuação total da discursiva.\n• **Linha de Corte de Correção:** Serão corrigidas as redações dos candidatos habilitados até a ${Number(selectedExam.vacancies) * 3 || 300}ª posição na lista geral.\n• **Critérios Avaliados pela ${selectedExam.banca}:** Domínio da norma culta (30%), clareza e estrutura lógica argumentativa (30%) e domínio técnico dos fundamentos jurídicos/legais (40%). Treine com o nosso módulo de Discursivas!`;
-        itemRef = 'Item 10.4 - Da Avaliação da Prova Discursiva';
-      } else if (lower.includes('remunera') || lower.includes('salário') || lower.includes('salario') || lower.includes('benefício') || lower.includes('ganha') || lower.includes('inicial')) {
-        answer = `💰 **Remuneração & Benefícios Oficiais:**\n• **Vencimento Básico Inicial:** ${selectedExam.salary} fixado no edital para o cargo de ${selectedExam.role}.\n• **Carga Horária:** 40 horas semanais.\n• **Benefícios do Órgão (${selectedExam.institution}):** Auxílio-alimentação (média de R$ 1.000 a R$ 1.400/mês), auxílio-saúde suplementar, adicional de qualificação (Pós/Mestrado/Doutorado) e gratificações de produtividade/desempenho da carreira.`;
-        itemRef = 'Item 2.1 - Da Carreira, Remuneração e Carga Horária';
-      } else if (lower.includes('data') || lower.includes('quando') || lower.includes('prazo') || lower.includes('dia') || lower.includes('inscrição') || lower.includes('inscricao')) {
-        answer = `📅 **Cronograma Oficial & Prazos Críticos:**\n• **Data Prevista da Prova:** ${selectedExam.examDate}.\n• **Contagem Regressiva:** Faltam exatamente **${selectedExam.daysRemaining} dias** até a aplicação da prova.\n• **Recomendação Argus:** Conclua a primeira passagem do ciclo 80/20 com pelo menos 25 dias de antecedência para dedicar o último mês exclusivamente à revisão de lei seca e modo revanche de erros.`;
-        itemRef = 'Anexo I - Cronograma Oficial de Atividades';
-      } else if (lower.includes('peso') || lower.includes('matéria') || lower.includes('disciplina') || lower.includes('80/20') || lower.includes('estratégia')) {
-        const sorted = [...selectedExam.subjects].sort((a, b) => b.weight - a.weight);
-        const top2 = sorted.slice(0, 2);
-        answer = `🎯 **Estratégia 80/20 & Ponderação de Pesos (${selectedExam.banca}):**\n• As disciplinas de **Peso Máximo (${top2[0]?.weight})** são: ${top2.map(s => `"${s.name}" (${s.relevancePercentage}%)`).join(' e ')}.\n• Somadas, representam a espinha dorsal da sua nota final.\n• **Regra de ouro:** Dedique 65% do seu tempo de estudo às 2 primeiras matérias da distribuição estatística, reservando o restante para fixação por questões e lei seca das complementares.`;
-        itemRef = 'Anexo II - Quadro de Disciplinas e Conteúdos Programáticos';
-      } else if (lower.includes('taf') || lower.includes('físico') || lower.includes('título') || lower.includes('etapa')) {
-        answer = `🛡️ **Etapas Sucessivas do Certame:**\nAlém da Prova Objetiva e Discursiva, o certame para **${selectedExam.role}** prevê fases de Avaliação Biopsicossocial, Perícia Médica, Exame de Títulos e Procedimento de Heteroidentificação. Consulte o edital específico para a tabela de pontos de pós-graduação e publicações jurídicas.`;
-        itemRef = 'Item 12.1 - Das Etapas Sucessivas do Concurso';
-      } else {
-        answer = `🤖 **Análise de Inteligência Argus (${selectedExam.banca}):**\nPara o cargo de **${selectedExam.role}** (${selectedExam.institution}), a banca examinadora prioriza enunciados práticos com fundamentação na legislação recente e jurisprudência vinculante.\n\nAs disciplinas centrais são **${selectedExam.subjects.map(s => s.name).slice(0, 3).join(', ')}**.\n\nVocê também pode me perguntar sobre nota de corte, critérios da discursiva, remuneração, ou pedir comparações com outros concursos (TRT, TJ-SP, PRF, PF, INSS, Receita, OAB). O que deseja aprofundar?`;
-        itemRef = `Item Específico da Banca ${selectedExam.banca}`;
       }
+    } catch {}
 
-      const botMsg: EditalChatMessage = {
-        id: `bot-${Date.now()}`,
-        sender: 'assistant',
-        text: answer,
-        itemReference: itemRef,
-        timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-      };
-
-      setEditalChatMessages((prev) => [...prev, botMsg]);
-
-      setTimeout(() => {
-        chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 50);
-    }, 550);
+    setIsAnswering(false);
+    const botMsg: EditalChatMessage = {
+      id: `bot-${Date.now()}`,
+      sender: 'assistant',
+      text: `📋 **Sobre "${q}" (${selectedExam.role} • ${selectedExam.institution}):**\n• **Banca:** ${selectedExam.banca}\n• **Salário:** ${selectedExam.salary} (${selectedExam.vacancies} vagas)\n• **Matérias principais:** ${selectedExam.subjects.map(s => s.name).join(', ')}.`,
+      itemReference: `${selectedExam.institution} • Edital Consolidado`,
+      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    };
+    setEditalChatMessages((prev) => [...prev, botMsg]);
   };
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -678,26 +646,34 @@ export const EditalParser: React.FC<EditalParserProps> = ({
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-slate-300 dark:border-white/10">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-bold">
-              Motor de IA Multimodal
+            <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-xs font-bold">
+              Organizador Inteligente de Edital
             </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">PDF RAG Parser v2.4</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Leitura Automática de PDF</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
-            Edital Verticalizado 80/20 • Mapeamento de Banca
+            Meu Edital Organizado • O Que Mais Cai na Prova
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Carregue qualquer edital em PDF ou selecione um concurso oficial pré-analisado para montar sua rota adaptativa.
+            Escolha seu concurso abaixo ou envie o PDF do seu edital para ver todas as matérias organizadas por ordem de importância.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-focus-selector'))}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/15 dark:hover:bg-rose-500/25 border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 font-bold text-xs transition-all cursor-pointer"
+          >
+            <Target className="w-4 h-4" />
+            <span>Escolher Meus Focos</span>
+          </button>
+          <button
             onClick={() => setShowUploadModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-xs shadow-lg shadow-blue-600/20 transition-all glow-brand"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-xs shadow-lg shadow-blue-600/20 transition-all glow-brand cursor-pointer"
           >
             <FileUp className="w-4 h-4" />
-            <span>Fazer Upload de Novo Edital</span>
+            <span>Enviar Novo Edital (PDF)</span>
           </button>
         </div>
       </div>
@@ -877,29 +853,29 @@ export const EditalParser: React.FC<EditalParserProps> = ({
                   className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold text-xs tracking-wide shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all glow-emerald cursor-pointer"
                 >
                   <BookOpen className="w-4 h-4" />
-                  <span>Estruturar Ciclo Adaptativo (Meirelles)</span>
+                  <span>Montar Meu Plano Diário</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
-            {/* Raio-X Tático da Banca & Foco 80/20 */}
+            {/* Resumo Simples de Como Estudar para Esta Prova */}
             <div className="p-4 rounded-2xl bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 space-y-2.5">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Diagnóstico Tático 80/20 • {selectedExam.banca}</span>
+                  <span>Por Onde Começar • Banca {selectedExam.banca}</span>
                 </span>
                 <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                  Meta de Blindagem 80/20: 80%+ de Acertos
+                  Meta Segura: 80%+ de Acertos
                 </span>
               </div>
               <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                Para <strong>{selectedExam.role}</strong> ({selectedExam.institution}), a disciplina de maior impacto na nota final é{' '}
+                Para <strong>{selectedExam.role}</strong> ({selectedExam.institution}), a matéria que mais vale pontos na sua prova é{' '}
                 <strong className="text-indigo-600 dark:text-indigo-300">
-                  {selectedExam.subjects[0]?.name || 'Conhecimentos Específicos'} ({selectedExam.subjects[0]?.relevancePercentage || 45}%)
+                  {selectedExam.subjects[0]?.name || 'Conhecimentos Específicos'} ({selectedExam.subjects[0]?.relevancePercentage || 45}% da nota)
                 </strong>
-                . Priorize a resolução de questões comentadas e o mapeamento de pegadinhas recorrentes da banca <strong>{selectedExam.banca}</strong> nos tópicos de Peso 3.
+                . Comece estudando os assuntos de Peso 3 e escolha suas matérias em foco a qualquer hora.
               </p>
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 <button
@@ -908,21 +884,21 @@ export const EditalParser: React.FC<EditalParserProps> = ({
                   className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
                 >
                   <Zap className="w-3.5 h-3.5" />
-                  <span>Gerar Ciclo 80/20 Agora</span>
+                  <span>Ver O Que Estudar Hoje</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleAskEditalQuestion('Quais as matérias de maior peso na nota?')}
-                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-white/10 text-[11px] font-bold transition-all cursor-pointer"
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-focus-selector'))}
+                  className="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30 text-[11px] font-bold transition-all cursor-pointer"
                 >
-                  Consultar Pesos no Copiloto ({selectedExam.banca})
+                  Escolher Mais de Um Foco
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowUploadModal(true)}
                   className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-white/10 text-[11px] font-bold transition-all cursor-pointer"
                 >
-                  Importar Outro Edital (PDF)
+                  Enviar Outro Edital (PDF)
                 </button>
               </div>
             </div>
@@ -1345,7 +1321,7 @@ export const EditalParser: React.FC<EditalParserProps> = ({
 
       {/* Upload Custom Edital Modal */}
       {showUploadModal && (
-        <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" className="fixed inset-0 z-[110] argus-modal-backdrop flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
           <div className="w-full max-w-xl p-6 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-indigo-500/40 shadow-2xl relative my-8">
             
             {/* Modal Header */}

@@ -794,7 +794,7 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
 
           {/* Confirm Finish Modal */}
           {showConfirmModal && (
-            <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+            <div role="dialog" aria-modal="true" className="fixed inset-0 z-[110] argus-modal-backdrop flex items-center justify-center p-4 animate-fadeIn">
               <div className="max-w-md w-full p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 shadow-2xl">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 flex items-center justify-center mb-4">
                   <FileText className="w-6 h-6" />

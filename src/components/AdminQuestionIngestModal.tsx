@@ -276,7 +276,7 @@ export const AdminQuestionIngestModal: React.FC<AdminQuestionIngestModalProps> =
   };
 
   return (
-    <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto animate-fadeIn">
+    <div role="dialog" aria-modal="true" className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-6 argus-modal-backdrop overflow-y-auto animate-fadeIn">
       <div className="relative w-full max-w-5xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex items-center justify-between">

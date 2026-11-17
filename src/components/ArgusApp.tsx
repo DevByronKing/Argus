@@ -942,6 +942,7 @@ export function ArgusApp() {
             onOpenEditalSelector={() => handleNavigateWithHistory('edital')}
             onGoBack={handleGoBack}
             onGoHome={handleGoHome}
+            onUpdateProfile={handleSaveProfile}
           />
 
           {/* Alerta de Resgate por Inatividade - Modo Pílula (Pilar 3: Anti-Churn) - Exibido apenas em abas de estudo, nunca na Landing Page */}

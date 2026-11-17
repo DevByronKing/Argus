@@ -338,7 +338,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[110] bg-slate-900/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 overflow-hidden animate-fadeIn">
+    <div className="fixed inset-0 z-[110] argus-modal-backdrop flex items-center justify-center p-2 sm:p-6 overflow-hidden animate-fadeIn">
       <div className="glass-panel w-full max-w-5xl max-h-[calc(100dvh-1rem)] sm:max-h-[92dvh] rounded-3xl border border-slate-200 dark:border-indigo-500/30 relative shadow-2xl my-auto overflow-hidden flex flex-col bg-white/95 dark:bg-dark-surface/95 transition-all">
         
         {/* Close Button */}
