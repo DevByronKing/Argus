@@ -224,6 +224,9 @@ CREATE TABLE IF NOT EXISTS public.admin_allowlist (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+ALTER TABLE public.admin_allowlist
+  ADD COLUMN IF NOT EXISTS user_id UUID UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE;
+
 -- 10.3 Persistent Security Audit Logs (SIEM Append-Only via service_role)
 CREATE TABLE IF NOT EXISTS public.security_audit_logs (
   id TEXT PRIMARY KEY,
