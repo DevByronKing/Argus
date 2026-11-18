@@ -250,8 +250,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       // O acesso Edge/Middleware é validado estritamente por cookie HttpOnly assinado no servidor (/api/checkout ou /api/webhooks/payment)
 
       try {
+        const randBuf = new Uint32Array(1);
+        globalThis.crypto.getRandomValues(randBuf);
         const invoiceEntry = {
-          id: `INV-${Math.floor(100000 + Math.random() * 900000)}`,
+          id: `INV-${100000 + (randBuf[0] % 900000)}`,
           planId: selectedPlanToBuy,
           billingCycle: selectedPlanToBuy === 'lancamento' || selectedPlanToBuy === 'black' ? 'vitalicio' : (billingCycle === 'annual' ? 'anual' : 'mensal'),
           amount: finalAmount,

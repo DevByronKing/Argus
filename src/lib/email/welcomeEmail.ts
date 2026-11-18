@@ -257,8 +257,10 @@ export async function triggerWelcomeEmail(params: WelcomeEmailParams): Promise<W
   console.log(textContent);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
+  const randBuf = new Uint32Array(1);
+  globalThis.crypto.getRandomValues(randBuf);
   return {
     success: true,
-    messageId: `mock_email_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+    messageId: `mock_email_${Date.now()}_${randBuf[0].toString(36)}`,
   };
 }

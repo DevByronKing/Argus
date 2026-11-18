@@ -77,7 +77,10 @@ export function validateDatabaseGuardrail(
   }
 
   // 3. Exigência de Confirmação Criptográfica para Ações de Admin com Impacto Elevado
-  const isBulkUpdate = /update\s+[a-zA-Z0-9_]+\s+set\s+.*where\s+1\s*=\s*1/i.test(normalized);
+  const lowerNormalized = normalized.toLowerCase();
+  const isBulkUpdate =
+    /^update\s+[a-z0-9_]+\s+set\s+/i.test(normalized) &&
+    /where\s+1\s*=\s*1/i.test(lowerNormalized);
   if (isBulkUpdate) {
     const validToken = context?.confirmationToken && context.confirmationToken.startsWith('CONFIRM_BULK_');
     if (!validToken) {

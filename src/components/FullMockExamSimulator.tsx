@@ -183,14 +183,15 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
       subjectBreakdown,
     } = scoreOutput;
 
-    // Simulated Ranking generation
+    // Deterministic Ranking generation based on percentage
     const totalCandidates = 1420;
     let simulatedRank = 14;
-    if (percentage >= 90) simulatedRank = Math.floor(Math.random() * 8) + 1; // 1 to 8
-    else if (percentage >= 80) simulatedRank = Math.floor(Math.random() * 25) + 9;
-    else if (percentage >= 70) simulatedRank = Math.floor(Math.random() * 80) + 35;
-    else if (percentage >= 50) simulatedRank = Math.floor(Math.random() * 300) + 150;
-    else simulatedRank = Math.floor(Math.random() * 600) + 600;
+    const rankJitter = Math.round(percentage) % 7;
+    if (percentage >= 90) simulatedRank = rankJitter + 1;
+    else if (percentage >= 80) simulatedRank = rankJitter * 3 + 9;
+    else if (percentage >= 70) simulatedRank = rankJitter * 10 + 35;
+    else if (percentage >= 50) simulatedRank = rankJitter * 40 + 150;
+    else simulatedRank = rankJitter * 80 + 600;
 
     const examResult: MockExamResult = {
       mockExamId: selectedExam.id,

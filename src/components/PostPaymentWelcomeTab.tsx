@@ -42,7 +42,7 @@ export const PostPaymentWelcomeTab: React.FC<PostPaymentWelcomeTabProps> = ({
     : 'INSS 2026 - Técnico do Seguro Social';
 
   const orderId = typeof window !== 'undefined'
-    ? localStorage.getItem('argus_last_order_id') || `ARG-${Math.floor(100000 + Math.random() * 900000)}`
+    ? localStorage.getItem('argus_last_order_id') || `ARG-${Date.now().toString().slice(-6)}`
     : 'ARG-420269';
 
   // Metadados do plano com cores específicas para superfície escura garantida (sem conflito com modo claro)

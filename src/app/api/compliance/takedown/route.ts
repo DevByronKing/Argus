@@ -116,7 +116,9 @@ export async function POST(req: Request) {
 
     // Geração do Protocolo Oficial de Notice & Takedown
     const currentYear = new Date().getFullYear();
-    const randomHex = Math.random().toString(16).substring(2, 8).toUpperCase();
+    const randBuf = new Uint32Array(1);
+    globalThis.crypto.getRandomValues(randBuf);
+    const randomHex = randBuf[0].toString(16).slice(0, 6).toUpperCase();
     const protocol = `TKD-${currentYear}-${randomHex}`;
 
     const now = new Date();

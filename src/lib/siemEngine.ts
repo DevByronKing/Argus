@@ -58,6 +58,12 @@ class SiemRegistry {
     this.persistenceHook = hook;
   }
 
+  private nextIdSuffix(): string {
+    const buf = new Uint32Array(1);
+    globalThis.crypto.getRandomValues(buf);
+    return buf[0].toString(36).slice(0, 6);
+  }
+
   /**
    * Registra um evento de segurança estruturado no SIEM.
    */
@@ -65,7 +71,7 @@ class SiemRegistry {
     const timestampMs = Date.now();
     const fullEvent: SiemEvent = {
       ...event,
-      id: `siem_${timestampMs}_${Math.random().toString(36).substring(2, 8)}`,
+      id: `siem_${timestampMs}_${this.nextIdSuffix()}`,
       timestamp: new Date(timestampMs).toISOString(),
       timestampMs,
     };
@@ -161,7 +167,7 @@ class SiemRegistry {
     if (!existingRecent) {
       const alert: SiemAlert = {
         ...alertData,
-        id: `alt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        id: `alt_${Date.now()}_${this.nextIdSuffix()}`,
         triggeredAt: new Date().toISOString(),
       };
       this.alerts.unshift(alert);

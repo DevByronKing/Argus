@@ -169,7 +169,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           <div className="px-3.5 py-1.5 rounded-2xl bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-300 dark:border-cyan-500/30 flex items-center gap-2 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
             <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-              Blindagem {selectedExam.banca || 'FGV'}: <strong className="text-cyan-600 dark:text-cyan-400 font-black">78% (Blindado)</strong>
+              Blindagem {selectedExam.banca || 'FGV'}: <strong className="text-cyan-600 dark:text-cyan-400 font-black">{metrics.globalAccuracy}% ({metrics.totalAnswered === 0 ? 'Iniciando' : metrics.globalAccuracy >= 75 ? 'Blindado' : 'Em Evolução'})</strong>
             </span>
           </div>
 
@@ -391,7 +391,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-black text-slate-900 dark:text-white">{metrics.probabilityOfPassing}%</span>
-            <span className="text-xs font-bold text-emerald-400">+4.2% esta semana</span>
+            <span className="text-xs font-bold text-emerald-400">{metrics.totalAnswered > 0 ? 'Em progresso' : 'Inicie seus treinos'}</span>
           </div>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Nota de corte estimada: {metrics.estimatedCutoffScore}%</p>
           <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mt-3">
@@ -407,7 +407,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-black text-amber-400">{metrics.streakDays} dias</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">Recorde: 22d</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Recorde: {metrics.streakDays}d</span>
           </div>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Consolidação contínua de memória</p>
         </div>
@@ -422,7 +422,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <span className="text-3xl font-black text-slate-900 dark:text-white">{metrics.totalAnswered}</span>
             <span className="text-xs text-emerald-400 font-bold">{metrics.totalCorrect} acertos</span>
           </div>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Tempo médio por questão: 1m 42s</p>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{metrics.totalAnswered > 0 ? 'Histórico ativo na Arena' : 'Nenhuma questão respondida ainda'}</p>
         </div>
 
         {/* Card 4: SRS Flashcards Deck */}
@@ -444,8 +444,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       <div className="mt-8">
         <ConsistencyHeatmap
           streakDays={metrics.streakDays}
-          longestStreak={Math.max(metrics.streakDays + 14, 56)}
-          totalQuestionsYear={metrics.totalAnswered > 0 ? metrics.totalAnswered : 4820}
+          longestStreak={metrics.streakDays}
+          totalQuestionsYear={metrics.totalAnswered}
         />
       </div>
 
@@ -453,6 +453,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       <div className="mt-8">
         <VerticalizedEditalProgress
           selectedExam={selectedExam}
+          metrics={metrics}
           onSubjectClick={(subjId) => onGoToSimulator(subjId)}
         />
       </div>

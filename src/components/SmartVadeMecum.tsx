@@ -399,34 +399,54 @@ export const SmartVadeMecum: React.FC<SmartVadeMecumProps> = ({
     window.speechSynthesis.speak(utterance);
   };
 
-  // Helper to highlight trap keywords in the text
+  // Helper to highlight trap keywords in the text (safe string matching without dynamic RegExp)
   const renderHighlightedText = (text: string, keywords: string[]) => {
     if (!text) return '';
-    const validKeywords = (keywords || []).filter((k) => typeof k === 'string' && k.trim().length > 0);
+    const validKeywords = (keywords || [])
+      .filter((k) => typeof k === 'string' && k.trim().length > 0)
+      .sort((a, b) => b.length - a.length);
     if (validKeywords.length === 0) return text;
 
-    try {
-      const regex = new RegExp(`(${validKeywords.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
-      const parts = text.split(regex);
+    const lowerText = text.toLowerCase();
+    const lowerKeywords = validKeywords.map((k) => k.toLowerCase());
+    const nodes: React.ReactNode[] = [];
+    let cursor = 0;
 
-      return parts.map((part, i) => {
-        const isKeyword = validKeywords.some((k) => k.toLowerCase() === (part || '').toLowerCase());
-        if (isKeyword) {
-          return (
-            <mark 
-              key={i} 
-              className="bg-amber-100 dark:bg-amber-400/25 text-amber-800 dark:text-amber-300 font-bold px-1 py-0.5 rounded border-b-2 border-amber-400 inline-block"
-              title="Palavra com altíssimo índice de adulteração pelas bancas!"
-            >
-              {part}
-            </mark>
-          );
+    while (cursor < text.length) {
+      let bestIdx = -1;
+      let bestLen = 0;
+
+      for (const kw of lowerKeywords) {
+        const idx = lowerText.indexOf(kw, cursor);
+        if (idx !== -1 && (bestIdx === -1 || idx < bestIdx)) {
+          bestIdx = idx;
+          bestLen = kw.length;
         }
-        return part;
-      });
-    } catch {
-      return text;
+      }
+
+      if (bestIdx === -1 || bestLen === 0) {
+        nodes.push(text.slice(cursor));
+        break;
+      }
+
+      if (bestIdx > cursor) {
+        nodes.push(text.slice(cursor, bestIdx));
+      }
+
+      const matchedPart = text.slice(bestIdx, bestIdx + bestLen);
+      nodes.push(
+        <mark
+          key={`${bestIdx}-${bestLen}`}
+          className="bg-amber-100 dark:bg-amber-400/25 text-amber-800 dark:text-amber-300 font-bold px-1 py-0.5 rounded border-b-2 border-amber-400 inline-block"
+          title="Palavra com altíssimo índice de adulteração pelas bancas!"
+        >
+          {matchedPart}
+        </mark>
+      );
+      cursor = bestIdx + bestLen;
     }
+
+    return nodes;
   };
 
   // Trap Hunter Interactive Word Click

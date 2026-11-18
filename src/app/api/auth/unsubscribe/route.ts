@@ -176,12 +176,14 @@ export async function POST(req: Request) {
     const cleanEmail = email.trim().toLowerCase();
     unsubscribedEmails.add(cleanEmail);
 
+    const randBuf = new Uint32Array(1);
+    globalThis.crypto.getRandomValues(randBuf);
     return NextResponse.json({
       success: true,
       unsubscribed: true,
       email: cleanEmail,
       message: 'E-mail removido da base de marketing com sucesso (LGPD e CAPEM).',
-      protocol: `UNSUB-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
+      protocol: `UNSUB-${Date.now()}-${randBuf[0].toString(36).slice(0, 5).toUpperCase()}`,
       timestamp: new Date().toISOString(),
     });
   } catch (err: any) {

@@ -77,9 +77,9 @@ export const generateDynamicSchedule = (
         method: isWeak 
           ? `Ciclo Ponderado Peso ${sub.weight} + Blindagem Cognitiva` 
           : `Resolução Ativa de Questões ${exam.banca || 'Banca'}`,
-        status: (dayIndex === 0 && sIdx === 0 ? 'concluido' : 'pendente') as 'concluido' | 'pendente',
+        status: 'pendente' as 'concluido' | 'pendente',
         questionsTarget,
-        completedQuestions: dayIndex === 0 && sIdx === 0 ? questionsTarget : 0
+        completedQuestions: 0
       };
     });
 

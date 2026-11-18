@@ -75,7 +75,9 @@ class AnalyticsService {
         // Gerenciamento de Session ID para rastreamento de funil
         let currentSession = sessionStorage.getItem('learning_ai_session_id');
         if (!currentSession) {
-          currentSession = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+          const randBuf = new Uint32Array(1);
+          globalThis.crypto.getRandomValues(randBuf);
+          currentSession = `sess_${Date.now()}_${randBuf[0].toString(36)}`;
           sessionStorage.setItem('learning_ai_session_id', currentSession);
         }
         this.sessionId = currentSession;
@@ -165,7 +167,7 @@ class AnalyticsService {
 
     // 4. Log em ambiente de desenvolvimento
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`📊 [Analytics Track]: ${event}`, payload.properties);
+      console.log('📊 [Analytics Track]:', event, payload.properties);
     }
   }
 

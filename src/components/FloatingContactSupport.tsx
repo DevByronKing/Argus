@@ -138,8 +138,8 @@ export function FloatingContactSupport({
                   sessionStorage.setItem('argus_hide_support', 'true');
                 } catch {}
               }}
-              className="opacity-0 group-hover/btn:opacity-100 p-1 rounded-full bg-slate-800/80 hover:bg-rose-600 text-slate-400 hover:text-white text-[10px] transition-all cursor-pointer shadow-xs"
-              title="Ocultar botão de suporte nesta sessão (gravação limpa)"
+              className="opacity-75 sm:opacity-0 sm:group-hover/btn:opacity-100 p-1 rounded-full bg-slate-800/80 hover:bg-rose-600 text-slate-300 hover:text-white text-[10px] transition-all cursor-pointer shadow-xs"
+              title="Ocultar botão de suporte nesta sessão (gravação limpa para Reels/Stories)"
               aria-label="Ocultar suporte"
             >
               <X className="w-3 h-3" />

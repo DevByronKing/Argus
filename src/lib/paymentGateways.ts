@@ -2,6 +2,7 @@
  * Integração com Gateways de Pagamento (Asaas e Stripe) com fallback offline
  */
 
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -57,26 +58,9 @@ export class PaymentGateway {
     const isAsaasProduction = process.env.ASAAS_ENVIRONMENT === 'production' || asaasApiKey.includes('_prod_');
     const asaasBaseUrl = isAsaasProduction ? 'https://api.asaas.com/v3' : 'https://sandbox.asaas.com/api/v3';
 
-    // Configuração de TLS para proxy local Windows
-    if (typeof process !== 'undefined' && process.env) {
-      if (process.env.ALLOW_INSECURE_TLS === 'true') {
-        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-      }
-    }
-
     // 1. Tentar integração real com Asaas se chave estiver presente
     if (asaasApiKey && !asaasApiKey.includes('sua-chave')) {
       try {
-        // Suporte a agente Undici para contornar interceptação de certificados TLS locais no Windows
-        let customDispatcher: any = undefined;
-        // Validação estrita de SSL/TLS por padrão (permite bypass apenas sob flag explícita de desenvolvimento)
-        if (process.env.ALLOW_INSECURE_TLS === 'true') {
-          try {
-            const { Agent } = await import('undici');
-            customDispatcher = new Agent({ connect: { rejectUnauthorized: false } });
-          } catch {}
-        }
-
         // Asaas exige CPF/CNPJ obrigatório em ambiente de produção para emitir Pix
         const rawCpf = params.cpfCnpj ? params.cpfCnpj.replace(/\D/g, '') : '';
         const cleanCpf = rawCpf.length === 11 || rawCpf.length === 14 
@@ -93,7 +77,6 @@ export class PaymentGateway {
             'Content-Type': 'application/json',
             access_token: asaasApiKey,
           },
-          ...(customDispatcher ? { dispatcher: customDispatcher } : {}),
           body: JSON.stringify({
             name: params.userName || 'Aluno Argus',
             email: params.userEmail || 'aluno@argus.app.br',
@@ -113,7 +96,6 @@ export class PaymentGateway {
               'Content-Type': 'application/json',
               access_token: asaasApiKey,
             },
-            ...(customDispatcher ? { dispatcher: customDispatcher } : {}),
             body: JSON.stringify({
               customer: customerId,
               billingType: 'PIX',
@@ -134,7 +116,6 @@ export class PaymentGateway {
             // Obter QR Code Pix
             const qrRes = await fetch(`${asaasBaseUrl}/payments/${paymentId}/pixQrCode`, {
               headers: { access_token: asaasApiKey },
-              ...(customDispatcher ? { dispatcher: customDispatcher } : {}),
             });
             const qrData = await qrRes.json();
 
@@ -158,7 +139,7 @@ export class PaymentGateway {
     }
 
     // 2. Gerador Nativo de Pix (BACEN EMVCo BR Code padrão)
-    const txId = `tx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const txId = `tx_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
     const pixCopyPaste = `00020126580014br.gov.bcb.pix0136argus-payments-${txId}520400005303986540${params.amount.toFixed(2)}5802BR5914Argus6009Sao Paulo62070503***6304E8A9`;
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(pixCopyPaste)}`;

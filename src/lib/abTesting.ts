@@ -189,7 +189,9 @@ export function getOrCreateVisitorId(): string {
   try {
     let vid = localStorage.getItem('learning_ai_visitor_id');
     if (!vid) {
-      vid = `v_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      const randBuf = new Uint32Array(1);
+      globalThis.crypto.getRandomValues(randBuf);
+      vid = `v_${Date.now()}_${randBuf[0].toString(36)}`;
       localStorage.setItem('learning_ai_visitor_id', vid);
     }
     return vid;

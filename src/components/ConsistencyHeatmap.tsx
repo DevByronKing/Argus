@@ -19,14 +19,14 @@ interface DayData {
 }
 
 export const ConsistencyHeatmap: React.FC<ConsistencyHeatmapProps> = ({
-  streakDays = 42,
-  longestStreak = 56,
-  totalQuestionsYear = 4820
+  streakDays = 0,
+  longestStreak = 0,
+  totalQuestionsYear = 0
 }) => {
   const [palette, setPalette] = useState<'emerald' | 'purple'>('emerald');
   const [hoveredDay, setHoveredDay] = useState<DayData | null>(null);
 
-  // Generate 52 weeks (364 days) deterministic data simulating an elite student study log
+  // Generate 52 weeks (364 days) deterministic data reflecting actual student activity
   const days: DayData[] = useMemo(() => {
     const list: DayData[] = [];
     const today = new Date();
@@ -42,20 +42,13 @@ export const ConsistencyHeatmap: React.FC<ConsistencyHeatmapProps> = ({
       const weekIndex = Math.floor(i / 7);
       const dayOfWeek = d.getDay();
       
-      // Pseudo-random but deterministic density with high recent streak
       const dayOfYear = i;
-      const isRecentStreak = i >= (52 * 7 - streakDays);
+      const isRecentStreak = streakDays > 0 && i >= (52 * 7 - streakDays);
       let count = 0;
 
       if (isRecentStreak) {
-        // Active streak days: high performance
-        count = 15 + ((dayOfYear * 7) % 35);
-      } else {
-        // Historical distribution with ~75% consistency
-        const isRestDay = (dayOfYear % 7 === 0) && (dayOfYear % 3 === 0);
-        if (!isRestDay) {
-          count = ((dayOfYear * 13) % 45);
-        }
+        const avgPerStreakDay = Math.max(1, Math.round((totalQuestionsYear || streakDays) / Math.max(1, streakDays)));
+        count = avgPerStreakDay + ((dayOfYear * 3) % 5);
       }
 
       let level: 0 | 1 | 2 | 3 | 4 = 0;
@@ -75,7 +68,7 @@ export const ConsistencyHeatmap: React.FC<ConsistencyHeatmapProps> = ({
     }
 
     return list;
-  }, [streakDays]);
+  }, [streakDays, totalQuestionsYear]);
 
   const getColorClass = (level: number) => {
     if (level === 0) {

@@ -34,7 +34,7 @@ interface StudyState {
 export const useStudyStore = create<StudyState>()(
   persist(
     (set) => ({
-      mistakes: INITIAL_MISTAKES,
+      mistakes: [],
       addMistake: (mistake) =>
         set((state) => ({
           mistakes: [mistake, ...state.mistakes.filter((m) => m.question.id !== mistake.question.id)],

@@ -722,11 +722,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               
 
-              {/* Alternador de Tema (Modo Claro / Modo Escuro - Visível a partir de tablet/desktop, no mobile fica no menu) */}
+              {/* Alternador de Tema (Modo Claro / Modo Escuro - Visível em Mobile e Desktop para gravações rápidas) */}
               {onToggleTheme && (
                 <button
                   onClick={onToggleTheme}
-                  className={`hidden sm:flex p-2 rounded-xl border transition-all items-center justify-center shrink-0 cursor-pointer ${
+                  className={`flex p-2 rounded-xl border transition-all items-center justify-center shrink-0 cursor-pointer active:scale-95 ${
                     isLight 
                       ? 'bg-slate-100 hover:bg-slate-200 text-amber-600 border-slate-200 shadow-xs' 
                       : 'bg-white/5 hover:bg-white/10 text-amber-400 border-white/10'
@@ -757,11 +757,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>Meus Focos</span>
               </button>
 
-              {/* Tutor IA (Tire Dúvidas) */}
+              {/* Tutor IA (Tire Dúvidas - Visível também no mobile de forma compacta) */}
               {onOpenCopilot && (
                 <button
                   onClick={onOpenCopilot}
-                  className={`hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer ${
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer active:scale-95 ${
                     isLight 
                       ? 'bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700' 
                       : 'bg-gradient-to-r from-blue-500/15 via-cyan-500/10 to-blue-500/15 border-blue-400/35 text-blue-200 hover:border-blue-400 hover:bg-blue-500/25'
@@ -773,7 +773,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span className="hidden xl:inline whitespace-nowrap">
                     Tutor IA
                   </span>
-                  <span className="inline xl:hidden whitespace-nowrap text-[11px]">
+                  <span className="inline xl:hidden whitespace-nowrap text-[11px] font-black">
                     IA
                   </span>
                 </button>
@@ -1305,76 +1305,88 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       )}
 
-      {/* Barra de Navegação Inferior Nativa para Mobile (Sempre visível em smartphones < 768px) */}
+      {/* Barra de Navegação Inferior Nativa para Mobile (Design App Premium / Instagramável em smartphones < 768px) */}
       <nav
         aria-label="Navegação móvel inferior por abas"
-        className={`md:hidden fixed bottom-0 left-0 right-0 z-50 border-t py-2 px-1 flex items-center justify-around transition-colors shadow-2xl safe-area-bottom ${
+        className={`md:hidden fixed bottom-0 left-0 right-0 z-50 border-t py-1.5 px-2 flex items-center justify-around transition-colors shadow-2xl safe-area-bottom ${
           isLight 
-            ? 'bg-white/95 backdrop-blur-2xl border-slate-200 text-slate-600 shadow-slate-300/60' 
-            : 'bg-[#0c1222]/95 backdrop-blur-2xl border-slate-800 text-slate-400 shadow-black/90'
+            ? 'bg-white/95 backdrop-blur-2xl border-slate-200/90 text-slate-600 shadow-slate-300/70' 
+            : 'bg-[#090e1d]/95 backdrop-blur-2xl border-white/10 text-slate-400 shadow-black/95'
         }`}
       >
         <button
           type="button"
           onClick={() => handleTabClick('landing')}
-          className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl active:scale-95 transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-2xl active:scale-95 transition-all cursor-pointer ${
             activeTab === 'landing' 
-              ? 'text-blue-600 dark:text-blue-400 font-black' 
+              ? isLight
+                ? 'bg-blue-50 text-blue-700 font-black shadow-2xs'
+                : 'bg-blue-500/20 text-blue-300 font-black'
               : 'hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <Compass className={`w-5 h-5 ${activeTab === 'landing' ? 'text-blue-600 dark:text-blue-400 scale-110' : ''}`} />
+          <Compass className={`w-5 h-5 ${activeTab === 'landing' ? 'text-blue-600 dark:text-blue-400 scale-105' : ''}`} />
           <span className="text-[10px] tracking-tight">Início</span>
         </button>
 
         <button
           type="button"
           onClick={() => handleTabClick('simulator')}
-          className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl active:scale-95 transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-2xl active:scale-95 transition-all cursor-pointer ${
             activeTab === 'simulator' 
-              ? 'text-blue-600 dark:text-blue-400 font-black' 
+              ? isLight
+                ? 'bg-blue-50 text-blue-700 font-black shadow-2xs'
+                : 'bg-blue-500/20 text-blue-300 font-black'
               : 'hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <Crosshair className={`w-5 h-5 ${activeTab === 'simulator' ? 'text-blue-600 dark:text-blue-400 scale-110' : ''}`} />
+          <Crosshair className={`w-5 h-5 ${activeTab === 'simulator' ? 'text-blue-600 dark:text-blue-400 scale-105' : ''}`} />
           <span className="text-[10px] tracking-tight">Simulador</span>
         </button>
 
         <button
           type="button"
           onClick={() => handleTabClick('flashcards')}
-          className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl active:scale-95 transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-2xl active:scale-95 transition-all cursor-pointer ${
             activeTab === 'flashcards' 
-              ? 'text-blue-600 dark:text-blue-400 font-black' 
+              ? isLight
+                ? 'bg-blue-50 text-blue-700 font-black shadow-2xs'
+                : 'bg-blue-500/20 text-blue-300 font-black'
               : 'hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <BookOpen className={`w-5 h-5 ${activeTab === 'flashcards' ? 'text-blue-600 dark:text-blue-400 scale-110' : ''}`} />
+          <BookOpen className={`w-5 h-5 ${activeTab === 'flashcards' ? 'text-blue-600 dark:text-blue-400 scale-105' : ''}`} />
           <span className="text-[10px] tracking-tight">Flashcards</span>
         </button>
 
         <button
           type="button"
           onClick={() => handleTabClick('dashboard')}
-          className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl active:scale-95 transition-all cursor-pointer ${
-            activeTab === 'dashboard' 
-              ? 'text-emerald-600 dark:text-emerald-400 font-black' 
+          className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-2xl active:scale-95 transition-all cursor-pointer ${
+            activeTab === 'dashboard' || activeTab === 'analytics'
+              ? isLight
+                ? 'bg-emerald-50 text-emerald-700 font-black shadow-2xs'
+                : 'bg-emerald-500/20 text-emerald-300 font-black'
               : 'hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <Activity className={`w-5 h-5 ${activeTab === 'dashboard' ? 'text-emerald-600 dark:text-emerald-400 scale-110' : ''}`} />
-          <span className="text-[10px] tracking-tight">Cockpit</span>
+          <Activity className={`w-5 h-5 ${activeTab === 'dashboard' || activeTab === 'analytics' ? 'text-emerald-600 dark:text-emerald-400 scale-105' : ''}`} />
+          <span className="text-[10px] tracking-tight">Evolução</span>
         </button>
 
         <button
           type="button"
           onClick={() => setIsMobileMenuOpen(true)}
-          className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl active:scale-95 transition-all cursor-pointer ${
-            isMobileMenuOpen ? 'text-blue-500 font-black' : 'hover:text-slate-900 dark:hover:text-white'
+          className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-2xl active:scale-95 transition-all cursor-pointer ${
+            isMobileMenuOpen
+              ? isLight
+                ? 'bg-blue-50 text-blue-700 font-black'
+                : 'bg-blue-500/20 text-blue-300 font-black'
+              : 'hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <Menu className="w-5 h-5 text-blue-500" />
-          <span className="text-[10px] tracking-tight">Mais Abas</span>
+          <span className="text-[10px] tracking-tight">Menu</span>
         </button>
       </nav>
 

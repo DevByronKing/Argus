@@ -34,7 +34,9 @@ class JobManagerService {
   private jobs: Map<string, AsyncEditalJob> = new Map();
 
   createJob(params: CreateEditalJobParams): AsyncEditalJob {
-    const jobId = `job_edital_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const randBuf = new Uint32Array(1);
+    globalThis.crypto.getRandomValues(randBuf);
+    const jobId = `job_edital_${Date.now()}_${randBuf[0].toString(36).slice(0, 5)}`;
     const job: AsyncEditalJob = {
       id: jobId,
       status: 'queued',
@@ -47,7 +49,7 @@ class JobManagerService {
 
     // Iniciar processamento desacoplado em background sem travar a requisição HTTP
     this.executeAsync(jobId, params).catch((err) => {
-      console.error(`Erro crítico no job ${jobId}:`, err);
+      console.error('Erro crítico no job:', jobId, err);
       this.updateJob(jobId, {
         status: 'failed',
         error: err?.message || 'Falha desconhecida no processamento em segundo plano.',

@@ -3,7 +3,6 @@
  * Executar: node scripts/test_asaas_pix.js
  */
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const fs = require('fs');
 const path = require('path');
 

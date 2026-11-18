@@ -14,6 +14,12 @@ export interface TwoFactorState {
 const STORAGE_KEY = 'argus_2fa_state';
 const VERIFIED_SESSION_KEY = 'argus_2fa_session_verified';
 
+function secureRandomIndex(max: number): number {
+  const buf = new Uint32Array(1);
+  globalThis.crypto.getRandomValues(buf);
+  return buf[0] % max;
+}
+
 /**
  * Gera uma chave secreta Base32 para configuração de autenticador (Google Authenticator, Authy, 1Password).
  */
@@ -21,8 +27,7 @@ export function generateBase32Secret(length = 16): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
   let secret = '';
   for (let i = 0; i < length; i++) {
-    const rand = Math.floor(Math.random() * chars.length);
-    secret += chars[rand];
+    secret += chars[secureRandomIndex(chars.length)];
   }
   return secret;
 }
@@ -36,8 +41,8 @@ export function generateBackupCodes(count = 5): string[] {
   for (let i = 0; i < count; i++) {
     let p1 = '';
     let p2 = '';
-    for (let j = 0; j < 4; j++) p1 += chars[Math.floor(Math.random() * chars.length)];
-    for (let j = 0; j < 4; j++) p2 += chars[Math.floor(Math.random() * chars.length)];
+    for (let j = 0; j < 4; j++) p1 += chars[secureRandomIndex(chars.length)];
+    for (let j = 0; j < 4; j++) p2 += chars[secureRandomIndex(chars.length)];
     codes.push(`${p1}-${p2}`);
   }
   return codes;

@@ -8,6 +8,7 @@ description: Mandatory Agentic Engineering guidelines. Prohibits bloated step-by
 You are a Senior Software Architect specializing in Agent-Oriented Engineering. When writing or refactoring code in this repository, strictly follow these rules:
 
 ## 1. Mandatory Engineering Standards
+- **6-Document Blueprint Gate (`docs/blueprint/` + `.agents/skills/six-docs-app-blueprint/SKILL.md`):** Before coding new features, schemas, flows, or UI changes, verify alignment with the 6 foundational documents (`01-PRD`, `02-TRD`, `03-FLUXO-DO-APP`, `04-BRIEFING-DE-DESIGN`, `05-ESQUEMA-BACKEND-rls`, `06-PLANO-DE-IMPLEMENTACAO`) and respect `OUT-OF-SCOPE` boundaries.
 - **Spec-Driven Development (SDD):** Before implementing any complex feature, require or author a concise specification/PRD (`specs/`) containing exact **Acceptance Criteria**. The agent must have deterministic criteria defining task completion.
 - **Test-Driven Development (TDD):** Write or update automated unit/integration tests (`src/__tests__/`) alongside or prior to implementation to shield the codebase against regressions.
 - **Safety Hooks & Operational Guardrails:** Enforce programmatic validators (`src/lib/guardrails.ts`), schema constraints, and confirmation tokens to prevent destructive commands (such as `DROP TABLE`, unguarded `DELETE`, or hard deletion of core entities) from executing accidentally.

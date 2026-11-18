@@ -194,7 +194,9 @@ export async function POST(req: Request) {
 
     const cleanEmail = String(email).trim().toLowerCase();
     const mockId = `usr_${Buffer.from(cleanEmail).toString('base64').slice(0, 12)}`;
-    const mockToken = `jwt_mock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const randBuf = new Uint32Array(1);
+    globalThis.crypto.getRandomValues(randBuf);
+    const mockToken = `jwt_mock_${Date.now()}_${randBuf[0].toString(36)}`;
 
     const response = NextResponse.json({
       success: true,

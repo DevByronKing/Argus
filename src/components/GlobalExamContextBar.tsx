@@ -214,14 +214,14 @@ export const GlobalExamContextBar: React.FC<GlobalExamContextBarProps> = ({
     <>
       {activeTab !== 'landing' && (
         <div className="w-full bg-white/95 dark:bg-gradient-to-r dark:from-slate-900/95 dark:via-indigo-950/85 dark:to-slate-900/95 backdrop-blur-md border-b border-slate-200/90 dark:border-indigo-500/20 text-slate-800 dark:text-white py-2 px-3 sm:px-6 relative z-15 shadow-xs transition-all">
-          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 text-xs overflow-x-auto no-scrollbar">
             
             {/* Lado Esquerdo: Botão Voltar, Início e Página Atual */}
-            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <button
                 type="button"
                 onClick={handleBackClick}
-                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-white/10 font-bold text-xs transition-all active:scale-95 cursor-pointer shrink-0 shadow-2xs"
+                className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-white/10 font-bold text-xs transition-all active:scale-95 cursor-pointer shrink-0 shadow-2xs"
                 title="Voltar para a tela anterior"
               >
                 <ArrowLeft className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
@@ -248,7 +248,7 @@ export const GlobalExamContextBar: React.FC<GlobalExamContextBarProps> = ({
             </div>
 
             {/* Lado Direito: Seletor de Múltiplos Focos + Modo Foco + Concurso Ativo */}
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0 ml-auto">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto">
               
               {/* Botão Interativo: Escolher 1 ou Mais Focos de Estudo a Qualquer Hora */}
               <button

@@ -67,7 +67,9 @@ export async function POST(req: Request) {
     const daysRemaining = Math.max(0, Math.ceil((renewalTimestamp - Date.now()) / (1000 * 60 * 60 * 24)));
 
     // Protocolo auditável de envio de aviso prévio
-    const noticeProtocol = `RNW-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const randBuf = new Uint32Array(1);
+    globalThis.crypto.getRandomValues(randBuf);
+    const noticeProtocol = `RNW-${Date.now().toString(36).toUpperCase()}-${randBuf[0].toString(36).slice(0, 4).toUpperCase()}`;
 
     const noticeSummary = {
       protocol: noticeProtocol,

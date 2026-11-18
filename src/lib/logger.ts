@@ -57,7 +57,8 @@ class StructuredLogger {
           : level === 'metric'
           ? '\x1b[36m'
           : '\x1b[32m';
-      console.log(`${color}[${entry.timestamp}] [${level.toUpperCase()}]:\x1b[0m ${message}`, entry.context || '', err || '');
+      const prefix = `${color}[${entry.timestamp}] [${level.toUpperCase()}]:\x1b[0m ${message}`;
+      console.log(prefix, entry.context || '', err || '');
     } else {
       // Formato JSON estruturado para ingestão por Datadog, Sentry, CloudWatch, etc.
       console.log(JSON.stringify(entry));

@@ -139,8 +139,10 @@ export const FlashChallengeModal: React.FC<FlashChallengeModalProps> = ({
 
     // Registra tentativa no sistema do Argus
     if (onRecordAttempt) {
+      const randBuf = new Uint32Array(1);
+      globalThis.crypto.getRandomValues(randBuf);
       const attempt: QuestionAttempt = {
-        id: `att_flash_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        id: `att_flash_${Date.now()}_${randBuf[0].toString(36).slice(0, 5)}`,
         questionId: currentQ.id,
         selectedOptionId,
         isCorrect,

@@ -74,8 +74,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const randBuf = new Uint32Array(1);
+    globalThis.crypto.getRandomValues(randBuf);
     const lead: LeadRecord = {
-      id: `lead_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      id: `lead_${Date.now()}_${randBuf[0].toString(36).slice(0, 5)}`,
       name: name.trim().slice(0, 100),
       email: email.trim().toLowerCase().slice(0, 120),
       phone: phone && typeof phone === 'string' ? phone.trim().slice(0, 20) : undefined,

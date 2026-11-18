@@ -45,7 +45,12 @@ export const SubscriptionManagementTab: React.FC<SubscriptionManagementTabProps>
     }
     return {
       ...INITIAL_SUBSCRIPTION_DETAIL,
-      planId: currentPlan
+      planId: currentPlan,
+      status: currentPlan === 'aspirante' ? 'cancelada' : 'ativa',
+      currentPeriodEnd: currentPlan === 'aspirante' ? 'Sem assinatura ativa' : 'Aguardando confirmação',
+      autoRenew: false,
+      paymentMethodDesc: 'Nenhum método de pagamento registrado',
+      invoices: []
     };
   });
 

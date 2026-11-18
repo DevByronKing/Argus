@@ -180,7 +180,7 @@ export function ArgusApp() {
   const [selectedExam, setSelectedExam] = useState<ExamNotice>(INITIAL_EXAMS[0]);
   const [metrics, setMetrics] = useState<UserMetrics>(INITIAL_METRICS);
   const [flashcards, setFlashcards] = useState<Flashcard[]>(INITIAL_FLASHCARDS);
-  const [mistakes, setMistakes] = useState<MistakeEntry[]>(INITIAL_MISTAKES);
+  const [mistakes, setMistakes] = useState<MistakeEntry[]>([]);
   const [plan, setPlan] = useState<SubscriptionPlan>('aspirante');
   const [pendingCheckoutPlan, setPendingCheckoutPlan] = useState<SubscriptionPlan>('pro');
   const [pricingModalInitialTab, setPricingModalInitialTab] = useState<'plans' | 'checkout'>('plans');
@@ -285,6 +285,18 @@ export function ArgusApp() {
   // Load from LocalStorage if available
   useEffect(() => {
     try {
+      // Limpeza automática única de mocks legados (14d streak, 48 questões, erros e faturas fictícias)
+      if (!localStorage.getItem('argus_clean_slate_v1')) {
+        localStorage.removeItem('argus_metrics');
+        localStorage.removeItem('aprovalens_metrics');
+        localStorage.removeItem('argus_mistakes');
+        localStorage.removeItem('aprovalens_mistakes');
+        localStorage.removeItem('argus_achievements');
+        localStorage.removeItem('argus_daily_missions');
+        localStorage.removeItem('learning_ai_subscription_detail');
+        localStorage.setItem('argus_clean_slate_v1', 'true');
+      }
+
       const savedPlan = localStorage.getItem('argus_plan') || localStorage.getItem('aprovalens_plan');
       if (savedPlan) setPlan(savedPlan as SubscriptionPlan);
 

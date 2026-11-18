@@ -2,23 +2,25 @@
 
 import React from 'react';
 import { ShieldCheck, AlertTriangle, BookOpen, Target, CheckCircle2, TrendingDown } from 'lucide-react';
-import { ExamNotice, ExamSubject } from '@/lib/types';
+import { ExamNotice, UserMetrics } from '@/lib/types';
 
 interface VerticalizedEditalProgressProps {
   selectedExam: ExamNotice;
+  metrics?: UserMetrics;
   onSubjectClick?: (subjectId: string) => void;
 }
 
 export const VerticalizedEditalProgress: React.FC<VerticalizedEditalProgressProps> = ({
   selectedExam,
+  metrics,
   onSubjectClick
 }) => {
-  // Mock deterministic theoretical reading percentage vs actual accuracy
-  const subjectProgress = selectedExam.subjects.map((s, idx) => {
-    // Theory read: typically higher (illusion of competence)
-    const theoryRead = Math.min(100, 65 + ((idx * 17) % 35));
-    // Actual questions accuracy: merciless truth
-    const actualAccuracy = Math.min(100, 48 + ((idx * 13) % 42));
+  const hasActivity = Boolean(metrics && metrics.totalAnswered > 0);
+  const baseAccuracy = hasActivity ? Math.round(metrics?.globalAccuracy || 0) : 0;
+
+  const subjectProgress = selectedExam.subjects.map((s) => {
+    const theoryRead = hasActivity ? Math.min(100, baseAccuracy) : 0;
+    const actualAccuracy = hasActivity ? Math.min(100, baseAccuracy) : 0;
     const gap = actualAccuracy - theoryRead;
 
     return {
@@ -29,28 +31,34 @@ export const VerticalizedEditalProgress: React.FC<VerticalizedEditalProgressProp
     };
   });
 
-  // Calculate Banca Shields
+  // Calculate Banca Shields based on real student metrics
   const bancaShields = [
     {
       banca: selectedExam.banca || 'FGV',
-      shieldPercent: 78,
-      status: 'Blindado',
-      statusColor: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30',
-      description: 'Acima da nota de corte histórica (72%). Baixo risco de eliminação em pegadinhas conceituais.'
+      shieldPercent: baseAccuracy,
+      status: !hasActivity ? 'Iniciando' : baseAccuracy >= 75 ? 'Blindado' : 'Em Evolução',
+      statusColor: !hasActivity
+        ? 'text-slate-500 bg-slate-500/10 border-slate-500/30'
+        : baseAccuracy >= 75
+        ? 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30'
+        : 'text-amber-500 bg-amber-500/10 border-amber-500/30',
+      description: !hasActivity
+        ? 'Resolva questões na Arena para calibrar sua resistência contra distratores desta banca.'
+        : 'Índice calculado com base nos seus acertos reais na Arena.'
     },
     {
       banca: 'Cebraspe',
-      shieldPercent: 82,
-      status: 'Blindado',
-      statusColor: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30',
-      description: 'Pontuação líquida positiva consistente em assertivas Certo/Errado.'
+      shieldPercent: metrics?.bancaAlignment?.find((b) => b.banca === 'Cebraspe')?.userProficiency ?? 0,
+      status: !hasActivity ? 'Iniciando' : 'Em Evolução',
+      statusColor: !hasActivity ? 'text-slate-500 bg-slate-500/10 border-slate-500/30' : 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30',
+      description: 'Pontuação líquida em assertivas Certo/Errado.'
     },
     {
       banca: 'FCC',
-      shieldPercent: 64,
-      status: 'Em Risco',
-      statusColor: 'text-amber-500 bg-amber-500/10 border-amber-500/30',
-      description: 'Vulnerável na literalidade da Nova Lei de Licitações (Lei 14.133).'
+      shieldPercent: metrics?.bancaAlignment?.find((b) => b.banca === 'FCC')?.userProficiency ?? 0,
+      status: !hasActivity ? 'Iniciando' : 'Em Evolução',
+      statusColor: !hasActivity ? 'text-slate-500 bg-slate-500/10 border-slate-500/30' : 'text-amber-500 bg-amber-500/10 border-amber-500/30',
+      description: 'Domínio da literalidade da lei seca e jurisprudência sumulada.'
     }
   ];
 
@@ -80,7 +88,7 @@ export const VerticalizedEditalProgress: React.FC<VerticalizedEditalProgressProp
 
           <div className="flex items-baseline gap-2 shrink-0 bg-white/90 dark:bg-white/5 px-4 py-2.5 rounded-2xl border border-indigo-100 dark:border-white/10 shadow-2xs">
             <span className="text-xs text-slate-600 dark:text-slate-400 font-bold">Blindagem Global:</span>
-            <span className="text-2xl font-black text-cyan-600 dark:text-cyan-400">80.2%</span>
+            <span className="text-2xl font-black text-cyan-600 dark:text-cyan-400">{baseAccuracy}%</span>
           </div>
         </div>
 
