@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { BrainCircuit } from 'lucide-react';
 
 export const TabLoadingSkeleton: React.FC = () => {
   return (
@@ -19,14 +18,6 @@ export const TabLoadingSkeleton: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="w-28 h-10 rounded-xl bg-slate-200 dark:bg-white/10 animate-pulse" />
           <div className="w-32 h-10 rounded-xl bg-slate-200 dark:bg-white/10 animate-pulse" />
-        </div>
-      </div>
-
-      {/* Center Tactical Pulse Badge */}
-      <div className="flex items-center justify-center py-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold animate-pulse">
-          <BrainCircuit className="w-4 h-4 animate-spin-slow" />
-          <span>Sincronizando Módulo Cognitivo sob demanda...</span>
         </div>
       </div>
 
