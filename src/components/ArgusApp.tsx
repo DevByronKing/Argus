@@ -285,8 +285,10 @@ export function ArgusApp() {
   // Load from LocalStorage if available
   useEffect(() => {
     try {
-      // Limpeza automática única de mocks legados (14d streak, 48 questões, erros e faturas fictícias)
-      if (!localStorage.getItem('argus_clean_slate_v1')) {
+      // Limpeza automática única de mocks legados (incluindo plano PRO residual salvo no navegador antes de criar conta)
+      if (!localStorage.getItem('argus_clean_slate_v2')) {
+        localStorage.removeItem('argus_plan');
+        localStorage.removeItem('aprovalens_plan');
         localStorage.removeItem('argus_metrics');
         localStorage.removeItem('aprovalens_metrics');
         localStorage.removeItem('argus_mistakes');
@@ -294,11 +296,13 @@ export function ArgusApp() {
         localStorage.removeItem('argus_achievements');
         localStorage.removeItem('argus_daily_missions');
         localStorage.removeItem('learning_ai_subscription_detail');
-        localStorage.setItem('argus_clean_slate_v1', 'true');
+        localStorage.setItem('argus_clean_slate_v2', 'true');
       }
 
       const savedPlan = localStorage.getItem('argus_plan') || localStorage.getItem('aprovalens_plan');
-      if (savedPlan) setPlan(savedPlan as SubscriptionPlan);
+      if (savedPlan && ['aspirante', 'lancamento', 'pro', 'elite', 'black'].includes(savedPlan)) {
+        setPlan(savedPlan as SubscriptionPlan);
+      }
 
       const savedMetrics = localStorage.getItem('argus_metrics') || localStorage.getItem('aprovalens_metrics');
       if (savedMetrics) setMetrics(JSON.parse(savedMetrics));
@@ -449,6 +453,16 @@ export function ArgusApp() {
       };
       window.addEventListener('argus-go-home', handleGoHomeEvent);
 
+      const handleAuthPlanSync = (e: Event) => {
+        const detail = (e as CustomEvent<{ plan?: SubscriptionPlan }>).detail;
+        const nextPlan: SubscriptionPlan =
+          detail?.plan && ['aspirante', 'lancamento', 'pro', 'elite', 'black'].includes(detail.plan)
+            ? detail.plan
+            : 'aspirante';
+        setPlan(nextPlan);
+      };
+      window.addEventListener('argus-auth-plan-sync', handleAuthPlanSync);
+
       return () => {
         window.removeEventListener('open-pmf-survey', handleOpenSurvey);
         window.removeEventListener('open-auth-modal', handleOpenAuth);
@@ -458,6 +472,7 @@ export function ArgusApp() {
         window.removeEventListener('argus-open-pricing', handleOpenPricingEvent);
         window.removeEventListener('argus-open-onboarding', handleOpenOnboardingEvent);
         window.removeEventListener('argus-go-home', handleGoHomeEvent);
+        window.removeEventListener('argus-auth-plan-sync', handleAuthPlanSync);
       };
     } catch {}
   }, []);
@@ -498,9 +513,19 @@ export function ArgusApp() {
           ['lancamento', 'pro', 'elite', 'black'].includes(profileData.subscription_tier)
         ) {
           setPlan(profileData.subscription_tier as SubscriptionPlan);
+        } else {
+          setPlan('aspirante');
+          try {
+            localStorage.removeItem('argus_plan');
+            localStorage.removeItem('aprovalens_plan');
+          } catch {}
         }
       } catch {
-        // Perfil sem assinatura paga confirmada mantém plano Visitante
+        setPlan('aspirante');
+        try {
+          localStorage.removeItem('argus_plan');
+          localStorage.removeItem('aprovalens_plan');
+        } catch {}
       }
 
       // Verifica privilégio administrativo estritamente no backend (/api/admin/session)

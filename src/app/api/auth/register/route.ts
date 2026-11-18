@@ -261,12 +261,15 @@ export async function POST(req: Request) {
             id: data.user?.id,
             email: data.user?.email,
             role: 'student',
+            plan: 'aspirante',
             ...complianceAudit,
           },
           session: data.session,
           message: 'Conta criada com sucesso no Supabase!',
           mode: 'supabase',
         });
+
+        supaRes.cookies.delete('argus_user_access');
 
         if (data.session?.access_token) {
           supaRes.cookies.set('argus-session', data.session.access_token, {

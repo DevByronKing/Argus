@@ -100,6 +100,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
       if (res.ok && data.success) {
         setSuccessMessage('Acesso liberado! Sincronizando seu cockpit...');
+        const verifiedPlan = data.user?.plan || 'aspirante';
+        try {
+          if (verifiedPlan === 'aspirante') {
+            localStorage.removeItem('argus_plan');
+            localStorage.removeItem('aprovalens_plan');
+            localStorage.removeItem('learning_ai_subscription_detail');
+          } else {
+            localStorage.setItem('argus_plan', verifiedPlan);
+          }
+          window.dispatchEvent(
+            new CustomEvent('argus-auth-plan-sync', { detail: { plan: verifiedPlan } })
+          );
+        } catch {}
         if (data.user) {
           setAuth(
             {
@@ -256,6 +269,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setTurnstileReset((v) => v + 1);
       if (res.ok && data.success) {
         setSuccessMessage('Conta verificada e criada com sucesso!');
+        try {
+          localStorage.removeItem('argus_plan');
+          localStorage.removeItem('aprovalens_plan');
+          localStorage.removeItem('learning_ai_subscription_detail');
+          window.dispatchEvent(
+            new CustomEvent('argus-auth-plan-sync', { detail: { plan: 'aspirante' } })
+          );
+        } catch {}
         if (data.user) {
           setAuth(
             {

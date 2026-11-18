@@ -130,6 +130,15 @@ export async function POST(req: Request) {
           } catch {}
         }
 
+        const hasActivePaidSubscription = Boolean(
+          profileData?.subscription_status === 'active' &&
+            profileData.subscription_tier &&
+            ['lancamento', 'pro', 'elite', 'black'].includes(profileData.subscription_tier)
+        );
+        const verifiedPlan = hasActivePaidSubscription
+          ? (profileData!.subscription_tier as string)
+          : 'aspirante';
+
         const response = NextResponse.json({
           success: true,
           user: {
@@ -137,6 +146,7 @@ export async function POST(req: Request) {
             email: data.user.email,
             role: isAdmin ? 'admin' : 'student',
             isAdmin,
+            plan: verifiedPlan,
           },
           session: {
             accessToken: data.session?.access_token,
@@ -155,11 +165,7 @@ export async function POST(req: Request) {
           });
         }
 
-        if (
-          profileData?.subscription_status === 'active' &&
-          profileData.subscription_tier &&
-          ['lancamento', 'pro', 'elite', 'black'].includes(profileData.subscription_tier)
-        ) {
+        if (hasActivePaidSubscription && profileData?.subscription_tier) {
           const signedAccess = await signAccessCookiePayload({
             status: 'ativa',
             isPayingOrCommitted: true,
@@ -175,6 +181,8 @@ export async function POST(req: Request) {
               path: '/',
             });
           }
+        } else {
+          response.cookies.delete('argus_user_access');
         }
 
         return response;
