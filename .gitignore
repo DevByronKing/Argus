@@ -45,3 +45,6 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Marketing & Promotional Assets (kept outside public build)
+/marketing-assets/

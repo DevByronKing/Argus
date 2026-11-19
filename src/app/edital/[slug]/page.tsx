@@ -166,7 +166,7 @@ export default async function EditalPublicPage({ params }: EditalPageProps) {
               </div>
             </div>
             <span className="font-black text-lg text-white tracking-tight">
-              Learning <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">AI</span>
+              Argus <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">AI</span>
             </span>
           </Link>
 

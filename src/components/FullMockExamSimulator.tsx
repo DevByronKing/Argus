@@ -1,35 +1,28 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Trophy, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  AlertTriangle, 
-  Bookmark, 
-  ChevronLeft, 
-  ChevronRight, 
-  FileText, 
-  RotateCcw, 
-  Scale, 
-  BarChart2, 
-  ArrowRight, 
-  Sparkles, 
-  ShieldAlert, 
-  BookOpen,
-  Filter,
-  Check,
+import {
+  Trophy,
+  Clock,
+  ChevronLeft,
+  ArrowRight,
+  Sparkles,
+  ShieldAlert,
   Lock,
-  Crown,
-  Award,
   History,
-  Calendar,
-  GraduationCap
 } from 'lucide-react';
-import { MockExam, MockExamAnswer, MockExamResult, MockExamSubjectBreakdown, Question, Flashcard, SubscriptionPlan } from '@/lib/types';
+import {
+  MockExam,
+  MockExamAnswer,
+  MockExamResult,
+  Question,
+  Flashcard,
+  SubscriptionPlan,
+} from '@/lib/types';
 import { calculateExamScore } from '@/lib/examScoring';
 import { MOCK_FULL_EXAMS } from '@/lib/mockData';
+import { MockExamInProgressView } from './mock-exam/MockExamInProgressView';
+import { MockExamResultView } from './mock-exam/MockExamResultView';
 
 interface FullMockExamSimulatorProps {
   onAddFlashcardsBatch?: (flashcards: Flashcard[]) => void;
@@ -42,18 +35,16 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
   onAddFlashcardsBatch,
   onGoBackToQuickQuiz,
   userPlan = 'aspirante',
-  onOpenPricing
+  onOpenPricing,
 }) => {
   const [exams] = useState<MockExam[]>(MOCK_FULL_EXAMS);
   const [selectedExam, setSelectedExam] = useState<MockExam>(exams[0]);
   const [viewMode, setViewMode] = useState<'select' | 'in_progress' | 'result'>('select');
 
-  // Filters for official past exams and mock exams
   const [examTab, setExamTab] = useState<'all' | 'past_exams' | 'simulados'>('past_exams');
   const [careerFilter, setCareerFilter] = useState<string>('all');
   const [bancaFilter, setBancaFilter] = useState<string>('all');
 
-  // Exam execution state
   const [answers, setAnswers] = useState<Record<string, MockExamAnswer>>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [remainingSeconds, setRemainingSeconds] = useState<number>(45 * 60);
@@ -61,15 +52,12 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
   const [result, setResult] = useState<MockExamResult | null>(null);
 
-  // Result filter state
   const [resultFilter, setResultFilter] = useState<'all' | 'wrong' | 'blank' | 'correct'>('all');
   const [visibleResultsCount, setVisibleResultsCount] = useState<number>(15);
   const [addedToSRS, setAddedToSRS] = useState<boolean>(false);
 
-
   const handleFinishExamRef = useRef<(() => void) | null>(null);
 
-  // Timer countdown
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
     if (viewMode === 'in_progress' && isTimerActive) {
@@ -101,7 +89,7 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
       initialAnswers[q.id] = {
         questionId: q.id,
         selectedOptionId: null,
-        isFlaggedForReview: false
+        isFlaggedForReview: false,
       };
     });
     setAnswers(initialAnswers);
@@ -121,8 +109,8 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
       ...prev,
       [questionId]: {
         ...prev[questionId],
-        selectedOptionId: optionId
-      }
+        selectedOptionId: optionId,
+      },
     }));
   };
 
@@ -131,8 +119,8 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
       ...prev,
       [questionId]: {
         ...prev[questionId],
-        selectedOptionId: null
-      }
+        selectedOptionId: null,
+      },
     }));
   };
 
@@ -141,8 +129,8 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
       ...prev,
       [questionId]: {
         ...prev[questionId],
-        isFlaggedForReview: !prev[questionId]?.isFlaggedForReview
-      }
+        isFlaggedForReview: !prev[questionId]?.isFlaggedForReview,
+      },
     }));
   };
 
@@ -183,7 +171,6 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
       subjectBreakdown,
     } = scoreOutput;
 
-    // Deterministic Ranking generation based on percentage
     const totalCandidates = 1420;
     let simulatedRank = 14;
     const rankJitter = Math.round(percentage) % 7;
@@ -212,8 +199,14 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
       isAboveCutoff,
       cutoffScore: selectedExam.estimatedCutoffScore,
       timeSpentSeconds: selectedExam.durationMinutes * 60 - remainingSeconds,
-      completedAt: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      subjectBreakdown
+      completedAt: new Date().toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      subjectBreakdown,
     };
 
     setResult(examResult);
@@ -247,7 +240,7 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
         intervalDays: 1,
         repetitions: 0,
         easeFactor: 2.5,
-        nextReviewDate: new Date(Date.now() + 86400000).toISOString().split('T')[0]
+        nextReviewDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
       };
     });
 
@@ -255,33 +248,28 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
     setAddedToSRS(true);
   };
 
-  // Quick stats during test
   const answeredCount = Object.values(answers).filter((a) => a.selectedOptionId !== null).length;
   const blankCount = selectedExam.questions.length - answeredCount;
   const flaggedCount = Object.values(answers).filter((a) => a.isFlaggedForReview).length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
-
       {/* VIEW MODE 1: SELECT EXAM */}
       {viewMode === 'select' && (
         <div className="space-y-8">
-          
-          {/* Header */}
-          {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-slate-300 dark:border-white/10">
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500 dark:text-amber-400 border border-amber-500/30 text-xs font-bold flex items-center gap-1">
                   <Trophy className="w-3.5 h-3.5" />
-                  Acervo de Provas Anteriores & Simulados Oficiais
+                  Acervo de Provas Anteriores &amp; Simulados Oficiais
                 </span>
                 <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-bold">
                   Cebraspe • FGV • Vunesp • FCC
                 </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1.5">
-                Provas Anteriores Oficiais & Simulados Cronometrados
+                Provas Anteriores Oficiais &amp; Simulados Cronometrados
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 max-w-3xl">
                 Treine com as <strong>provas reais dos concursos anteriores na íntegra</strong> sob condições de prova (tempo oficial e regra da banca). Compare seu resultado líquido com a <strong>nota de corte histórica que realmente aprovou</strong>.
@@ -299,7 +287,6 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
             )}
           </div>
 
-          {/* Type Switcher Tabs (Provas Anteriores Oficiais vs Simulados) */}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="inline-flex p-1 rounded-2xl bg-slate-100 dark:bg-dark-surface border border-slate-200 dark:border-white/10">
               <button
@@ -313,7 +300,7 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
                 <History className="w-3.5 h-3.5" />
                 <span>Provas Anteriores Oficiais ({exams.filter((e) => e.isOfficialPastExam).length})</span>
                 <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/20 text-black font-extrabold ml-1">
-                  PRO & ELITE
+                  PRO &amp; ELITE
                 </span>
               </button>
 
@@ -341,7 +328,6 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
               </button>
             </div>
 
-            {/* Sub-Filters: Carreira e Banca */}
             <div className="flex flex-wrap items-center gap-2.5 text-xs">
               <div className="flex items-center gap-1 bg-white dark:bg-dark-surface px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10">
                 <span className="text-slate-400 text-[11px] font-bold">Carreira:</span>
@@ -376,7 +362,6 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
             </div>
           </div>
 
-          {/* Exam Presets Cards with Aggressive Empty State */}
           {(() => {
             const filteredExams = exams.filter((exam) => {
               if (examTab === 'past_exams' && !exam.isOfficialPastExam) return false;
@@ -414,7 +399,7 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
                       className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs shadow-lg shadow-blue-600/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
                     >
                       <Sparkles className="w-4 h-4 text-cyan-300" />
-                      <span>Limpar Filtros & Iniciar Simulado Agora</span>
+                      <span>Limpar Filtros &amp; Iniciar Simulado Agora</span>
                     </button>
                   </div>
                 </div>
@@ -436,8 +421,6 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
                       }`}
                     >
                       <div>
-                        
-                        {/* Meta Badges */}
                         <div className="flex items-center justify-between pb-4 border-b border-slate-300 dark:border-white/10 text-xs">
                           <div className="flex items-center gap-2">
                             <span className="px-3 py-1 rounded-xl bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">
@@ -463,7 +446,6 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
                           </div>
                         </div>
 
-                        {/* Title & Description */}
                         <div className="mt-4 space-y-2">
                           <h3 className="text-xl font-black text-slate-900 dark:text-white group-hover:text-indigo-400 transition-colors">
                             {exam.title}
@@ -473,7 +455,6 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
                           </p>
                         </div>
 
-                        {/* Metrics Bar */}
                         <div className="grid grid-cols-3 gap-2 p-3 mt-5 rounded-2xl bg-white dark:bg-dark-surface/80 border border-slate-200 dark:border-white/5 text-center text-xs">
                           <div>
                             <span className="text-slate-500 dark:text-slate-400 text-[10px] block">Questões</span>
@@ -494,10 +475,8 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
                             </strong>
                           </div>
                         </div>
-
                       </div>
 
-                      {/* Start or Unlock Button */}
                       <div className="mt-8 pt-4 border-t border-slate-300 dark:border-white/10">
                         {isLocked ? (
                           <div className="space-y-2">
@@ -522,736 +501,56 @@ export const FullMockExamSimulator: React.FC<FullMockExamSimulatorProps> = ({
                           </button>
                         )}
                       </div>
-
                     </div>
                   );
                 })}
               </div>
             );
           })()}
-
         </div>
       )}
 
       {/* VIEW MODE 2: IN PROGRESS (MODO PROVA REAL) */}
       {viewMode === 'in_progress' && currentQuestion && (
-        <div className="space-y-6">
-          
-          {/* Top Real-time Bar */}
-          <div className="glass-panel bg-white/95 dark:bg-dark-card/95 p-4 rounded-2xl border border-slate-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-4 sticky top-16 z-30 shadow-2xl backdrop-blur-md">
-            
-            {/* Title & Question number */}
-            <div className="flex items-center gap-3">
-              <span className="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-bold text-xs border border-indigo-200 dark:border-indigo-500/30">
-                {selectedExam.banca}
-              </span>
-              <div>
-                <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
-                  Questão {currentQuestionIndex + 1} de {selectedExam.questions.length}
-                </h3>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                  {currentQuestion.subjectName} • {currentQuestion.topicName}
-                </span>
-              </div>
-            </div>
-
-            {/* Middle: Timer */}
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border font-mono font-black text-sm ${
-              remainingSeconds <= 300
-                ? 'bg-rose-500/20 border-rose-500/50 text-rose-500 dark:text-rose-400 animate-pulse'
-                : 'bg-white dark:bg-dark-surface border-slate-200 dark:border-white/10 text-amber-500 dark:text-amber-400 shadow-sm'
-            }`}>
-              <Clock className="w-4 h-4" />
-              <span>{formatTime(remainingSeconds)}</span>
-            </div>
-
-            {/* Right: Actions */}
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleToggleFlag(currentQuestion.id)}
-                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  currentAnswer?.isFlaggedForReview
-                    ? 'bg-amber-500 text-black shadow-md shadow-amber-500/30 font-black'
-                    : 'bg-white dark:bg-dark-surface text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700'
-                }`}
-              >
-                <Bookmark className="w-3.5 h-3.5" />
-                <span>{currentAnswer?.isFlaggedForReview ? 'Marcada para Revisão' : 'Marcar para Revisar'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowConfirmModal(true)}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs transition-all shadow-md shadow-emerald-600/30"
-              >
-                Entregar Prova
-              </button>
-            </div>
-
-          </div>
-
-          {/* Main Layout: Question (Left) vs Answer Sheet Grid (Right) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            {/* Question Card */}
-            <div className="lg:col-span-8 space-y-6">
-              
-              <div className="glass-panel bg-white/85 dark:bg-dark-card/60 backdrop-blur-md shadow-sm p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10">
-                
-                {/* Law citation badge */}
-                {currentQuestion.codeCitation && (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-semibold mb-4">
-                    <Scale className="w-3.5 h-3.5" />
-                    <span>{currentQuestion.codeCitation}</span>
-                  </div>
-                )}
-
-                {/* Statement */}
-                <p className="text-sm sm:text-base text-slate-800 dark:text-slate-100 font-medium leading-relaxed whitespace-pre-line">
-                  {currentQuestion.statement}
-                </p>
-
-                {/* Options */}
-                <div className="mt-8 space-y-3">
-                  {currentQuestion.options.map((option) => {
-                    const isSelected = currentAnswer?.selectedOptionId === option.id;
-                    return (
-                      <button
-                        key={option.id}
-                        onClick={() => handleSelectOption(currentQuestion.id, option.id)}
-                        className={`w-full p-4 rounded-2xl border text-left text-xs sm:text-sm font-medium transition-all flex items-center justify-between gap-4 ${
-                          isSelected
-                            ? 'bg-indigo-50 dark:bg-indigo-600/20 border-indigo-500 dark:border-indigo-400 text-indigo-950 dark:text-white shadow-md ring-2 ring-indigo-200 dark:ring-indigo-400/50'
-                            : 'bg-white dark:bg-dark-surface/70 hover:bg-slate-50 dark:hover:bg-dark-hover border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                            isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                          }`}>
-                            {option.id.replace('opt-', '').toUpperCase()}
-                          </div>
-                          <span className="leading-snug">{option.text}</span>
-                        </div>
-                        {isSelected && <CheckCircle2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Question Bottom Bar: Leave in blank & Navigation */}
-                <div className="mt-8 pt-6 border-t border-slate-300 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  
-                  {/* Clear answer button (Cebraspe feature) */}
-                  <button
-                    type="button"
-                    onClick={() => handleClearAnswer(currentQuestion.id)}
-                    className="text-xs text-slate-500 dark:text-slate-400 hover:text-rose-400 transition-colors flex items-center gap-1.5 self-start"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Deixar esta questão em branco</span>
-                  </button>
-
-                  {/* Prev / Next buttons */}
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      disabled={currentQuestionIndex === 0}
-                      onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
-                      className="px-4 py-2.5 rounded-xl bg-white dark:bg-dark-surface hover:bg-slate-50 dark:hover:bg-dark-hover disabled:opacity-40 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold transition-all flex items-center gap-1.5"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      <span>Anterior</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={currentQuestionIndex === selectedExam.questions.length - 1}
-                      onClick={() => setCurrentQuestionIndex((prev) => Math.min(selectedExam.questions.length - 1, prev + 1))}
-                      className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-indigo-600/30"
-                    >
-                      <span>Próxima</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* Cartão-Resposta Digital (Gabarito Lateral) */}
-            <div className="lg:col-span-4 space-y-4">
-              
-              <div className="glass-panel bg-white/90 dark:bg-dark-card/80 backdrop-blur-md shadow-sm p-6 rounded-3xl border border-slate-200 dark:border-white/10 sticky top-36">
-                
-                <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10">
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>Cartão-Resposta Digital</span>
-                  </h4>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                    {answeredCount} / {selectedExam.questions.length} marcadas
-                  </span>
-                </div>
-
-                {/* Legend */}
-                <div className="grid grid-cols-3 gap-2 mt-4 text-[10px] text-slate-600 dark:text-slate-300">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-indigo-500" />
-                    <span>Marcada</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-amber-400" />
-                    <span>Revisar</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
-                    <span>Em branco</span>
-                  </div>
-                </div>
-
-                {/* Answers Grid */}
-                <div className="grid grid-cols-5 gap-2 mt-5">
-                  {selectedExam.questions.map((q, idx) => {
-                    const ans = answers[q.id];
-                    const isAnswered = ans && ans.selectedOptionId !== null;
-                    const isFlagged = ans && ans.isFlaggedForReview;
-                    const isCurrent = idx === currentQuestionIndex;
-
-                    return (
-                      <button
-                        key={q.id}
-                        type="button"
-                        onClick={() => setCurrentQuestionIndex(idx)}
-                        className={`h-11 rounded-xl font-mono text-xs font-bold transition-all relative flex flex-col items-center justify-center ${
-                          isCurrent
-                            ? 'ring-2 ring-indigo-400 ring-offset-2 ring-offset-dark-bg z-10'
-                            : ''
-                        } ${
-                          isFlagged
-                            ? 'bg-amber-400 text-black shadow-md shadow-amber-400/20'
-                            : isAnswered
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-white dark:bg-dark-surface hover:bg-slate-50 dark:hover:bg-dark-hover border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
-                        }`}
-                      >
-                        <span>{String(idx + 1).padStart(2, '0')}</span>
-                        {isAnswered && (
-                          <span className="text-[9px] uppercase font-black -mt-1 opacity-90">
-                            {ans.selectedOptionId?.replace('opt-', '')}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Live exam summary box */}
-                <div className="mt-6 p-4 rounded-2xl bg-white dark:bg-dark-surface/80 border border-slate-200 dark:border-white/5 space-y-2 text-xs">
-                  <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                    <span>Respondidas:</span>
-                    <strong className="text-slate-900 dark:text-white font-mono">{answeredCount}</strong>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                    <span>Em Branco:</span>
-                    <strong className="text-amber-400 font-mono">{blankCount}</strong>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                    <span>Para Revisão:</span>
-                    <strong className="text-amber-400 font-mono">{flaggedCount}</strong>
-                  </div>
-                </div>
-
-                <div className="mt-5">
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmModal(true)}
-                    className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-emerald-600/30"
-                  >
-                    Finalizar e Entregar Gabarito
-                  </button>
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* Confirm Finish Modal */}
-          {showConfirmModal && (
-            <div role="dialog" aria-modal="true" className="fixed inset-0 z-[110] argus-modal-backdrop flex items-center justify-center p-4 animate-fadeIn">
-              <div className="max-w-md w-full p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 shadow-2xl">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 flex items-center justify-center mb-4">
-                  <FileText className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-black text-slate-900 dark:text-white">
-                  Entregar Gabarito Definitivo?
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                  Confira o resumo do seu preenchimento antes de fechar a prova:
-                </p>
-
-                <div className="my-5 p-4 rounded-2xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-white/5 space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500 dark:text-slate-400">Questões Respondidas:</span>
-                    <strong className="text-emerald-400 font-mono">{answeredCount}</strong>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500 dark:text-slate-400">Questões em Branco:</span>
-                    <strong className="text-amber-400 font-mono">{blankCount}</strong>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500 dark:text-slate-400">Marcadas para Revisão:</span>
-                    <strong className="text-amber-400 font-mono">{flaggedCount}</strong>
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-white/5">
-                    <span className="text-slate-500 dark:text-slate-400">Tempo Restante:</span>
-                    <strong className="text-slate-900 dark:text-white font-mono">{formatTime(remainingSeconds)}</strong>
-                  </div>
-                </div>
-
-                {blankCount > 0 && selectedExam.scoringRule === 'cebraspe_uma_anula_uma' && (
-                  <p className="text-[11px] text-amber-300 mb-4 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20">
-                    💡 <strong>Lembrete Cebraspe:</strong> Deixar {blankCount} questões em branco é uma estratégia válida para não perder pontos positivos em caso de dúvida.
-                  </p>
-                )}
-
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmModal(false)}
-                    className="flex-1 py-3 rounded-xl bg-white dark:bg-dark-surface hover:bg-slate-50 dark:hover:bg-dark-hover border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold transition-all"
-                  >
-                    Voltar à Prova
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleFinishExam}
-                    className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-emerald-600/30"
-                  >
-                    Confirmar Entrega
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-        </div>
+        <MockExamInProgressView
+          selectedExam={selectedExam}
+          currentQuestion={currentQuestion}
+          currentQuestionIndex={currentQuestionIndex}
+          setCurrentQuestionIndex={setCurrentQuestionIndex}
+          currentAnswer={currentAnswer}
+          answers={answers}
+          remainingSeconds={remainingSeconds}
+          answeredCount={answeredCount}
+          blankCount={blankCount}
+          flaggedCount={flaggedCount}
+          showConfirmModal={showConfirmModal}
+          setShowConfirmModal={setShowConfirmModal}
+          formatTime={formatTime}
+          onSelectOption={handleSelectOption}
+          onClearAnswer={handleClearAnswer}
+          onToggleFlag={handleToggleFlag}
+          onFinishExam={handleFinishExam}
+        />
       )}
 
       {/* VIEW MODE 3: OFFICIAL RESULT & SIMULATED RANKING */}
       {viewMode === 'result' && result && (
-        <div className="space-y-8 animate-fadeIn">
-          
-          {/* Hero Performance Card */}
-          <div className="glass-panel bg-white/85 dark:bg-dark-card/60 backdrop-blur-md shadow-sm p-6 sm:p-8 rounded-3xl border border-indigo-500/40 glow-brand">
-            
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200 dark:border-white/10">
-              
-              <div className="flex items-center gap-4">
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl font-black shrink-0 ${
-                  result.isAboveCutoff
-                    ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-500 dark:text-emerald-400'
-                    : 'bg-rose-500/20 border border-rose-500/40 text-rose-500 dark:text-rose-400'
-                }`}>
-                  {result.isAboveCutoff ? '✓' : '✗'}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs font-black uppercase tracking-wider ${
-                      result.isAboveCutoff ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                    }`}>
-                      {result.isAboveCutoff ? 'DENTRO DA NOTA DE CORTE' : 'ABAIXO DA NOTA DE CORTE'}
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono border border-slate-200 dark:border-slate-700">
-                      Corte Estimado: {result.cutoffScore}%
-                    </span>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
-                    Nota Líquida: <span className={result.isAboveCutoff ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
-                      {result.netScore > 0 ? `+${result.netScore}` : result.netScore}
-                    </span> / {result.totalQuestions} pts líquidos ({result.percentage}%)
-                  </h2>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
-                    {result.mockExamTitle} • Concluído em {result.completedAt} ({Math.round(result.timeSpentSeconds / 60)} min gastos).
-                  </p>
-                </div>
-              </div>
-
-              {/* Formula calculation badge */}
-              <div className="bg-white dark:bg-dark-surface/90 p-4 rounded-2xl border border-slate-200 dark:border-white/5 text-xs self-start md:self-auto shadow-sm">
-                <span className="text-slate-500 dark:text-slate-400">Fórmula de Apuração Oficial:</span>
-                {result.scoringRule === 'cebraspe_uma_anula_uma' ? (
-                  <div className="mt-1">
-                    <p className="font-mono font-bold text-slate-900 dark:text-white">Nota Líquida = Acertos ({result.correctCount}) - Erros ({result.wrongCount})</p>
-                    <p className="text-[11px] text-rose-500 dark:text-rose-400 mt-0.5 font-semibold">Penalidades deduzidas: -{result.penaltyDeductions} pts</p>
-                  </div>
-                ) : (
-                  <div className="mt-1">
-                    <p className="font-mono font-bold text-slate-900 dark:text-white">Nota = {result.correctCount} acertos de {result.totalQuestions} questões</p>
-                    <p className="text-[11px] text-emerald-500 dark:text-emerald-400 mt-0.5 font-semibold">Sem fator de penalização por erro</p>
-                  </div>
-                )}
-              </div>
-
-            </div>
-
-            {/* Simulated Ranking Banner */}
-            <div className="mt-6 p-6 rounded-2xl bg-gradient-to-r from-amber-500/15 via-blue-500/10 to-emerald-500/15 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0">
-                  <Trophy className="w-6 h-6" />
-                </div>
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                    Posição no Ranking Simulado do Concurso
-                  </span>
-                  <h3 className="text-xl font-black text-slate-900 dark:text-white mt-0.5">
-                    🏆 Você ficou em <span className="text-amber-600 dark:text-amber-400">{result.simulatedRank}º lugar</span> entre {result.totalCandidates.toLocaleString('pt-BR')} candidatos
-                  </h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
-                    Percentil atingido: <strong>{Math.max(1, 100 - Math.round((result.simulatedRank / result.totalCandidates) * 100))}%</strong> dos concorrentes simulados.
-                  </p>
-                </div>
-              </div>
-
-              <div className="text-right shrink-0">
-                <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold block">Status no Concurso</span>
-                <span className={`px-3 py-1.5 rounded-xl text-xs font-black inline-block mt-1 ${
-                  result.isAboveCutoff 
-                    ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40' 
-                    : 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/40'
-                }`}>
-                  {result.isAboveCutoff ? 'Classificado para a 2ª Fase' : 'Fora das Vagas Imediatas'}
-                </span>
-              </div>
-            </div>
-
-            {/* Official Real Cutoff Comparison Notification Banner */}
-            {selectedExam.isOfficialPastExam && selectedExam.historicalCutoffScore && (
-              <div className="mt-4 p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                      <Scale className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider">
-                          Métrica Oficial Real ({selectedExam.examYear})
-                        </span>
-                        <span className="text-slate-500 dark:text-slate-400 font-medium">Banca {selectedExam.banca}</span>
-                      </div>
-                      <h4 className="text-sm font-black text-slate-900 dark:text-white mt-1">
-                        Corte Histórico Real: <span className="text-amber-600 dark:text-amber-400">{selectedExam.historicalCutoffScore} pontos líquidos</span>
-                      </h4>
-                      <p className="text-slate-600 dark:text-slate-300 mt-0.5">
-                        {selectedExam.historicalCutoffDescription}
-                      </p>
-                      {result.netScore >= selectedExam.historicalCutoffScore ? (
-                        <div className="mt-3 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold">
-                          <CheckCircle2 className="w-4 h-4 shrink-0" />
-                          <span>Parabéns! Sua pontuação líquida teria garantido a convocação na lista real deste certame!</span>
-                        </div>
-                      ) : (
-                        <div className="mt-3 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-bold">
-                          <AlertTriangle className="w-4 h-4 shrink-0" />
-                          <span>Você ficou a {(selectedExam.historicalCutoffScore - result.netScore).toFixed(1)} pontos do corte oficial real. Revise os pontos cegos no Caderno de Erros!</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {userPlan !== 'elite' && (
-                    <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center shrink-0 self-start md:self-center">
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 block mb-1.5 font-bold">Quer diagnóstico cognitivo de cada erro?</span>
-                      <button
-                        onClick={onOpenPricing}
-                        className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black text-xs transition-all flex items-center gap-1.5 shadow-md shadow-amber-500/20"
-                      >
-                        <Crown className="w-3.5 h-3.5" />
-                        <span>Desbloquear no Elite</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Quick Metrics Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 text-xs text-center">
-              <div className="p-4 rounded-2xl bg-white dark:bg-dark-surface/80 border border-slate-200 dark:border-white/5 shadow-sm">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Acertos (Certas)</span>
-                <p className="text-xl font-black text-emerald-500 dark:text-emerald-400 font-mono mt-1">+{result.correctCount}</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-white dark:bg-dark-surface/80 border border-slate-200 dark:border-white/5 shadow-sm">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Erros (Anulam)</span>
-                <p className="text-xl font-black text-rose-500 dark:text-rose-400 font-mono mt-1">-{result.wrongCount}</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-white dark:bg-dark-surface/80 border border-slate-200 dark:border-white/5 shadow-sm">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Em Branco (Neutras)</span>
-                <p className="text-xl font-black text-amber-500 dark:text-amber-400 font-mono mt-1">{result.blankCount}</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-white dark:bg-dark-surface/80 border border-slate-200 dark:border-white/5 shadow-sm">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Tempo Médio/Questão</span>
-                <p className="text-xl font-black text-indigo-500 dark:text-indigo-400 font-mono mt-1">
-                  {Math.round(result.timeSpentSeconds / result.totalQuestions)}s
-                </p>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Performance by Subject Breakdown Table */}
-          <div className="glass-panel bg-white/85 dark:bg-dark-card/60 backdrop-blur-md shadow-sm p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10">
-            <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2 mb-4">
-              <BarChart2 className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
-              <span>Desempenho Discriminado por Disciplina</span>
-            </h3>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left text-slate-600 dark:text-slate-300">
-                <thead className="bg-slate-50 dark:bg-dark-surface text-slate-500 dark:text-slate-400 uppercase text-[10px] font-bold border-b border-slate-200 dark:border-white/10">
-                  <tr>
-                    <th className="p-3">Disciplina</th>
-                    <th className="p-3 text-center">Questões</th>
-                    <th className="p-3 text-center text-emerald-500 dark:text-emerald-400">Acertos</th>
-                    <th className="p-3 text-center text-rose-500 dark:text-rose-400">Erros</th>
-                    <th className="p-3 text-center text-amber-500 dark:text-amber-400">Em Branco</th>
-                    <th className="p-3 text-center font-bold text-slate-900 dark:text-white">Saldo Líquido</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-mono">
-                  {result.subjectBreakdown.map((subj, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors">
-                      <td className="p-3 font-sans font-bold text-slate-900 dark:text-white">{subj.subjectName}</td>
-                      <td className="p-3 text-center">{subj.total}</td>
-                      <td className="p-3 text-center text-emerald-500 dark:text-emerald-400">+{subj.correct}</td>
-                      <td className="p-3 text-center text-rose-500 dark:text-rose-400">-{subj.wrong}</td>
-                      <td className="p-3 text-center text-amber-500 dark:text-amber-400">{subj.blank}</td>
-                      <td className="p-3 text-center font-bold text-indigo-600 dark:text-indigo-300">
-                        {subj.netScore > 0 ? `+${subj.netScore}` : subj.netScore} pts
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Complete Answer Key (Gabarito Comentado Oficial) */}
-          <div className="glass-panel bg-white/85 dark:bg-dark-card/60 backdrop-blur-md shadow-sm p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 space-y-6">
-            
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/10">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Gabarito Comentado</span>
-                <h3 className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
-                  Conferência Questão por Questão com Análise da Banca
-                </h3>
-              </div>
-
-              {/* Filter Tabs */}
-              <div className="flex items-center p-1 rounded-2xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-white/10 text-xs shadow-sm">
-                <button
-                  onClick={() => { setResultFilter('all'); setVisibleResultsCount(15); }}
-                  className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
-                    resultFilter === 'all' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  Todas ({result.totalQuestions})
-                </button>
-                <button
-                  onClick={() => { setResultFilter('wrong'); setVisibleResultsCount(15); }}
-                  className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
-                    resultFilter === 'wrong' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  Erros ({result.wrongCount})
-                </button>
-                <button
-                  onClick={() => { setResultFilter('blank'); setVisibleResultsCount(15); }}
-                  className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
-                    resultFilter === 'blank' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  Em Branco ({result.blankCount})
-                </button>
-              </div>
-            </div>
-
-            {/* SRS Sync Banner */}
-            {result.wrongCount > 0 && (
-              <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2 text-indigo-900 dark:text-indigo-300 font-medium">
-                  <Sparkles className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" />
-                  <span>
-                    Você errou <strong>{result.wrongCount} questões</strong> neste simulado. Converta seus erros em flashcards para fixação definitiva.
-                  </span>
-                </div>
-                <button
-                  onClick={handleAddWrongQuestionsToSRS}
-                  disabled={addedToSRS}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                    addedToSRS
-                      ? 'bg-emerald-600/30 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 cursor-default'
-                      : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md'
-                  }`}
-                >
-                  {addedToSRS ? <Check className="w-3.5 h-3.5" /> : <BookOpen className="w-3.5 h-3.5" />}
-                  <span>{addedToSRS ? 'Flashcards Adicionados!' : 'Salvar Erros no Deck SRS'}</span>
-                </button>
-              </div>
-            )}
-
-            {/* Questions List with Lazy-Loading Pagination */}
-            {(() => {
-              const filteredQuestions = selectedExam.questions.filter((q) => {
-                const ans = answers[q.id];
-                const correctOpt = q.options.find((o) => o.isCorrect);
-                const isCorrect = ans && ans.selectedOptionId === correctOpt?.id;
-                const isBlank = !ans || ans.selectedOptionId === null;
-
-                if (resultFilter === 'wrong') return !isBlank && !isCorrect;
-                if (resultFilter === 'blank') return isBlank;
-                if (resultFilter === 'correct') return isCorrect;
-                return true;
-              });
-
-              const displayedQuestions = filteredQuestions.slice(0, visibleResultsCount);
-
-              return (
-                <div className="space-y-6">
-                  {displayedQuestions.map((q) => {
-                    const ans = answers[q.id];
-                    const correctOpt = q.options.find((o) => o.isCorrect);
-                    const selectedOpt = q.options.find((o) => o.id === ans?.selectedOptionId);
-                    const isCorrect = ans && ans.selectedOptionId === correctOpt?.id;
-                    const isBlank = !ans || ans.selectedOptionId === null;
-
-                    return (
-                      <div
-                        key={q.id}
-                        className={`p-6 rounded-2xl border text-xs sm:text-sm transition-all shadow-sm ${
-                          isCorrect
-                            ? 'bg-emerald-50/90 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-500/30'
-                            : isBlank
-                            ? 'bg-amber-50/90 dark:bg-amber-950/20 border-amber-300 dark:border-amber-500/30'
-                            : 'bg-rose-50/90 dark:bg-rose-950/20 border-rose-300 dark:border-rose-500/30'
-                        }`}
-                      >
-                        {/* Meta header */}
-                        <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/5 text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900 dark:text-white">Questão #{selectedExam.questions.indexOf(q) + 1}</span>
-                            <span className="text-slate-500 dark:text-slate-400">• {q.subjectName}</span>
-                          </div>
-                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                            isCorrect
-                              ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
-                              : isBlank
-                              ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400'
-                              : 'bg-rose-500/20 text-rose-700 dark:text-rose-400'
-                          }`}>
-                            {isCorrect ? '✓ Acerto (+1 pt)' : isBlank ? '○ Em Branco (0 pt)' : '✗ Erro (-1 pt no Cebraspe)'}
-                          </span>
-                        </div>
-
-                        {/* Statement */}
-                        <p className="mt-3 text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
-                          {q.statement}
-                        </p>
-
-                        {/* Comparison of Selected vs Correct */}
-                        <div className="mt-4 p-3.5 rounded-xl bg-slate-100 dark:bg-dark-bg/70 border border-slate-200 dark:border-white/5 space-y-1.5 text-xs font-mono">
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-500 dark:text-slate-400">Sua Marcação:</span>
-                            <strong className={isCorrect ? 'text-emerald-600 dark:text-emerald-400' : isBlank ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'}>
-                              {isBlank ? 'EM BRANCO' : selectedOpt?.text}
-                            </strong>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-500 dark:text-slate-400">Gabarito Oficial:</span>
-                            <strong className="text-emerald-600 dark:text-emerald-400">{correctOpt?.text}</strong>
-                          </div>
-                        </div>
-
-                        {/* Explanation */}
-                        <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                          <strong className="text-indigo-700 dark:text-indigo-300">Fundamentação: </strong>
-                          {q.explanation}
-                        </div>
-
-                        {/* Legal references */}
-                        {q.lawArticles && (
-                          <div className="mt-3 flex flex-wrap gap-1.5">
-                            {q.lawArticles.map((art, aIdx) => (
-                              <span key={aIdx} className="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/25 text-[10px] font-semibold">
-                                {art}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-
-                  {/* Lazy Load Controls */}
-                  {filteredQuestions.length > visibleResultsCount && (
-                    <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                      <span className="text-slate-500 dark:text-slate-400">
-                        Exibindo <strong>{displayedQuestions.length}</strong> de <strong>{filteredQuestions.length}</strong> questões filtradas.
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setVisibleResultsCount((prev) => prev + 15)}
-                          className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all shadow-md"
-                        >
-                          Carregar Mais 15
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setVisibleResultsCount(filteredQuestions.length)}
-                          className="px-3 py-2 rounded-xl bg-white dark:bg-dark-surface hover:bg-slate-50 dark:hover:bg-dark-hover border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold transition-all"
-                        >
-                          Ver Todas
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-
-            {/* Bottom Actions */}
-            <div className="pt-6 border-t border-slate-300 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <button
-                type="button"
-                onClick={() => setViewMode('select')}
-                className="px-6 py-3 rounded-xl bg-white dark:bg-dark-surface hover:bg-slate-50 dark:hover:bg-dark-hover border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold transition-all"
-              >
-                Voltar aos Simulados
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleStartExam(selectedExam)}
-                className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold transition-all shadow-lg shadow-indigo-600/30 flex items-center gap-2"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>Refazer Este Simulado</span>
-              </button>
-            </div>
-
-          </div>
-
-        </div>
+        <MockExamResultView
+          selectedExam={selectedExam}
+          result={result}
+          answers={answers}
+          userPlan={userPlan}
+          resultFilter={resultFilter}
+          setResultFilter={setResultFilter}
+          visibleResultsCount={visibleResultsCount}
+          setVisibleResultsCount={setVisibleResultsCount}
+          addedToSRS={addedToSRS}
+          onAddWrongQuestionsToSRS={handleAddWrongQuestionsToSRS}
+          onBackToSelect={() => setViewMode('select')}
+          onRetakeExam={() => handleStartExam(selectedExam)}
+          onOpenPricing={onOpenPricing}
+        />
       )}
-
     </div>
   );
 };

@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     'playwright-report/**',
     'test-results/**',
     'public/**',
+    'marketing-assets/**',
     'scripts/**/*.js',
   ]),
   {

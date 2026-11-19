@@ -19,43 +19,43 @@ const GUARDIAN_META: Record<GuardianAvatarType, { name: string; archetype: strin
   coruja: {
     name: 'Coruja Atena',
     archetype: 'Mestre Analítico',
-    file: '/images/avatars/coruja.jpg',
+    file: '/images/avatars/coruja.webp',
     emoji: '🦉'
   },
   gaviao: {
     name: 'Gavião Real',
     archetype: 'Auditor Implacável',
-    file: '/images/avatars/gaviao.jpg',
+    file: '/images/avatars/gaviao.webp',
     emoji: '🦅'
   },
   leao: {
     name: 'Leão Soberano',
     archetype: 'Tribuno Convicto',
-    file: '/images/avatars/leao.jpg',
+    file: '/images/avatars/leao.webp',
     emoji: '🦁'
   },
   lobo: {
     name: 'Lobo-Guará',
     archetype: 'Operador de Elite',
-    file: '/images/avatars/lobo.jpg',
+    file: '/images/avatars/lobo.webp',
     emoji: '🐺'
   },
   onca: {
     name: 'Onça Pintada',
     archetype: 'Guerreiro de Longo Prazo',
-    file: '/images/avatars/onca.jpg',
+    file: '/images/avatars/onca.webp',
     emoji: '🐆'
   },
   raposa: {
     name: 'Raposa Ágil',
     archetype: 'Otimizador de Provas',
-    file: '/images/avatars/raposa.jpg',
+    file: '/images/avatars/raposa.webp',
     emoji: '🦊'
   },
   fenix: {
     name: 'Fênix Dourada',
     archetype: 'Imortal da Posse',
-    file: '/images/avatars/fenix.jpg',
+    file: '/images/avatars/fenix.webp',
     emoji: '🔥'
   },
 };
@@ -71,7 +71,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   className = '',
 }) => {
   const meta = GUARDIAN_META[type] || GUARDIAN_META.coruja;
-  const imageSrc = src || meta.file;
+  const imageSrc = (src || meta.file).replace(/\/(?:images\/)?avatars\/([a-z]+)\.jpg$/i, '/images/avatars/$1.webp');
   const displayName = name || meta.name;
   const displayArchetype = archetype || meta.archetype;
 

@@ -4,11 +4,6 @@ import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Navbar } from '@/components/Navbar';
 import { LandingPage } from '@/components/LandingPage';
-import { PricingModal } from '@/components/PricingModal';
-import { AICopilotDrawer } from '@/components/AICopilotDrawer';
-import { StudentProfileModal } from '@/components/StudentProfileModal';
-import { AuthModal } from '@/components/AuthModal';
-import { UserOnboardingModal } from '@/components/UserOnboardingModal';
 import {
   ONBOARDING_COMPLETED_KEY,
   ONBOARDING_PROFILE_KEY,
@@ -16,23 +11,15 @@ import {
   shouldAutoOpenOnboarding,
 } from '@/components/onboarding/onboardingData';
 import { getSyncUserId } from '@/lib/authIdentity';
-import { SeanEllisSurveyModal } from '@/components/SeanEllisSurveyModal';
 import { TabLoadingSkeleton } from '@/components/TabLoadingSkeleton';
-import { ScrollToTop } from '@/components/ScrollToTop';
-import { MobileAppModal } from '@/components/MobileAppModal';
 import { useAuthStore } from '@/store/useAuthStore';
-import { Sparkles, ArrowLeft, Home, Target, ChevronRight } from 'lucide-react';
-import { CANONICAL_MODULES } from '@/lib/types';
 import { GlobalExamContextBar } from '@/components/GlobalExamContextBar';
-import { FloatingContactSupport } from '@/components/FloatingContactSupport';
-import { FlashChallengeModal } from '@/components/FlashChallengeModal';
 import { InactivityRecoveryBanner } from '@/components/InactivityRecoveryBanner';
-import { ReferralProgramModal } from '@/components/ReferralProgramModal';
-import { CookieConsentBanner } from '@/components/CookieConsentBanner';
-import { SplashScreen } from '@/components/SplashScreen';
-import { GoogleAdSense } from '@/components/GoogleAdSense';
 import { analytics } from '@/lib/analytics';
 import { isFreemiumAllowed } from '@/lib/abTesting';
+import { useArgusNavigation } from '@/hooks/useArgusNavigation';
+import { useArgusSession } from '@/hooks/useArgusSession';
+import { ArgusGlobalModals } from '@/components/ArgusGlobalModals';
 
 // Code Splitting Dinâmico de Abas Pesadas (Performance Otimizada)
 const EditalParser = dynamic(
@@ -107,10 +94,6 @@ const PostPaymentWelcomeTab = dynamic(
   () => import('@/components/PostPaymentWelcomeTab').then((m) => m.PostPaymentWelcomeTab),
   { loading: () => <TabLoadingSkeleton />, ssr: false }
 );
-const AdminQuestionIngestModal = dynamic(
-  () => import('@/components/AdminQuestionIngestModal').then((m) => m.AdminQuestionIngestModal),
-  { ssr: false }
-);
 
 import { 
   ExamNotice, 
@@ -134,35 +117,14 @@ import {
 } from '@/lib/mockData';
 
 export function ArgusApp() {
-  const [activeTab, setActiveTab] = useState<string>('landing');
-  const [tabHistory, setTabHistory] = useState<string[]>([]);
-
-  const handleNavigateWithHistory = (nextTab: string) => {
-    if (nextTab !== activeTab) {
-      setTabHistory((prev) => [...prev.slice(-15), activeTab]);
-      setActiveTab(nextTab);
-      if (typeof window !== 'undefined') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }
-  };
-
-  const handleGoBack = () => {
-    if (tabHistory.length > 0) {
-      const prev = tabHistory[tabHistory.length - 1];
-      setTabHistory((h) => h.slice(0, -1));
-      setActiveTab(prev);
-      if (typeof window !== 'undefined') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    } else {
-      setActiveTab('landing');
-    }
-  };
-
-  const handleGoHome = () => {
-    handleNavigateWithHistory('landing');
-  };
+  const {
+    activeTab,
+    setActiveTab,
+    setTabHistory,
+    handleNavigateWithHistory,
+    handleGoBack,
+    handleGoHome,
+  } = useArgusNavigation('landing');
 
   const handleOpenPricing = () => {
     setPricingModalInitialTab('plans');
@@ -188,7 +150,7 @@ export function ArgusApp() {
   const [isPricingOpen, setIsPricingOpen] = useState(false);
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
   const [isAdminIngestOpen, setIsAdminIngestOpen] = useState(false);
-  const [isServerVerifiedAdmin, setIsServerVerifiedAdmin] = useState(false);
+  const { isServerVerifiedAdmin } = useArgusSession(setPlan);
   const [isOnboardingTerminalOpen, setIsOnboardingTerminalOpen] = useState(false);
   const [isSeanEllisSurveyOpen, setIsSeanEllisSurveyOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -475,94 +437,7 @@ export function ArgusApp() {
         window.removeEventListener('argus-auth-plan-sync', handleAuthPlanSync);
       };
     } catch {}
-  }, []);
-
-  // Sincronização em tempo real da Sessão Supabase Auth + Plano Ativo com o Zustand useAuthStore
-  useEffect(() => {
-    const supabase = getSupabase();
-    if (!supabase) return;
-
-    const syncAuthAndPlan = async (
-      u: { id: string; email?: string; user_metadata?: Record<string, unknown> },
-      accessToken: string
-    ) => {
-      const fullName = typeof u.user_metadata?.full_name === 'string' ? u.user_metadata.full_name : undefined;
-      const metaName = typeof u.user_metadata?.name === 'string' ? u.user_metadata.name : undefined;
-      const name = fullName || metaName || u.email?.split('@')[0] || 'Aluno Concurseiro';
-
-      useAuthStore.getState().setAuth(
-        {
-          id: u.id,
-          email: u.email || '',
-          name,
-          role: 'student',
-        },
-        accessToken
-      );
-
-      try {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('subscription_tier, subscription_status')
-          .eq('id', u.id)
-          .single();
-
-        if (
-          profileData &&
-          profileData.subscription_status === 'active' &&
-          ['lancamento', 'pro', 'elite', 'black'].includes(profileData.subscription_tier)
-        ) {
-          setPlan(profileData.subscription_tier as SubscriptionPlan);
-        } else {
-          setPlan('aspirante');
-          try {
-            localStorage.removeItem('argus_plan');
-            localStorage.removeItem('aprovalens_plan');
-          } catch {}
-        }
-      } catch {
-        setPlan('aspirante');
-        try {
-          localStorage.removeItem('argus_plan');
-          localStorage.removeItem('aprovalens_plan');
-        } catch {}
-      }
-
-      // Verifica privilégio administrativo estritamente no backend (/api/admin/session)
-      try {
-        const admRes = await fetch('/api/admin/session', {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        const admData = await admRes.json().catch(() => null);
-        setIsServerVerifiedAdmin(Boolean(admRes.ok && admData?.isAdmin === true));
-      } catch {
-        setIsServerVerifiedAdmin(false);
-      }
-    };
-
-    // Carrega sessão atual ativa no Supabase
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        syncAuthAndPlan(session.user, session.access_token);
-      }
-    });
-
-    // Monitora eventos de login/logout em tempo real
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        syncAuthAndPlan(session.user, session.access_token);
-      } else if (event === 'SIGNED_OUT') {
-        useAuthStore.getState().logout();
-        setIsServerVerifiedAdmin(false);
-        if (!isFreemiumAllowed()) {
-          setPlan('aspirante');
-        }
-      }
-    });
-    return () => {
-      authListener?.subscription?.unsubscribe();
-    };
-  }, []);
+  }, [setActiveTab, setTabHistory]);
 
   const handleSetNavMode = (mode: 'sidebar' | 'megamenu' | 'dock') => {
     setNavMode(mode);
@@ -572,71 +447,6 @@ export function ArgusApp() {
     const label = mode === 'sidebar' ? 'Sidebar Lateral (Opção 1)' : mode === 'megamenu' ? 'Mega-Menu Topo (Opção 2)' : 'Dock Flutuante (Opção 3)';
     showToast(`Estilo alterado para: ${label}`);
   };
-
-  // Transição de abas: Rolagem suave automática para o topo e atualização dinâmica do título da página
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (window.scrollY > 0) {
-        requestAnimationFrame(() => {
-          window.scrollTo({
-            top: 0,
-            left: 0,
-            behavior: 'smooth',
-          });
-        });
-      }
-      const titles: Record<string, string> = {
-        landing: 'Argus — O Copiloto Cognitivo para Concursos, OAB e Carreiras Jurídicas',
-        dashboard: 'Cockpit de Dados & Heatmap 365d | Argus',
-        simulator: 'Arena de Combate (Simulador 60/40) | Argus',
-        flashcards: 'SRS Flashcards 3D (Repetição Espaçada) | Argus',
-        mistakes: 'Caderno de Erros Inteligente & Revanche | Argus',
-        vademecum: 'Smart Vade Mecum & Lei Seca | Argus',
-        questions: 'Banco de Questões Comentadas | Argus',
-        edital: 'Edital Verticalizado por IA | Argus',
-        cycle: 'Ciclos de Estudo Adaptativos (Meirelles) | Argus',
-        discursivas: 'Estúdio de Redação & Peças OAB | Argus',
-        summaries: 'Resumos Inteligentes 80/20 | Argus',
-        resumos: 'Resumos Inteligentes 80/20 | Argus',
-        psychometrics: 'Psicometria TRI da Banca | Argus',
-        radar: 'Radar de Concursos 2026 | Argus',
-        'pricing-plans': 'Planos & Assinaturas | Argus',
-        settings: 'Configurações do Aluno | Argus',
-        checkout: 'Checkout Seguro | Argus',
-        'welcome-success': 'Bem-vindo(a) ao Argus! Matrícula Confirmada',
-        subscription: 'Gerenciar Assinatura | Argus',
-        help: 'Ajuda & Suporte | Argus',
-      };
-      const pageTitle = titles[activeTab] || 'Argus — Copiloto Cognitivo';
-      document.title = pageTitle;
-      analytics.track('pageview', {
-        tab: activeTab,
-        title: pageTitle,
-      });
-    }
-  }, [activeTab]);
-
-  // Suavização global de rolagem para âncoras internas (ex: links #pricing)
-  useEffect(() => {
-    const handleAnchorClick = (e: MouseEvent) => {
-      const target = (e.target as HTMLElement)?.closest('a[href^="#"]');
-      if (target) {
-        const hash = target.getAttribute('href');
-        if (hash && hash.length > 1) {
-          const targetEl = document.querySelector(hash);
-          if (targetEl) {
-            e.preventDefault();
-            targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            try {
-              window.history.pushState(null, '', hash);
-            } catch {}
-          }
-        }
-      }
-    };
-    document.addEventListener('click', handleAnchorClick);
-    return () => document.removeEventListener('click', handleAnchorClick);
-  }, []);
 
   const applyThemeClasses = (t: 'dark' | 'light') => {
     document.documentElement.classList.remove('light', 'dark');
@@ -1352,224 +1162,57 @@ export function ArgusApp() {
         </div>
       </main>
 
-      {/* Omnipresent AI Copilot Drawer */}
-      <AICopilotDrawer
-        isOpen={isCopilotOpen}
-        onClose={() => setIsCopilotOpen(false)}
+      <ArgusGlobalModals
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        handleNavigateWithHistory={handleNavigateWithHistory}
+        theme={theme}
+        plan={plan}
         metrics={metrics}
         selectedExam={selectedExam}
+        exams={exams}
         pendingMistakesCount={pendingMistakesCount}
-        profile={studentProfile}
-        onNavigateTab={(tab) => handleNavigateWithHistory(tab)}
-      />
-
-      {/* Pricing & Checkout Modal */}
-      <PricingModal
-        isOpen={isPricingOpen}
-        onClose={() => setIsPricingOpen(false)}
-        currentPlan={plan}
-        initialSelectedPlan={pendingCheckoutPlan}
-        initialTab={pricingModalInitialTab}
-        onUpgradePlan={handleUpgradePlan}
-      />
-
-      {/* Student Profile & Guardian Animal Modal */}
-      <StudentProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-        profile={studentProfile}
-        onSaveProfile={handleSaveProfile}
-        userPlan={plan}
-        onOpenPricing={() => setIsPricingOpen(true)}
-      />
-
-      {/* Auth & Google Sign-In Modal */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-      />
-
-      {/* Modal de App Mobile (Onboarding Multimodal) */}
-      <MobileAppModal
-        isOpen={isMobileModalOpen}
-        onClose={() => setIsMobileModalOpen(false)}
-      />
-
-      {/* Admin Question Ingestion & Audit Pipeline Modal */}
-      <AdminQuestionIngestModal
-        isOpen={isAdminIngestOpen}
-        onClose={() => setIsAdminIngestOpen(false)}
-        onQuestionsIngested={(newQuestions) => {
-          showToast(`🚀 ${newQuestions.length} questões auditadas carregadas com sucesso!`);
-        }}
-      />
-
-      {/* Premium Gamified Cognitive Onboarding Modal */}
-      <UserOnboardingModal
-        isOpen={isOnboardingTerminalOpen}
-        onClose={() => setIsOnboardingTerminalOpen(false)}
-        currentProfile={studentProfile}
-        onOpenPricing={handleOpenPricing}
-        theme={theme}
-        onComplete={(partialProfile, destinationTab, selectedPlan) => {
-          setIsOnboardingTerminalOpen(false);
-          const newProfile: StudentProfile = {
-            ...studentProfile,
-            ...partialProfile,
-            updatedAt: new Date().toISOString()
-          };
-          setStudentProfile(newProfile);
-          try {
-            localStorage.setItem('argus_student_profile', JSON.stringify(newProfile));
-            localStorage.setItem('argus_onboarding_completed', 'true');
-          } catch {}
-
-          // Atualizar Zustand store
-          try {
-            useAuthStore.getState().updateProfile(newProfile);
-          } catch {}
-
-          // Sincronizar com Supabase se houver usuário autenticado
-          try {
-            const syncUserId = getSyncUserId();
-            if (syncUserId) {
-              SupabaseService.syncStudentProfile(syncUserId, newProfile);
-            }
-          } catch {}
-
-          // Sincronizar Edital Alvo com os exames disponíveis e torná-lo o edital padrão
-          if (partialProfile.targetExamTitle) {
-            const matchedExam = exams.find(e => 
-              e.title.toLowerCase().includes((partialProfile.targetExamTitle || '').toLowerCase()) ||
-              (partialProfile.targetExamTitle || '').toLowerCase().includes(e.title.toLowerCase())
-            );
-            if (matchedExam) {
-              handleSetDefaultExam(matchedExam);
-            }
-          }
-
-          // Modelo Zero Freemium / Hard Paywall:
-          // Após o Passaporte da Anamnese, direciona o visitante para escolha de plano ou checkout sem liberar acesso gratuito ao simulador
-          if (!isFreemiumAllowed() && plan === 'aspirante') {
-            const targetPlan: SubscriptionPlan =
-              selectedPlan && selectedPlan !== 'aspirante'
-                ? selectedPlan
-                : destinationTab === 'checkout'
-                  ? 'lancamento'
-                  : 'pro';
-            setPendingCheckoutPlan(targetPlan);
-            setPricingModalInitialTab(destinationTab === 'checkout' ? 'checkout' : 'plans');
-            setIsPricingOpen(true);
-            showToast(
-              destinationTab === 'checkout'
-                ? '🎯 Passaporte concluído! Finalize o pagamento para liberar todos os módulos do seu edital.'
-                : '🎯 Passaporte concluído! Escolha seu plano (Passe R$ 97, PRO, ELITE ou BLACK) para começar.'
-            );
-          } else if (destinationTab === 'pricing' || destinationTab === 'checkout') {
-            const targetPlan: SubscriptionPlan =
-              selectedPlan && selectedPlan !== 'aspirante' ? selectedPlan : 'pro';
-            setPendingCheckoutPlan(targetPlan);
-            setPricingModalInitialTab(destinationTab === 'checkout' ? 'checkout' : 'plans');
-            setIsPricingOpen(true);
-            showToast('🎯 Diagnóstico concluído! Conheça os recursos do seu plano.');
-          } else {
-            setActiveTab('simulator');
-            showToast(`🎯 Diagnóstico concluído! Sua primeira bateria personalizada de ${partialProfile.targetExamTitle || 'questões'} está pronta.`);
-          }
-        }}
-      />
-
-      
-
-      {/* Pesquisa de PMF In-App - Sean Ellis Test */}
-      <SeanEllisSurveyModal
-        isOpen={isSeanEllisSurveyOpen}
-        onClose={() => setIsSeanEllisSurveyOpen(false)}
-        onSubmitted={() => {
-          showToast('❤️ Muito obrigado por ajudar a calibrar o Argus!');
-        }}
-      />
-
-      {/* 1. Splash Screen de Carregamento Cognitivo Inicial */}
-      {!isSplashDone && (
-        <SplashScreen onFinish={handleSplashFinish} />
-      )}
-
-      {/* 2. Banner de Consentimento de Cookies & LGPD (Passo 2 do fluxo: exibido sozinho após a Splash) */}
-      <CookieConsentBanner
-        canShow={isSplashDone && !hasLgpdConsent}
-        onConsentGiven={handleLgpdConsentGiven}
-      />
-
-      {/* 3. Google AdSense Estratégico (Apenas Plano Gratuito / Zero Ad para Assinantes) */}
-      <GoogleAdSense currentPlan={plan} />
-
-      {/* Botão Flutuante de Rolagem Suave para o Topo */}
-      <ScrollToTop />
-
-      {/* Suporte Direto 1-a-1 & Floating WhatsApp (Pilar 2: Qualificação com is_paying_or_committed) */}
-      <FloatingContactSupport
-        currentTab={activeTab}
-        targetExam={selectedExam?.title || studentProfile?.targetExamTitle || 'Concurso Público'}
-        studentName={studentProfile?.warName || studentProfile?.name || 'Estudante'}
-        theme={theme}
-        isPayingOrCommitted={plan !== 'aspirante'}
-      />
-
-      {/* Desafio Relâmpago das 3 Pegadinhas (D0 Instant Retention Aha Moment) */}
-      <FlashChallengeModal
-        isOpen={isFlashChallengeOpen}
-        onClose={() => setIsFlashChallengeOpen(false)}
-        targetBanca={selectedExam?.banca || 'FGV'}
-        targetRole={selectedExam?.title || studentProfile?.targetExamTitle || 'Carreiras Públicas / OAB'}
-        warName={studentProfile?.warName || studentProfile?.name || 'Guerreiro(a)'}
-        onRecordAttempt={handleRecordAttempt}
-        onOpenMistakes={() => {
-          setIsFlashChallengeOpen(false);
-          setActiveTab('mistakes');
-        }}
-        onOpenPricing={() => {
-          setIsFlashChallengeOpen(false);
-          setIsPricingOpen(true);
-        }}
-      />
-
-      {/* Programa de Indicação Viral Member-Get-Member (Pilar 1: Captação Ativa) */}
-      <ReferralProgramModal
-        isOpen={isReferralModalOpen}
-        onClose={() => setIsReferralModalOpen(false)}
         studentProfile={studentProfile}
-        onRewardClaimed={(reward) => {
-          showToast(`🎉 Recompensa liberada: ${reward}`);
-        }}
+        setStudentProfile={setStudentProfile}
+        handleSaveProfile={handleSaveProfile}
+        handleSetDefaultExam={handleSetDefaultExam}
+        handleRecordAttempt={handleRecordAttempt}
+        handleOpenPricing={handleOpenPricing}
+        handleUpgradePlan={handleUpgradePlan}
+        showToast={showToast}
+        isCopilotOpen={isCopilotOpen}
+        setIsCopilotOpen={setIsCopilotOpen}
+        isPricingOpen={isPricingOpen}
+        setIsPricingOpen={setIsPricingOpen}
+        pendingCheckoutPlan={pendingCheckoutPlan}
+        setPendingCheckoutPlan={setPendingCheckoutPlan}
+        pricingModalInitialTab={pricingModalInitialTab}
+        setPricingModalInitialTab={setPricingModalInitialTab}
+        isProfileModalOpen={isProfileModalOpen}
+        setIsProfileModalOpen={setIsProfileModalOpen}
+        isAuthModalOpen={isAuthModalOpen}
+        setIsAuthModalOpen={setIsAuthModalOpen}
+        isMobileModalOpen={isMobileModalOpen}
+        setIsMobileModalOpen={setIsMobileModalOpen}
+        isAdminIngestOpen={isAdminIngestOpen}
+        setIsAdminIngestOpen={setIsAdminIngestOpen}
+        isOnboardingTerminalOpen={isOnboardingTerminalOpen}
+        setIsOnboardingTerminalOpen={setIsOnboardingTerminalOpen}
+        isSeanEllisSurveyOpen={isSeanEllisSurveyOpen}
+        setIsSeanEllisSurveyOpen={setIsSeanEllisSurveyOpen}
+        isFlashChallengeOpen={isFlashChallengeOpen}
+        setIsFlashChallengeOpen={setIsFlashChallengeOpen}
+        isReferralModalOpen={isReferralModalOpen}
+        setIsReferralModalOpen={setIsReferralModalOpen}
+        isSplashDone={isSplashDone}
+        handleSplashFinish={handleSplashFinish}
+        hasLgpdConsent={hasLgpdConsent}
+        handleLgpdConsentGiven={handleLgpdConsentGiven}
       />
-
-      {/* Botão Flutuante de Onboarding: Apenas para testes com flag explícita na URL (?dev=1) */}
-      {typeof window !== 'undefined' && window.location.search.includes('dev=1') && (
-        <div className="fixed top-20 right-4 sm:top-22 sm:right-6 z-[60] flex items-center gap-2">
-          <button
-            onClick={() => setIsOnboardingTerminalOpen(true)}
-            className="group relative flex items-center gap-2 px-3.5 py-2 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white font-black text-xs tracking-wide shadow-xl shadow-blue-500/30 border border-white/20 transition-all transform hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md"
-            title="Clique para testar e abrir o Onboarding do Usuário a qualquer momento"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-            </span>
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>Testar Onboarding</span>
-            <span className="px-1.5 py-0.2 rounded bg-white/20 text-[9px] font-mono font-bold uppercase tracking-wider">
-              DEV
-            </span>
-          </button>
-        </div>
-      )}
-
 
         </div>
       </div>
     </div>
   );
 }
-export const AprovaLensApp = ArgusApp;
 export default ArgusApp;

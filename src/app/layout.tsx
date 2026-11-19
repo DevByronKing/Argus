@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     description: 'Diagnóstico cognitivo de pegadinhas para Concursos Públicos e Exame da OAB, ciclo adaptativo e simuladores inéditos com a visão onisciente do Argus.',
     images: [
       {
-        url: '/argus-logo.png?v=argus2026',
+        url: '/logo-512.png?v=argus2026',
         width: 512,
         height: 512,
         alt: 'Argus — Plataforma Cognitiva para Concursos',
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Argus — O Copiloto Cognitivo para Concursos',
     description: 'Inteligência Artificial que expõe os distratores da banca examinadora.',
-    images: ['/argus-logo.png?v=argus2026'],
+    images: ['/logo-512.png?v=argus2026'],
   },
   appleWebApp: {
     capable: true,
@@ -93,7 +93,7 @@ const jsonLdSchema = {
         name: 'Argus',
         logo: {
           '@type': 'ImageObject',
-          url: `${APP_BASE_URL}/argus-logo.png`,
+          url: `${APP_BASE_URL}/logo-512.png`,
           width: 512,
           height: 512,
         },
@@ -142,7 +142,7 @@ export default function RootLayout({
       <head>
         <meta name="google-site-verification" content="uW-woPuYHE0OGXRGLjvuNAOnDTHKDPCxwWDsY3UPqZc" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=argus2026_v4" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/argus-logo.png?v=argus2026_v4" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/app-icon.png?v=argus2026_v4" />
         <link rel="icon" type="image/png" sizes="512x512" href="/logo-512.png?v=argus2026_v4" />
         <link rel="shortcut icon" href="/favicon.svg?v=argus2026_v4" />
         <link rel="apple-touch-icon" href="/logo-512.png?v=argus2026_v4" />

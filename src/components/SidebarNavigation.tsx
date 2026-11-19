@@ -184,7 +184,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
           {!isCollapsed && (
             <div className="flex items-center gap-1.5 whitespace-nowrap animate-fadeIn">
               <span className="font-black text-base tracking-tight">
-                Learning <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-400">AI</span>
+                Argus <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-400">AI</span>
               </span>
               <span className={`text-[9px] font-black px-1.5 py-0.2 rounded border ${
                 isLight ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/20 text-blue-300 border-blue-500/30'

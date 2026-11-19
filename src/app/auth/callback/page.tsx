@@ -146,7 +146,7 @@ function AuthCallbackContent() {
       </div>
 
       <h1 className="text-xl font-black text-white tracking-tight mb-2">
-        Learning <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">AI</span>
+        Argus <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">AI</span>
       </h1>
 
       <div className="my-6 flex items-center justify-center">

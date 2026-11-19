@@ -1,44 +1,35 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { 
-  FileUp, 
-  Sparkles, 
-  CheckCircle2, 
-  ArrowRight, 
-  Calendar, 
-  DollarSign, 
-  Users, 
-  Award, 
-  BookOpen, 
-  Layers, 
-  AlertCircle, 
-  ChevronDown, 
-  ChevronRight, 
-  Search, 
-  ExternalLink, 
-  Flame, 
-  FileCheck, 
-  FileText, 
-  UploadCloud, 
-  X, 
-  Plus, 
-  Check, 
-  Send, 
-  MessageSquare, 
-  HelpCircle, 
-  Bot,
+import React, { useState } from 'react';
+import {
+  FileUp,
+  Sparkles,
+  CheckCircle2,
+  ArrowRight,
+  Calendar,
+  DollarSign,
+  Users,
+  Award,
+  BookOpen,
+  Layers,
+  Flame,
+  FileCheck,
+  Plus,
+  Check,
   Target,
-  ShieldCheck, 
-  Lock,
   Star,
   Zap,
-  BarChart3
+  BarChart3,
 } from 'lucide-react';
-import { ExamNotice, ExamSubject, SubscriptionPlan } from '@/lib/types';
-import { INITIAL_EXAMS } from '@/lib/mockData';
-import { getStatusColor } from '@/lib/utils';
+import { ExamNotice, SubscriptionPlan } from '@/lib/types';
 import { HardPaywallGate } from './HardPaywallGate';
+import {
+  generateSyllabusByArea,
+  getExamArea,
+} from './edital-parser/editalSyllabusGenerator';
+import { EditalCopilotChat } from './edital-parser/EditalCopilotChat';
+import { EditalVerticalTree } from './edital-parser/EditalVerticalTree';
+import { EditalUploadModal } from './edital-parser/EditalUploadModal';
 
 interface EditalParserProps {
   exams: ExamNotice[];
@@ -54,243 +45,6 @@ interface EditalParserProps {
   onGoHome?: () => void;
 }
 
-// Helper to generate realistic, area-specific syllabus based on file keywords
-const generateSyllabusByArea = (
-  title: string,
-  role: string,
-  rawText: string
-): ExamSubject[] => {
-  const combined = (title + ' ' + role + ' ' + rawText).toLowerCase();
-
-  if (
-    combined.includes('polic') ||
-    combined.includes('prf') ||
-    combined.includes('pf') ||
-    combined.includes('seguranc') ||
-    combined.includes('penal') ||
-    combined.includes('agente') ||
-    combined.includes('escriv') ||
-    combined.includes('delegad')
-  ) {
-    return [
-      {
-        id: `sub-${Date.now()}-1`,
-        name: 'Direito Penal & Legislação Especial Extravagante',
-        weight: 3,
-        relevancePercentage: 40,
-        totalTopics: 4,
-        topics: [
-          { id: 't-pol-1', name: 'Crimes Contra o Patrimônio e a Administração Pública', frequencyInBanca: 'Alta', accuracyRate: 52, status: 'Ponto Cego', articlesOrLaws: ['Arts. 155-180, 312-327 do CP'] },
-          { id: 't-pol-2', name: 'Lei de Drogas (Lei 11.343/06) & Tráfico Privilegiado', frequencyInBanca: 'Alta', accuracyRate: 75, status: 'Dominado', articlesOrLaws: ['Lei 11.343/06'] },
-          { id: 't-pol-3', name: 'Estatuto do Desarmamento & Posse/Porte de Arma', frequencyInBanca: 'Alta', accuracyRate: 64, status: 'Instável', articlesOrLaws: ['Lei 10.826/03'] },
-          { id: 't-pol-4', name: 'Abuso de Autoridade & Pacote Anticrime', frequencyInBanca: 'Média', accuracyRate: 48, status: 'Ponto Cego', articlesOrLaws: ['Lei 13.869/19', 'Lei 13.964/19'] }
-        ]
-      },
-      {
-        id: `sub-${Date.now()}-2`,
-        name: 'Direito Processual Penal & Perícia',
-        weight: 3,
-        relevancePercentage: 30,
-        totalTopics: 3,
-        topics: [
-          { id: 't-pol-5', name: 'Inquérito Policial (Características e Sigilo)', frequencyInBanca: 'Alta', accuracyRate: 80, status: 'Dominado', articlesOrLaws: ['Arts. 4º a 23 do CPP'] },
-          { id: 't-pol-6', name: 'Prisão em Flagrante, Preventiva e Liberdade Provisória', frequencyInBanca: 'Alta', accuracyRate: 55, status: 'Instável', articlesOrLaws: ['Arts. 310-313 do CPP'] },
-          { id: 't-pol-7', name: 'Cadeia de Custódia e Teoria Geral das Provas', frequencyInBanca: 'Alta', accuracyRate: 40, status: 'Ponto Cego', articlesOrLaws: ['Art. 158-A do CPP'] }
-        ]
-      },
-      {
-        id: `sub-${Date.now()}-3`,
-        name: combined.includes('prf') ? 'Legislação de Trânsito (CTB)' : 'Informática Aplicada & Segurança Cibernética',
-        weight: 2,
-        relevancePercentage: 18,
-        totalTopics: 2,
-        topics: [
-          { id: 't-pol-8', name: combined.includes('prf') ? 'Normas Gerais de Circulação e Conduta no CTB' : 'Redes de Comunicação, Ransomware e Criptografia', frequencyInBanca: 'Alta', accuracyRate: 60, status: 'Instável', articlesOrLaws: combined.includes('prf') ? ['Arts. 26 a 67 do CTB'] : undefined },
-          { id: 't-pol-9', name: combined.includes('prf') ? 'Crimes de Trânsito e Embriaguez ao Volante' : 'Bancos de Dados, SQL e Python Básico', frequencyInBanca: 'Média', accuracyRate: 70, status: 'Dominado', articlesOrLaws: combined.includes('prf') ? ['Art. 306 do CTB'] : undefined }
-        ]
-      },
-      {
-        id: `sub-${Date.now()}-4`,
-        name: 'Língua Portuguesa & Redação Oficial',
-        weight: 1,
-        relevancePercentage: 12,
-        totalTopics: 2,
-        topics: [
-          { id: 't-pol-10', name: 'Interpretação e Inferência Textual (Padrão da Banca)', frequencyInBanca: 'Alta', accuracyRate: 65, status: 'Instável' },
-          { id: 't-pol-11', name: 'Sintaxe de Concordância, Regência e Crase', frequencyInBanca: 'Alta', accuracyRate: 85, status: 'Dominado' }
-        ]
-      }
-    ];
-  }
-
-  if (
-    combined.includes('fiscal') ||
-    combined.includes('receita') ||
-    combined.includes('tribut') ||
-    combined.includes('sefaz') ||
-    combined.includes('iss') ||
-    combined.includes('auditor')
-  ) {
-    return [
-      {
-        id: `sub-${Date.now()}-1`,
-        name: 'Direito Tributário & Sistema Constitucional Tributário',
-        weight: 3,
-        relevancePercentage: 35,
-        totalTopics: 3,
-        topics: [
-          { id: 't-fis-1', name: 'Competência Tributária e Limitações ao Poder de Tributar', frequencyInBanca: 'Alta', accuracyRate: 58, status: 'Instável', articlesOrLaws: ['Arts. 145 a 156 da CF/88'] },
-          { id: 't-fis-2', name: 'Obrigação Tributária e Hipótese de Incidência', frequencyInBanca: 'Alta', accuracyRate: 72, status: 'Dominado', articlesOrLaws: ['Arts. 113 a 127 do CTN'] },
-          { id: 't-fis-3', name: 'Suspensão, Extinção e Exclusão do Crédito Tributário', frequencyInBanca: 'Alta', accuracyRate: 44, status: 'Ponto Cego', articlesOrLaws: ['Arts. 151 a 182 do CTN'] }
-        ]
-      },
-      {
-        id: `sub-${Date.now()}-2`,
-        name: 'Contabilidade Geral & Avançada',
-        weight: 3,
-        relevancePercentage: 35,
-        totalTopics: 3,
-        topics: [
-          { id: 't-fis-4', name: 'Pronunciamento Técnico CPC 00 (Estrutura Conceitual)', frequencyInBanca: 'Alta', accuracyRate: 46, status: 'Ponto Cego' },
-          { id: 't-fis-5', name: 'Balanço Patrimonial e Avaliação de Investimentos', frequencyInBanca: 'Alta', accuracyRate: 68, status: 'Instável' },
-          { id: 't-fis-6', name: 'Demonstração dos Fluxos de Caixa (DFC) e DVA', frequencyInBanca: 'Média', accuracyRate: 82, status: 'Dominado' }
-        ]
-      },
-      {
-        id: `sub-${Date.now()}-3`,
-        name: 'Auditoria & Legislação Tributária Aduaneira',
-        weight: 2,
-        relevancePercentage: 18,
-        totalTopics: 2,
-        topics: [
-          { id: 't-fis-7', name: 'Procedimentos de Auditoria e Testes Substantivos', frequencyInBanca: 'Alta', accuracyRate: 60, status: 'Instável' },
-          { id: 't-fis-8', name: 'Infrações e Penalidades Fiscais Aduaneiras', frequencyInBanca: 'Média', accuracyRate: 50, status: 'Ponto Cego' }
-        ]
-      },
-      {
-        id: `sub-${Date.now()}-4`,
-        name: 'Língua Portuguesa & RLM',
-        weight: 1,
-        relevancePercentage: 12,
-        totalTopics: 2,
-        topics: [
-          { id: 't-fis-9', name: 'Lógica Proposicional e Equivalências Lógicas', frequencyInBanca: 'Alta', accuracyRate: 70, status: 'Instável' },
-          { id: 't-fis-10', name: 'Coesão Textual e Reescritura de Frases', frequencyInBanca: 'Alta', accuracyRate: 88, status: 'Dominado' }
-        ]
-      }
-    ];
-  }
-
-  if (
-    combined.includes('tribunal') ||
-    combined.includes('tj') ||
-    combined.includes('trt') ||
-    combined.includes('trf') ||
-    combined.includes('tre') ||
-    combined.includes('judic') ||
-    combined.includes('oab') ||
-    combined.includes('direito')
-  ) {
-    return [
-      {
-        id: `sub-${Date.now()}-1`,
-        name: 'Direito Processual Civil (CPC/2015)',
-        weight: 3,
-        relevancePercentage: 35,
-        totalTopics: 3,
-        topics: [
-          { id: 't-jud-1', name: 'Tutelas Provisórias de Urgência e Evidência', frequencyInBanca: 'Alta', accuracyRate: 48, status: 'Ponto Cego', articlesOrLaws: ['Arts. 294 a 311 do CPC'] },
-          { id: 't-jud-2', name: 'Atos Processuais, Prazos e Citações', frequencyInBanca: 'Alta', accuracyRate: 75, status: 'Dominado', articlesOrLaws: ['Arts. 212 a 250 do CPC'] },
-          { id: 't-jud-3', name: 'Sistema Recursal: Apelação e Agravo de Instrumento', frequencyInBanca: 'Alta', accuracyRate: 58, status: 'Instável', articlesOrLaws: ['Arts. 994 a 1.044 do CPC'] }
-        ]
-      },
-      {
-        id: `sub-${Date.now()}-2`,
-        name: 'Direito Constitucional Aplicado',
-        weight: 2,
-        relevancePercentage: 25,
-        totalTopics: 2,
-        topics: [
-          { id: 't-jud-4', name: 'Controle de Constitucionalidade (Difuso e Concentrado)', frequencyInBanca: 'Alta', accuracyRate: 45, status: 'Ponto Cego', articlesOrLaws: ['Art. 102 da CF/88'] },
-          { id: 't-jud-5', name: 'Funções Essenciais à Justiça e Poder Judiciário', frequencyInBanca: 'Alta', accuracyRate: 82, status: 'Dominado', articlesOrLaws: ['Arts. 92 a 135 da CF/88'] }
-        ]
-      },
-      {
-        id: `sub-${Date.now()}-3`,
-        name: 'Direito Administrativo & Legislação dos Tribunais',
-        weight: 2,
-        relevancePercentage: 25,
-        totalTopics: 2,
-        topics: [
-          { id: 't-jud-6', name: 'Nova Lei de Licitações e Contratos Administrativos', frequencyInBanca: 'Alta', accuracyRate: 52, status: 'Instável', articlesOrLaws: ['Lei 14.133/21'] },
-          { id: 't-jud-7', name: 'Regime Disciplinar dos Servidores e Lei de Improbidade', frequencyInBanca: 'Alta', accuracyRate: 70, status: 'Instável', articlesOrLaws: ['Lei 8.112/90', 'Lei 8.429/92'] }
-        ]
-      },
-      {
-        id: `sub-${Date.now()}-4`,
-        name: 'Língua Portuguesa & Redação Oficial',
-        weight: 1,
-        relevancePercentage: 15,
-        totalTopics: 2,
-        topics: [
-          { id: 't-jud-8', name: 'Interpretação Textual & Redação Oficial Forense', frequencyInBanca: 'Alta', accuracyRate: 78, status: 'Dominado' },
-          { id: 't-jud-9', name: 'Crase, Regência e Pontuação Estilística', frequencyInBanca: 'Alta', accuracyRate: 64, status: 'Instável' }
-        ]
-      }
-    ];
-  }
-
-  // Default / Geral
-  return [
-    {
-      id: `sub-${Date.now()}-1`,
-      name: 'Conhecimentos Específicos & Legislação Aplicada',
-      weight: 3,
-      relevancePercentage: 45,
-      totalTopics: 3,
-      topics: [
-        { id: 't-gen-1', name: 'Normas Específicas do Órgão e Legislação Setorial', frequencyInBanca: 'Alta', accuracyRate: 50, status: 'Ponto Cego', articlesOrLaws: ['Legislação do Edital'] },
-        { id: 't-gen-2', name: 'Processo Administrativo e Acesso à Informação', frequencyInBanca: 'Alta', accuracyRate: 68, status: 'Instável', articlesOrLaws: ['Lei 9.784/99', 'Lei 12.527/11'] },
-        { id: 't-gen-3', name: 'Ética no Serviço Público e Decretos Regulamentares', frequencyInBanca: 'Média', accuracyRate: 85, status: 'Dominado', articlesOrLaws: ['Decreto 1.171/94'] }
-      ]
-    },
-    {
-      id: `sub-${Date.now()}-2`,
-      name: 'Direito Constitucional & Administrativo',
-      weight: 2,
-      relevancePercentage: 30,
-      totalTopics: 3,
-      topics: [
-        { id: 't-gen-4', name: 'Direitos e Garantias Fundamentais (Art. 5º da CF)', frequencyInBanca: 'Alta', accuracyRate: 82, status: 'Dominado', articlesOrLaws: ['Art. 5º, CF/88'] },
-        { id: 't-gen-5', name: 'Regime Jurídico Único dos Servidores Públicos', frequencyInBanca: 'Alta', accuracyRate: 62, status: 'Instável', articlesOrLaws: ['Lei 8.112/90'] },
-        { id: 't-gen-6', name: 'Atos Administrativos e Poderes da Administração', frequencyInBanca: 'Alta', accuracyRate: 48, status: 'Ponto Cego', articlesOrLaws: ['Doutrina Administrativa'] }
-      ]
-    },
-    {
-      id: `sub-${Date.now()}-3`,
-      name: 'Língua Portuguesa & Redação Oficial',
-      weight: 1,
-      relevancePercentage: 15,
-      totalTopics: 2,
-      topics: [
-        { id: 't-gen-7', name: 'Compreensão e Interpretação de Textos da Banca', frequencyInBanca: 'Alta', accuracyRate: 72, status: 'Instável' },
-        { id: 't-gen-8', name: 'Morfossintaxe, Pontuação e Crase', frequencyInBanca: 'Alta', accuracyRate: 86, status: 'Dominado' }
-      ]
-    },
-    {
-      id: `sub-${Date.now()}-4`,
-      name: 'Raciocínio Lógico & Noções de Tecnologia',
-      weight: 1,
-      relevancePercentage: 10,
-      totalTopics: 2,
-      topics: [
-        { id: 't-gen-9', name: 'Lógica Sentencial e Proposições Compostas', frequencyInBanca: 'Média', accuracyRate: 58, status: 'Instável' },
-        { id: 't-gen-10', name: 'Segurança da Informação e Ferramentas Digitais', frequencyInBanca: 'Média', accuracyRate: 75, status: 'Dominado' }
-      ]
-    }
-  ];
-};
-
 export const EditalParser: React.FC<EditalParserProps> = ({
   exams,
   selectedExam,
@@ -302,15 +56,14 @@ export const EditalParser: React.FC<EditalParserProps> = ({
   userPlan = 'aspirante',
   onOpenPricing,
   onSelectPlan,
-  onGoHome
+  onGoHome,
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progressStage, setProgressStage] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('todas');
   const [expandedSubject, setExpandedSubject] = useState<string | null>(selectedExam.subjects[0]?.id || null);
-  
-  // Custom Upload Modal State
+
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -322,135 +75,13 @@ export const EditalParser: React.FC<EditalParserProps> = ({
   const [uploadText, setUploadText] = useState('');
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [setAsDefaultExam, setSetAsDefaultExam] = useState<boolean>(true);
-  
-  // Copiloto Jurídico do Edital - Chat Conversacional
-  interface EditalChatMessage {
-    id: string;
-    sender: 'user' | 'assistant';
-    text: string;
-    itemReference?: string;
-    timestamp: string;
-  }
-
-  const [editalQuestion, setEditalQuestion] = useState('');
-  const [isAnswering, setIsAnswering] = useState(false);
-  const chatBottomRef = useRef<HTMLDivElement>(null);
-
-  const [editalChatMessages, setEditalChatMessages] = useState<EditalChatMessage[]>([
-    {
-      id: 'msg-welcome',
-      sender: 'assistant',
-      text: `Olá! Eu sou o Copiloto Cognitivo Argus, calibrado especificamente para o certame de **${selectedExam.role}** (${selectedExam.institution} • Banca **${selectedExam.banca}**).\n\nConheço todas as regras deste edital, pesos de disciplinas, critérios de pontuação e também posso comparar com qualquer outro concurso da plataforma (TRT 2, TJ-SP, INSS, PRF, PF, Receita Federal, OAB).\n\nComo posso orientar sua estratégia de aprovação hoje?`,
-      itemReference: `${selectedExam.institution} • Edital Consolidado`,
-      timestamp: 'Sistema'
-    },
-    {
-      id: 'msg-tip-1',
-      sender: 'assistant',
-      text: `🎯 **Dica Estratégica 80/20 (${selectedExam.banca}):**\nAs matérias de maior peso neste edital são ${selectedExam.subjects.map(s => `**${s.name}** (Peso ${s.weight})`).slice(0, 2).join(' e ')}. Juntas, elas compõem ${selectedExam.subjects.slice(0, 2).reduce((acc, s) => acc + s.relevancePercentage, 0)}% da nota de corte da prova objetiva.`,
-      itemReference: 'Quadro Estatístico de Provas Objetivas',
-      timestamp: 'Estratégia'
-    }
-  ]);
-
-  // Sincroniza e recalibra automaticamente o Chat do Copiloto quando o usuário troca de concurso
-  React.useEffect(() => {
-    setEditalChatMessages([
-      {
-        id: `msg-welcome-${selectedExam.id}`,
-        sender: 'assistant',
-        text: `Olá! Eu sou o Copiloto Cognitivo Argus, calibrado especificamente para o certame de **${selectedExam.role}** (${selectedExam.institution} • Banca **${selectedExam.banca}**).\n\nConheço todas as regras deste edital, pesos de disciplinas, critérios de pontuação e também posso comparar com qualquer outro concurso da plataforma (TRT 2, TJ-SP, INSS, PRF, PF, Receita Federal, OAB).\n\nComo posso orientar sua estratégia de aprovação hoje?`,
-        itemReference: `${selectedExam.institution} • Edital Consolidado`,
-        timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-      },
-      {
-        id: `msg-tip-${selectedExam.id}`,
-        sender: 'assistant',
-        text: `🎯 **Dica Estratégica 80/20 (${selectedExam.banca}):**\nAs matérias de maior impacto são ${selectedExam.subjects.map(s => `**${s.name}** (Peso ${s.weight})`).slice(0, 2).join(' e ')}. Juntas, elas compõem ${selectedExam.subjects.slice(0, 2).reduce((acc, s) => acc + s.relevancePercentage, 0)}% da nota de corte da prova objetiva.`,
-        itemReference: 'Quadro Estatístico de Provas Objetivas',
-        timestamp: 'Estratégia'
-      }
-    ]);
-  }, [selectedExam.id, selectedExam.banca, selectedExam.institution, selectedExam.role, selectedExam.subjects]);
-
-  const handleAskEditalQuestion = async (queryText: string) => {
-    const q = queryText.trim();
-    if (!q || isAnswering) return;
-
-    const currentTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-    const userMsg: EditalChatMessage = {
-      id: `usr-${Date.now()}`,
-      sender: 'user',
-      text: q,
-      timestamp: currentTime
-    };
-
-    setEditalChatMessages(prev => [...prev, userMsg]);
-    setEditalQuestion('');
-    setIsAnswering(true);
-
-    setTimeout(() => {
-      chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 50);
-
-    try {
-      const res = await fetch('/api/copilot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: q,
-          examContext: selectedExam,
-          history: editalChatMessages.slice(-4)
-        })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const replyText = data.text || data.reply;
-        if (replyText) {
-          const botMsg: EditalChatMessage = {
-            id: `bot-${Date.now()}`,
-            sender: 'assistant',
-            text: replyText,
-            itemReference: `${selectedExam.institution} • Banca ${selectedExam.banca}`,
-            timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-          };
-          setEditalChatMessages((prev) => [...prev, botMsg]);
-          setIsAnswering(false);
-          setTimeout(() => {
-            chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-          }, 50);
-          return;
-        }
-      }
-    } catch {}
-
-    setIsAnswering(false);
-    const botMsg: EditalChatMessage = {
-      id: `bot-${Date.now()}`,
-      sender: 'assistant',
-      text: `📋 **Sobre "${q}" (${selectedExam.role} • ${selectedExam.institution}):**\n• **Banca:** ${selectedExam.banca}\n• **Salário:** ${selectedExam.salary} (${selectedExam.vacancies} vagas)\n• **Matérias principais:** ${selectedExam.subjects.map(s => s.name).join(', ')}.`,
-      itemReference: `${selectedExam.institution} • Edital Consolidado`,
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    };
-    setEditalChatMessages((prev) => [...prev, botMsg]);
-  };
-  
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const stages = [
     `Lendo estrutura de "${uploadedFile?.name || 'Edital'}" e aplicando OCR inteligente...`,
     `Mapeando cargos, pesos das disciplinas e perfil estatístico da banca ${bancaInput}...`,
     'Estruturando árvore de conteúdos com artigos de lei pertinentes...',
-    'Ponderando relevância estatística na banca e gerando edital verticalizado...'
+    'Ponderando relevância estatística na banca e gerando edital verticalizado...',
   ];
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  };
 
   const handleFileSelect = (file: File) => {
     setUploadError(null);
@@ -458,7 +89,7 @@ export const EditalParser: React.FC<EditalParserProps> = ({
       setUploadError('Por favor, selecione um arquivo em formato PDF, DOCX ou TXT.');
       return;
     }
-    
+
     if (file.size > 50 * 1024 * 1024) {
       setUploadError('O arquivo excede o limite máximo de 50MB.');
       return;
@@ -466,7 +97,6 @@ export const EditalParser: React.FC<EditalParserProps> = ({
 
     setUploadedFile(file);
 
-    // Clean up filename to deduce title
     const cleanBaseName = file.name
       .replace(/\.(pdf|docx?|txt)$/i, '')
       .replace(/[_-]+/g, ' ')
@@ -496,9 +126,8 @@ export const EditalParser: React.FC<EditalParserProps> = ({
 
     setBancaInput(detectedBanca);
     setRoleInput((prev) => prev || detectedRole);
-    setExamTitleInput((prev) => prev || (cleanBaseName.charAt(0).toUpperCase() + cleanBaseName.slice(1)));
+    setExamTitleInput((prev) => prev || cleanBaseName.charAt(0).toUpperCase() + cleanBaseName.slice(1));
 
-    // If it is a text file, preview text
     if (file.name.endsWith('.txt')) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -536,7 +165,6 @@ export const EditalParser: React.FC<EditalParserProps> = ({
     e.preventDefault();
     setUploadError(null);
 
-    // Validate that either a file, title or text was supplied
     if (!uploadedFile && !examTitleInput.trim() && !uploadText.trim()) {
       setUploadError('Por favor, selecione um arquivo PDF ou informe o título/conteúdo do edital.');
       return;
@@ -556,7 +184,6 @@ export const EditalParser: React.FC<EditalParserProps> = ({
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Processamento estruturado no Backend (Edge/Serverless)
     const backendPromise = fetch('/api/edital', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -567,8 +194,8 @@ export const EditalParser: React.FC<EditalParserProps> = ({
         salary: finalSalary,
         vacancies: finalVacancies,
         editalText: uploadText,
-        pdfFileName: finalFileName
-      })
+        pdfFileName: finalFileName,
+      }),
     })
       .then((res) => res.json())
       .catch((err) => {
@@ -600,7 +227,7 @@ export const EditalParser: React.FC<EditalParserProps> = ({
                 daysRemaining: 105,
                 pdfFileName: finalFileName,
                 uploadedAt: new Date().toISOString().split('T')[0],
-                subjects: dynamicSubjects
+                subjects: dynamicSubjects,
               };
             }
 
@@ -610,7 +237,6 @@ export const EditalParser: React.FC<EditalParserProps> = ({
               onSetDefaultExam(newExam);
             }
 
-            // Clean up state
             setUploadedFile(null);
             setExamTitleInput('');
             setRoleInput('');
@@ -624,15 +250,6 @@ export const EditalParser: React.FC<EditalParserProps> = ({
     }, 280);
   };
 
-  const getExamArea = (exam: ExamNotice): string => {
-    const combined = (exam.title + ' ' + exam.institution + ' ' + exam.role).toLowerCase();
-    if (combined.includes('tribunal') || combined.includes('tj') || combined.includes('trt') || combined.includes('trf')) return 'Tribunais';
-    if (combined.includes('polic') || combined.includes('pf') || combined.includes('prf') || combined.includes('depen')) return 'Policial';
-    if (combined.includes('fiscal') || combined.includes('sefaz') || combined.includes('receita') || combined.includes('iss')) return 'Fiscal';
-    if (combined.includes('oab') || combined.includes('advoga')) return 'Jurídica / OAB';
-    return 'Geral / Administrativo';
-  };
-
   const examsByArea = exams.reduce((acc, exam) => {
     const area = getExamArea(exam);
     if (!acc[area]) acc[area] = [];
@@ -640,14 +257,16 @@ export const EditalParser: React.FC<EditalParserProps> = ({
     return acc;
   }, {} as Record<string, ExamNotice[]>);
 
-  const filteredSubjects = selectedExam.subjects.map((sub) => ({
-    ...sub,
-    topics: sub.topics.filter(
-      (t) =>
-        t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sub.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  })).filter((sub) => sub.topics.length > 0);
+  const filteredSubjects = selectedExam.subjects
+    .map((sub) => ({
+      ...sub,
+      topics: sub.topics.filter(
+        (t) =>
+          t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          sub.name.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    }))
+    .filter((sub) => sub.topics.length > 0);
 
   return (
     <HardPaywallGate
@@ -664,967 +283,447 @@ export const EditalParser: React.FC<EditalParserProps> = ({
       onSelectPlan={onSelectPlan}
       onGoHome={onGoHome}
     >
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      
-      {/* Header & Preset Switcher */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-slate-300 dark:border-white/10">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-xs font-bold">
-              Organizador Inteligente de Edital
-            </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">Leitura Automática de PDF</span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header & Preset Switcher */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-slate-300 dark:border-white/10">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-xs font-bold">
+                Organizador Inteligente de Edital
+              </span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">Leitura Automática de PDF</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
+              Meu Edital Organizado • O Que Mais Cai na Prova
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Escolha seu concurso abaixo ou envie o PDF do seu edital para ver todas as matérias organizadas por ordem de importância.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
-            Meu Edital Organizado • O Que Mais Cai na Prova
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Escolha seu concurso abaixo ou envie o PDF do seu edital para ver todas as matérias organizadas por ordem de importância.
-          </p>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new CustomEvent('open-focus-selector'))}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/15 dark:hover:bg-rose-500/25 border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 font-bold text-xs transition-all cursor-pointer"
-          >
-            <Target className="w-4 h-4" />
-            <span>Escolher Meus Focos</span>
-          </button>
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-xs shadow-lg shadow-blue-600/20 transition-all glow-brand cursor-pointer"
-          >
-            <FileUp className="w-4 h-4" />
-            <span>Enviar Novo Edital (PDF)</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Selector of Pre-Analyzed Editais - Modern Aligned Card Grid */}
-      <div className="mt-6 glass-panel bg-white/70 dark:bg-dark-card/60 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-white/5">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-indigo-500" />
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-              Editais Disponíveis para Estudo
-            </span>
-          </div>
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center sm:justify-start gap-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-dashed border-indigo-500/40 text-indigo-500 dark:text-indigo-300 dark:hover:text-white"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Upload de Novo Edital (PDF)</span>
-          </button>
-        </div>
-
-        {/* Segmented Area Filter Pills */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <button
-            onClick={() => setSelectedAreaFilter('todas')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              selectedAreaFilter === 'todas'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'bg-slate-100 dark:bg-dark-surface text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-white/5'
-            }`}
-          >
-            Todas as Áreas ({exams.length})
-          </button>
-          {Object.keys(examsByArea).map((area) => (
+          <div className="flex flex-wrap items-center gap-2">
             <button
-              key={area}
-              onClick={() => setSelectedAreaFilter(area)}
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-focus-selector'))}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/15 dark:hover:bg-rose-500/25 border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 font-bold text-xs transition-all cursor-pointer"
+            >
+              <Target className="w-4 h-4" />
+              <span>Escolher Meus Focos</span>
+            </button>
+            <button
+              onClick={() => setShowUploadModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-xs shadow-lg shadow-blue-600/20 transition-all glow-brand cursor-pointer"
+            >
+              <FileUp className="w-4 h-4" />
+              <span>Enviar Novo Edital (PDF)</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Selector of Pre-Analyzed Editais */}
+        <div className="mt-6 glass-panel bg-white/70 dark:bg-dark-card/60 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-white/5">
+            <div className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-indigo-500" />
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Editais Disponíveis para Estudo
+              </span>
+            </div>
+            <button
+              onClick={() => setShowUploadModal(true)}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center sm:justify-start gap-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-dashed border-indigo-500/40 text-indigo-500 dark:text-indigo-300 dark:hover:text-white"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Upload de Novo Edital (PDF)</span>
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              onClick={() => setSelectedAreaFilter('todas')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                selectedAreaFilter === area
+                selectedAreaFilter === 'todas'
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'bg-slate-100 dark:bg-dark-surface text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-white/5'
               }`}
             >
-              {area} ({examsByArea[area].length})
+              Todas as Áreas ({exams.length})
             </button>
-          ))}
-        </div>
-
-        {/* Aligned Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-          {exams
-            .filter(e => selectedAreaFilter === 'todas' || getExamArea(e) === selectedAreaFilter)
-            .map((exam) => {
-              const isSelected = selectedExam.id === exam.id;
-              const area = getExamArea(exam);
-              return (
-                <div
-                  key={exam.id}
-                  onClick={() => onSelectExam(exam)}
-                  className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-3 text-left ${
-                    isSelected
-                      ? 'bg-indigo-50 dark:bg-indigo-500/15 border-indigo-500 shadow-md shadow-indigo-500/10 ring-2 ring-indigo-500/30'
-                      : 'bg-white dark:bg-dark-card hover:bg-slate-50 dark:hover:bg-dark-hover border-slate-200 dark:border-white/10 shadow-sm'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                          {area}
-                        </span>
-                        {exam.id === defaultExamId && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 shrink-0" title="Seu Edital Padrão ativo">
-                            <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-500" />
-                            <span>Padrão</span>
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-dark-surface border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 font-bold shrink-0">
-                        {exam.banca}
-                      </span>
-                    </div>
-                    <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white line-clamp-1">
-                      {exam.title}
-                    </h4>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
-                      {exam.role}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-white/5 text-[11px]">
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                      {exam.salary}
-                    </span>
-                    <span className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
-                      isSelected ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                    }`}>
-                      {isSelected ? (
-                        <span className="inline-flex items-center gap-1">
-                          <Check className="w-3 h-3" />
-                          <span>Selecionado</span>
-                        </span>
-                      ) : (
-                        'Selecionar'
-                      )}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-        </div>
-      </div>
-
-      {/* AI Processing Animation Overlay */}
-      {isProcessing && (
-        <div className="mt-8 p-8 rounded-3xl glass-panel bg-white/70 dark:bg-dark-card/60 backdrop-blur-md border border-indigo-500/40 glow-brand text-center animate-fadeIn shadow-sm">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 mb-4">
-            <Sparkles className="w-8 h-8 animate-spin" style={{ animationDuration: '3s' }} />
-          </div>
-          <h3 className="text-lg font-black text-slate-900 dark:text-white">Processamento e Mapeamento Analítico do Edital</h3>
-          <p className="text-xs text-indigo-300 mt-1 font-mono">{stages[progressStage]}</p>
-          
-          {/* Progress Bar */}
-          <div className="w-full max-w-md mx-auto mt-6 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 h-full transition-all duration-500"
-              style={{ width: `${((progressStage + 1) / 4) * 100}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Exam Overview Summary Card */}
-      {!isProcessing && (
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          
-          {/* Card Esquerdo: Detalhes do Concurso e Métricas Rápidas */}
-          <div className="lg:col-span-7 glass-panel bg-white/80 dark:bg-dark-card/70 backdrop-blur-md p-6 sm:p-7 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-md flex flex-col justify-between space-y-5">
-            <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4 pb-5 border-b border-slate-200 dark:border-white/10">
-              <div className="space-y-1 min-w-0">
-                <span className="inline-block px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[11px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                  {selectedExam.institution}
-                </span>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">
-                  {selectedExam.role}
-                </h2>
-                <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-slate-500 dark:text-slate-400">
-                  <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium">
-                    <FileCheck className="w-4 h-4 text-emerald-500" />
-                    {selectedExam.pdfFileName || 'Edital_Oficial.pdf'}
-                  </span>
-                  <span>•</span>
-                  <span>Banca: <strong className="text-slate-900 dark:text-white font-bold">{selectedExam.banca}</strong></span>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2 shrink-0">
-                {defaultExamId === selectedExam.id ? (
-                  <span className="px-3.5 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-400 font-extrabold text-xs tracking-wide flex items-center gap-1.5 shadow-xs">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
-                    <span>Edital Padrão Ativo</span>
-                  </span>
-                ) : onSetDefaultExam ? (
-                  <button
-                    onClick={() => onSetDefaultExam(selectedExam)}
-                    className="px-3.5 py-2.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
-                    title="Definir este concurso como seu edital padrão em toda a plataforma"
-                  >
-                    <Star className="w-3.5 h-3.5 text-indigo-500" />
-                    <span>Definir como Edital Padrão</span>
-                  </button>
-                ) : null}
-
-                <button
-                  onClick={() => onGenerateCycle(selectedExam)}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold text-xs tracking-wide shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all glow-emerald cursor-pointer"
-                >
-                  <BookOpen className="w-4 h-4" />
-                  <span>Montar Meu Plano Diário</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Resumo Simples de Como Estudar para Esta Prova */}
-            <div className="p-4 rounded-2xl bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 space-y-2.5">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Por Onde Começar • Banca {selectedExam.banca}</span>
-                </span>
-                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                  Meta Segura: 80%+ de Acertos
-                </span>
-              </div>
-              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                Para <strong>{selectedExam.role}</strong> ({selectedExam.institution}), a matéria que mais vale pontos na sua prova é{' '}
-                <strong className="text-indigo-600 dark:text-indigo-300">
-                  {selectedExam.subjects[0]?.name || 'Conhecimentos Específicos'} ({selectedExam.subjects[0]?.relevancePercentage || 45}% da nota)
-                </strong>
-                . Comece estudando os assuntos de Peso 3 e escolha suas matérias em foco a qualquer hora.
-              </p>
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => onGenerateCycle(selectedExam)}
-                  className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
-                >
-                  <Zap className="w-3.5 h-3.5" />
-                  <span>Ver O Que Estudar Hoje</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => window.dispatchEvent(new CustomEvent('open-focus-selector'))}
-                  className="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30 text-[11px] font-bold transition-all cursor-pointer"
-                >
-                  Escolher Mais de Um Foco
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowUploadModal(true)}
-                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-white/10 text-[11px] font-bold transition-all cursor-pointer"
-                >
-                  Enviar Outro Edital (PDF)
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Metrics Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-slate-50 dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs">
-                <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
-                  <Calendar className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
-                  <span>Data da Prova</span>
-                </div>
-                <p className="text-sm sm:text-base font-black text-slate-900 dark:text-white mt-1">{selectedExam.examDate}</p>
-                <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">Faltam {selectedExam.daysRemaining} dias</p>
-              </div>
-
-              <div className="bg-slate-50 dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs">
-                <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
-                  <DollarSign className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
-                  <span>Remuneração</span>
-                </div>
-                <p className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 mt-1">{selectedExam.salary}</p>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400">Inicial Bruto</p>
-              </div>
-
-              <div className="bg-slate-50 dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs">
-                <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
-                  <Users className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
-                  <span>Vagas</span>
-                </div>
-                <p className="text-sm sm:text-base font-black text-slate-900 dark:text-white mt-1">{selectedExam.vacancies} vagas</p>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400">Imediatas + CR</p>
-              </div>
-
-              <div className="bg-slate-50 dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs">
-                <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
-                  <Award className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
-                  <span>Disciplinas</span>
-                </div>
-                <p className="text-sm sm:text-base font-black text-slate-900 dark:text-white mt-1">{selectedExam.subjects.length} Matérias</p>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400">Ponderadas por peso</p>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Card Direito: Distribuição Estatística da Prova (Descomprimido e Amplo) */}
-          <div className="lg:col-span-5 glass-panel bg-white/80 dark:bg-dark-card/70 backdrop-blur-md p-6 sm:p-7 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-md flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/10">
-                <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-amber-500 dark:text-amber-400" />
-                  <span>Distribuição Estatística da Prova</span>
-                </h3>
-                <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-mono text-[11px] font-bold">
-                  80/20 Ponderado
-                </span>
-              </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
-                Relevância real de cada disciplina calculada pelo algoritmo sobre o histórico da banca <strong>{selectedExam.banca}</strong>:
-              </p>
-              
-              <div className="mt-4 space-y-3.5 overflow-y-auto max-h-[360px] pr-2 custom-scrollbar">
-                {selectedExam.subjects.map((sub) => {
-                  const isHighPriority = sub.relevancePercentage >= 30;
-                  const isMediumPriority = sub.relevancePercentage >= 15 && sub.relevancePercentage < 30;
-                  return (
-                    <div key={sub.id} className="p-3 rounded-2xl bg-slate-50 dark:bg-dark-surface border border-slate-200/70 dark:border-white/5 group hover:border-indigo-500/40 transition-all">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div className="min-w-0 flex-1">
-                          <p className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-snug">
-                            {sub.name}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
-                              sub.weight === 3 
-                                ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30' 
-                                : sub.weight === 2
-                                ? 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/30'
-                                : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10'
-                            }`}>
-                              Peso {sub.weight} • {sub.weight === 3 ? 'Alta' : sub.weight === 2 ? 'Média' : 'Básica'}
-                            </span>
-                            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-                              {sub.totalTopics} tópicos listados
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="text-right shrink-0">
-                          <span className="text-base sm:text-lg font-black text-indigo-600 dark:text-indigo-400 font-mono">
-                            {sub.relevancePercentage}%
-                          </span>
-                          <span className="block text-[9px] uppercase tracking-wider text-slate-400 font-bold">
-                            da nota final
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
-                        <div
-                          className={`h-2.5 rounded-full transition-all duration-1000 ${
-                            isHighPriority
-                              ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 shadow-sm shadow-amber-500/20'
-                              : isMediumPriority
-                              ? 'bg-gradient-to-r from-blue-600 to-cyan-500 shadow-sm shadow-blue-500/20'
-                              : 'bg-gradient-to-r from-slate-400 to-slate-500'
-                          }`}
-                          style={{ width: `${Math.max(sub.relevancePercentage, 6)}%` }}
-                        />
-                      </div>
-                      
-                      {isHighPriority && (
-                        <div className="mt-1.5 flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 font-bold">
-                          <Flame className="w-3 h-3" />
-                          <span>Disciplina Crítica 80/20 — Maior peso na nota de corte</span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="mt-4 pt-3.5 border-t border-slate-200 dark:border-white/10 text-xs text-slate-600 dark:text-slate-400 flex items-center justify-between">
-              <span className="flex items-center gap-1.5 font-medium">
-                <span>Banca Alvo:</span>
-                <strong className="text-slate-900 dark:text-white font-black">{selectedExam.banca}</strong>
-              </span>
-              <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-black">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                100% Ponderado
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Chat do Copiloto Cognitivo Argus sobre o Edital */}
-      {!isProcessing && (
-        <div className="mt-8 glass-panel bg-white/90 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl border border-slate-200 dark:border-white/10 shadow-xl overflow-hidden flex flex-col">
-          {/* Chat Header */}
-          <div className="px-5 sm:px-7 py-4 bg-gradient-to-r from-indigo-600/10 via-blue-600/10 to-transparent border-b border-slate-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-indigo-600/25 shrink-0">
-                <Bot className="w-6 h-6 animate-pulse" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 text-[10px] font-black uppercase tracking-wider">
-                    Copiloto Cognitivo Argus
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                    Online • Multi-Concursos & {selectedExam.banca}
-                  </span>
-                </div>
-                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-0.5">
-                  Copiloto Especialista em Editais & Bancas
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Calibrado para {selectedExam.role} ({selectedExam.institution}) • Responde sobre todos os certames da plataforma
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
+            {Object.keys(examsByArea).map((area) => (
               <button
-                type="button"
-                onClick={() => setEditalChatMessages([
-                  {
-                    id: 'msg-welcome-reset',
-                    sender: 'assistant',
-                    text: `Chat reiniciado! Pode me fazer qualquer pergunta sobre as regras, matérias ou pesos do certame de **${selectedExam.role}** (${selectedExam.institution}) ou pedir comparativos com outros concursos (TRT, TJ-SP, PRF, PF, INSS, Receita, OAB).`,
-                    itemReference: `${selectedExam.institution} • Edital Consolidado`,
-                    timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-                  }
-                ])}
-                className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
-                title="Limpar histórico de mensagens"
+                key={area}
+                onClick={() => setSelectedAreaFilter(area)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  selectedAreaFilter === area
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'bg-slate-100 dark:bg-dark-surface text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-white/5'
+                }`}
               >
-                Limpar Chat
+                {area} ({examsByArea[area].length})
               </button>
-            </div>
-          </div>
-
-          {/* Chat Messages Feed */}
-          <div className="p-4 sm:p-6 space-y-4 max-h-[460px] overflow-y-auto no-scrollbar">
-            {editalChatMessages.map((msg) => {
-              const isUser = msg.sender === 'user';
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex items-start gap-3 animate-fadeIn ${isUser ? 'justify-end' : 'justify-start'}`}
-                >
-                  {!isUser && (
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm">
-                      <Bot className="w-4 h-4" />
-                    </div>
-                  )}
-
-                  <div className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-4 text-xs sm:text-sm ${
-                    isUser
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/20 rounded-tr-xs'
-                      : 'bg-slate-50 dark:bg-dark-surface border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 shadow-xs rounded-tl-xs space-y-2'
-                  }`}>
-                    <div className="leading-relaxed font-medium whitespace-pre-line">
-                      {msg.text.split(/(\*\*[^*]+\*\*)/g).map((part, idx) => {
-                        if (part.startsWith('**') && part.endsWith('**')) {
-                          return (
-                            <strong
-                              key={idx}
-                              className={isUser ? 'font-black text-white' : 'font-black text-slate-950 dark:text-white'}
-                            >
-                              {part.slice(2, -2)}
-                            </strong>
-                          );
-                        }
-                        return <React.Fragment key={idx}>{part}</React.Fragment>;
-                      })}
-                    </div>
-
-                    <div className={`flex items-center justify-between gap-3 pt-1 text-[10px] ${
-                      isUser ? 'text-blue-100/80 justify-end' : 'text-slate-400 border-t border-slate-200/60 dark:border-white/5'
-                    }`}>
-                      {!isUser && msg.itemReference && (
-                        <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-                          <FileText className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                          <span>{msg.itemReference}</span>
-                        </span>
-                      )}
-                      <span className="font-mono shrink-0">{msg.timestamp}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-
-            {isAnswering && (
-              <div className="flex items-start gap-3 animate-fadeIn">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center text-white shrink-0 mt-0.5">
-                  <Bot className="w-4 h-4 animate-spin" />
-                </div>
-                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-dark-surface border border-slate-200 dark:border-white/10 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
-                  <span>Copiloto Cognitivo Argus consultando regras e base de bancas...</span>
-                </div>
-              </div>
-            )}
-
-            <div ref={chatBottomRef} />
-          </div>
-
-          {/* Suggested Quick Questions Chips */}
-          <div className="px-4 sm:px-6 py-2.5 bg-slate-50/60 dark:bg-white/[0.02] border-t border-slate-200/80 dark:border-white/5">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
-              Perguntas Frequentes (Clique para Enviar):
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                'Quais os critérios de eliminação e nota mínima?',
-                'Como funciona a prova discursiva e pontuação?',
-                'Quais as matérias de maior peso na nota?',
-                'Qual o salário e benefícios?',
-                'Quando será a prova e prazos?'
-              ].map((chip) => (
-                <button
-                  key={chip}
-                  type="button"
-                  onClick={() => handleAskEditalQuestion(chip)}
-                  disabled={isAnswering}
-                  className="px-3 py-1 rounded-xl bg-white dark:bg-dark-card hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-300 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {chip}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Chat Input Bar */}
-          <div className="p-4 sm:p-5 bg-white dark:bg-dark-card border-t border-slate-200 dark:border-white/10">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleAskEditalQuestion(editalQuestion);
-              }}
-              className="flex items-center gap-2"
-            >
-              <input
-                type="text"
-                placeholder={`Pergunte algo sobre o edital de ${selectedExam.role} (ex: "Exige prática jurídica?", "Tem TAF?", "Critérios de correção da ${selectedExam.banca}")...`}
-                value={editalQuestion}
-                onChange={(e) => setEditalQuestion(e.target.value)}
-                disabled={isAnswering}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-dark-surface border border-slate-300 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 font-medium focus:outline-none focus:border-indigo-500 transition-colors"
-              />
-              <button
-                type="submit"
-                disabled={isAnswering || !editalQuestion.trim()}
-                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-black shadow-md shadow-indigo-600/20 flex items-center gap-2 shrink-0 transition-all disabled:opacity-40 cursor-pointer"
-              >
-                <Send className="w-4 h-4" />
-                <span className="hidden sm:inline">Enviar</span>
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Search and Filter Topics in Edital */}
-      {!isProcessing && (
-        <div className="mt-8">
-          
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <Layers className="w-5 h-5 text-indigo-400" />
-              <span>Conteúdo Programático Verticalizado com Diagnóstico</span>
-            </h3>
-            
-            <div className="relative w-full sm:w-72">
-              <Search className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Filtrar por tópico ou lei..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl glass-input text-xs text-slate-900 dark:text-white placeholder-slate-400 font-medium"
-              />
-            </div>
-          </div>
-
-          {/* Subjects Accordion / List */}
-          <div className="space-y-4">
-            {filteredSubjects.map((sub) => (
-              <div key={sub.id} className="glass-panel bg-white/80 dark:bg-dark-card/60 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
-                
-                {/* Subject Header */}
-                <div
-                  onClick={() => setExpandedSubject(expandedSubject === sub.id ? null : sub.id)}
-                  className="p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 font-bold text-xs border border-indigo-500/20">
-                      P{sub.weight}
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">{sub.name}</h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {sub.topics.length} tópicos mapeados • Peso {sub.weight} ({sub.relevancePercentage}% da prova)
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <span className="hidden sm:inline-block text-xs font-semibold px-2.5 py-1 rounded-lg bg-white dark:bg-dark-card border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
-                      Frequência {sub.topics[0]?.frequencyInBanca || 'Alta'}
-                    </span>
-                    {expandedSubject === sub.id ? (
-                      <ChevronDown className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                    )}
-                  </div>
-                </div>
-
-                {/* Topics Breakdown */}
-                {expandedSubject === sub.id && (
-                  <div className="px-4 sm:px-5 pb-5 pt-3 border-t border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-dark-surface/50">
-                    <div className="grid grid-cols-1 gap-2.5 mt-2">
-                      {sub.topics.map((topic) => (
-                        <div
-                          key={topic.id}
-                          className="p-3.5 rounded-xl bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-indigo-500/40 transition-colors shadow-sm"
-                        >
-                          <div className="max-w-xl">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{topic.name}</span>
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getStatusColor(topic.status)}`}>
-                                {topic.status}
-                              </span>
-                            </div>
-
-                            {topic.articlesOrLaws && topic.articlesOrLaws.length > 0 && (
-                              <div className="flex flex-wrap gap-1.5 mt-2">
-                                {topic.articlesOrLaws.map((law, idx) => (
-                                  <span key={idx} className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 font-mono inline-flex items-center gap-1">
-                                    <FileText className="w-3 h-3 text-indigo-500 shrink-0" />
-                                    <span>{law}</span>
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-3 shrink-0">
-                            {topic.accuracyRate !== undefined && (
-                              <div className="text-right">
-                                <p className="text-[10px] text-slate-500 dark:text-slate-400">Proficiência</p>
-                                <p className={`text-xs font-bold ${topic.accuracyRate >= 70 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
-                                  {topic.accuracyRate}%
-                                </p>
-                              </div>
-                            )}
-                            
-                            <span className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium whitespace-nowrap">
-                              Incidência {topic.frequencyInBanca}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-              </div>
             ))}
           </div>
 
-        </div>
-      )}
-
-      {/* Upload Custom Edital Modal */}
-      {showUploadModal && (
-        <div role="dialog" aria-modal="true" className="fixed inset-0 z-[110] argus-modal-backdrop flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
-          <div className="w-full max-w-xl p-6 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-indigo-500/40 shadow-2xl relative my-8">
-            
-            {/* Modal Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/10">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-500 dark:text-indigo-400">
-                  <UploadCloud className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">Carregar Novo Edital (PDF ou Documento)</h3>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">A IA lerá seu arquivo e gerará o edital verticalizado em segundos</p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setShowUploadModal(false);
-                  setUploadError(null);
-                }}
-                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-dark-card dark:hover:bg-dark-hover border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCustomSubmit} className="mt-5 space-y-4">
-              
-              {/* Drag and Drop Upload Area */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Arquivo do Edital (PDF, DOCX ou TXT):
-                </label>
-
-                {/* Hidden File Input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.doc,.docx,.txt"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleFileSelect(e.target.files[0]);
-                    }
-                  }}
-                />
-
-                {!uploadedFile ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+            {exams
+              .filter((e) => selectedAreaFilter === 'todas' || getExamArea(e) === selectedAreaFilter)
+              .map((exam) => {
+                const isSelected = selectedExam.id === exam.id;
+                const area = getExamArea(exam);
+                return (
                   <div
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`p-6 rounded-2xl border-2 border-dashed transition-all cursor-pointer text-center ${
-                      isDragging
-                        ? 'border-indigo-500 bg-indigo-500/20 scale-[0.99]'
-                        : 'border-indigo-400/40 hover:border-indigo-500 bg-indigo-500/5 hover:bg-indigo-500/10'
+                    key={exam.id}
+                    onClick={() => onSelectExam(exam)}
+                    className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-3 text-left ${
+                      isSelected
+                        ? 'bg-indigo-50 dark:bg-indigo-500/15 border-indigo-500 shadow-md shadow-indigo-500/10 ring-2 ring-indigo-500/30'
+                        : 'bg-white dark:bg-dark-card hover:bg-slate-50 dark:hover:bg-dark-hover border-slate-200 dark:border-white/10 shadow-sm'
                     }`}
                   >
-                    <FileUp className="w-9 h-9 text-indigo-500 dark:text-indigo-400 mx-auto mb-2 animate-bounce" />
-                    <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
-                      Arraste e solte seu edital em PDF aqui
-                    </p>
-                    <p className="text-[11px] text-indigo-600 dark:text-indigo-300/90 mt-1 font-medium">
-                      ou clique aqui para buscar nos arquivos do seu computador
-                    </p>
-                    <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-                      <span className="px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/15 border border-indigo-200 dark:border-indigo-500/25 text-[10px] text-indigo-700 dark:text-indigo-300 font-semibold">
-                        PDF • DOCX • TXT (até 50MB)
-                      </span>
-                      <span className="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/25 text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">
-                        OCR com IA Integrada
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setExamTitleInput('TRF-3 2026 - Analista Judiciário');
-                          setBancaInput('FCC');
-                          setRoleInput('Analista Judiciário - Área Judiciária');
-                          setSalaryInput('R$ 14.852,00');
-                          setVacanciesInput('120');
-                          setUploadText('Direito Constitucional, Direito Administrativo (Lei 14.133/21 e Lei 8.112/90), Direito Processual Civil, Direito Previdenciário e Direito Tributário.');
-                        }}
-                        className="px-2.5 py-1 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-[10px] text-amber-700 dark:text-amber-300 font-bold transition-colors cursor-pointer"
-                      >
-                        Preencher Edital Exemplo (1-Clique)
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-300 shrink-0">
-                        <FileText className="w-5 h-5" />
-                      </div>
-                      <div className="overflow-hidden">
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[280px]">
-                            {uploadedFile.name}
-                          </p>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 flex items-center gap-1 shrink-0">
-                            <Check className="w-3 h-3" /> Anexado
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                            {area}
                           </span>
+                          {exam.id === defaultExamId && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 shrink-0" title="Seu Edital Padrão ativo">
+                              <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-500" />
+                              <span>Padrão</span>
+                            </span>
+                          )}
                         </div>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                          Tamanho: {formatFileSize(uploadedFile.size)} • Pronto para análise com IA
-                        </p>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-dark-surface border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 font-bold shrink-0">
+                          {exam.banca}
+                        </span>
                       </div>
+                      <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white line-clamp-1">
+                        {exam.title}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
+                        {exam.role}
+                      </p>
                     </div>
 
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-white dark:bg-dark-card hover:bg-slate-50 dark:hover:bg-dark-hover border border-slate-200 dark:border-slate-700 text-indigo-300 transition-colors"
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-white/5 text-[11px]">
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                        {exam.salary}
+                      </span>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
+                          isSelected ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                        }`}
                       >
-                        Trocar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setUploadedFile(null);
-                          if (fileInputRef.current) fileInputRef.current.value = '';
-                        }}
-                        className="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center transition-colors"
-                        title="Remover arquivo"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
+                        {isSelected ? (
+                          <span className="inline-flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            <span>Selecionado</span>
+                          </span>
+                        ) : (
+                          'Selecionar'
+                        )}
+                      </span>
                     </div>
                   </div>
-                )}
-              </div>
-
-              {/* Contest Title / Name */}
-              <div>
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
-                  Título do Concurso / Órgão:
-                </label>
-                <input
-                  type="text"
-                  value={examTitleInput}
-                  onChange={(e) => setExamTitleInput(e.target.value)}
-                  placeholder="Ex: Polícia Federal 2026 - Agente, Receita Federal, OAB 41º..."
-                  className="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs text-slate-900 dark:text-white placeholder-slate-500"
-                />
-              </div>
-
-              {/* Two Column Grid: Banca & Cargo */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
-                    Banca Examinadora:
-                  </label>
-                  <select
-                    value={bancaInput}
-                    onChange={(e) => setBancaInput(e.target.value as any)}
-                    className="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs text-slate-900 dark:text-white bg-white dark:bg-dark-surface cursor-pointer"
-                  >
-                    <option value="Cebraspe" className="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-white">Cebraspe (Certo / Errado)</option>
-                    <option value="FGV" className="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-white">FGV (Múltipla Escolha - 5 Opções)</option>
-                    <option value="FCC" className="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-white">FCC (Fundação Carlos Chagas)</option>
-                    <option value="Vunesp" className="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-white">Vunesp</option>
-                    <option value="Outra" className="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-white">Outra Banca Examinadora</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
-                    Cargo Pretendido:
-                  </label>
-                  <input
-                    type="text"
-                    value={roleInput}
-                    onChange={(e) => setRoleInput(e.target.value)}
-                    placeholder="Ex: Agente, Auditor, Técnico..."
-                    className="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs text-slate-900 dark:text-white placeholder-slate-500"
-                  />
-                </div>
-              </div>
-
-              {/* Two Column Grid: Salário & Vagas */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
-                    Remuneração Estimada:
-                  </label>
-                  <input
-                    type="text"
-                    value={salaryInput}
-                    onChange={(e) => setSalaryInput(e.target.value)}
-                    placeholder="Ex: R$ 9.350,00"
-                    className="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs text-slate-900 dark:text-white placeholder-slate-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
-                    Vagas Previstas:
-                  </label>
-                  <input
-                    type="number"
-                    value={vacanciesInput}
-                    onChange={(e) => setVacanciesInput(e.target.value)}
-                    placeholder="Ex: 250"
-                    className="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs text-slate-900 dark:text-white placeholder-slate-500"
-                  />
-                </div>
-              </div>
-
-              {/* Optional Textarea for Content */}
-              <div>
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
-                  Anotações ou Conteúdo Programático Específico (Opcional):
-                </label>
-                <textarea
-                  rows={3}
-                  value={uploadText}
-                  onChange={(e) => setUploadText(e.target.value)}
-                  placeholder="Se desejar, você também pode colar aqui trechos do edital, matérias específicas ou artigos de lei exigidos pela banca..."
-                  className="w-full p-3 rounded-xl glass-input text-xs text-slate-900 dark:text-white placeholder-slate-500"
-                />
-              </div>
-
-              {/* Set as Default Exam Option */}
-              <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20">
-                <input
-                  type="checkbox"
-                  id="setAsDefaultExamCheckbox"
-                  checked={setAsDefaultExam}
-                  onChange={(e) => setSetAsDefaultExam(e.target.checked)}
-                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-white/20 bg-white dark:bg-dark-surface cursor-pointer"
-                />
-                <label htmlFor="setAsDefaultExamCheckbox" className="text-xs font-semibold text-slate-800 dark:text-slate-200 cursor-pointer flex-1">
-                  <span className="font-bold text-indigo-600 dark:text-indigo-400 inline-flex items-center gap-1.5">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
-                    <span>Definir como meu Edital Padrão ativo</span>
-                  </span>
-                  <span className="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    Sincroniza automaticamente o ciclo de estudos semanal, simulados adaptativos e banco de questões para este concurso.
-                  </span>
-                </label>
-              </div>
-
-              {/* Error Banner */}
-              {uploadError && (
-                <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
-                  <span>{uploadError}</span>
-                </div>
-              )}
-
-              {/* Modal Footer Buttons */}
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-300 dark:border-white/10">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowUploadModal(false);
-                    setUploadError(null);
-                  }}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-extrabold shadow-lg shadow-blue-600/30 flex items-center gap-2 transition-all glow-brand"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Mapear Edital com IA</span>
-                </button>
-              </div>
-
-            </form>
-
+                );
+              })}
           </div>
         </div>
-      )}
 
-    </div>
+        {/* AI Processing Animation Overlay */}
+        {isProcessing && (
+          <div className="mt-8 p-8 rounded-3xl glass-panel bg-white/70 dark:bg-dark-card/60 backdrop-blur-md border border-indigo-500/40 glow-brand text-center animate-fadeIn shadow-sm">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 mb-4">
+              <Sparkles className="w-8 h-8 animate-spin" style={{ animationDuration: '3s' }} />
+            </div>
+            <h3 className="text-lg font-black text-slate-900 dark:text-white">Processamento e Mapeamento Analítico do Edital</h3>
+            <p className="text-xs text-indigo-300 mt-1 font-mono">{stages[progressStage]}</p>
+
+            <div className="w-full max-w-md mx-auto mt-6 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 h-full transition-all duration-500"
+                style={{ width: `${((progressStage + 1) / 4) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Exam Overview Summary Card */}
+        {!isProcessing && (
+          <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            {/* Card Esquerdo: Detalhes do Concurso e Métricas Rápidas */}
+            <div className="lg:col-span-7 glass-panel bg-white/80 dark:bg-dark-card/70 backdrop-blur-md p-6 sm:p-7 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-md flex flex-col justify-between space-y-5">
+              <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4 pb-5 border-b border-slate-200 dark:border-white/10">
+                <div className="space-y-1 min-w-0">
+                  <span className="inline-block px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[11px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                    {selectedExam.institution}
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">
+                    {selectedExam.role}
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-slate-500 dark:text-slate-400">
+                    <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium">
+                      <FileCheck className="w-4 h-4 text-emerald-500" />
+                      {selectedExam.pdfFileName || 'Edital_Oficial.pdf'}
+                    </span>
+                    <span>•</span>
+                    <span>
+                      Banca: <strong className="text-slate-900 dark:text-white font-bold">{selectedExam.banca}</strong>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  {defaultExamId === selectedExam.id ? (
+                    <span className="px-3.5 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-400 font-extrabold text-xs tracking-wide flex items-center gap-1.5 shadow-xs">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                      <span>Edital Padrão Ativo</span>
+                    </span>
+                  ) : onSetDefaultExam ? (
+                    <button
+                      onClick={() => onSetDefaultExam(selectedExam)}
+                      className="px-3.5 py-2.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                      title="Definir este concurso como seu edital padrão em toda a plataforma"
+                    >
+                      <Star className="w-3.5 h-3.5 text-indigo-500" />
+                      <span>Definir como Edital Padrão</span>
+                    </button>
+                  ) : null}
+
+                  <button
+                    onClick={() => onGenerateCycle(selectedExam)}
+                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold text-xs tracking-wide shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all glow-emerald cursor-pointer"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    <span>Montar Meu Plano Diário</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Por Onde Começar • Banca {selectedExam.banca}</span>
+                  </span>
+                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                    Meta Segura: 80%+ de Acertos
+                  </span>
+                </div>
+                <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                  Para <strong>{selectedExam.role}</strong> ({selectedExam.institution}), a matéria que mais vale pontos na sua prova é{' '}
+                  <strong className="text-indigo-600 dark:text-indigo-300">
+                    {selectedExam.subjects[0]?.name || 'Conhecimentos Específicos'} ({selectedExam.subjects[0]?.relevancePercentage || 45}% da nota)
+                  </strong>
+                  . Comece estudando os assuntos de Peso 3 e escolha suas matérias em foco a qualquer hora.
+                </p>
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => onGenerateCycle(selectedExam)}
+                    className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                  >
+                    <Zap className="w-3.5 h-3.5" />
+                    <span>Ver O Que Estudar Hoje</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-focus-selector'))}
+                    className="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30 text-[11px] font-bold transition-all cursor-pointer"
+                  >
+                    Escolher Mais de Um Foco
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowUploadModal(true)}
+                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-white/10 text-[11px] font-bold transition-all cursor-pointer"
+                  >
+                    Enviar Outro Edital (PDF)
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-slate-50 dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs">
+                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                    <Calendar className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+                    <span>Data da Prova</span>
+                  </div>
+                  <p className="text-sm sm:text-base font-black text-slate-900 dark:text-white mt-1">{selectedExam.examDate}</p>
+                  <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">Faltam {selectedExam.daysRemaining} dias</p>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs">
+                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                    <DollarSign className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
+                    <span>Remuneração</span>
+                  </div>
+                  <p className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 mt-1">{selectedExam.salary}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Inicial Bruto</p>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs">
+                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                    <Users className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
+                    <span>Vagas</span>
+                  </div>
+                  <p className="text-sm sm:text-base font-black text-slate-900 dark:text-white mt-1">{selectedExam.vacancies} vagas</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Imediatas + CR</p>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-dark-surface p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs">
+                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                    <Award className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
+                    <span>Disciplinas</span>
+                  </div>
+                  <p className="text-sm sm:text-base font-black text-slate-900 dark:text-white mt-1">{selectedExam.subjects.length} Matérias</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Ponderadas por peso</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card Direito: Distribuição Estatística da Prova */}
+            <div className="lg:col-span-5 glass-panel bg-white/80 dark:bg-dark-card/70 backdrop-blur-md p-6 sm:p-7 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-md flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/10">
+                  <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+                    <span>Distribuição Estatística da Prova</span>
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-mono text-[11px] font-bold">
+                    80/20 Ponderado
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
+                  Relevância real de cada disciplina calculada pelo algoritmo sobre o histórico da banca <strong>{selectedExam.banca}</strong>:
+                </p>
+
+                <div className="mt-4 space-y-3.5 overflow-y-auto max-h-[360px] pr-2 custom-scrollbar">
+                  {selectedExam.subjects.map((sub) => {
+                    const isHighPriority = sub.relevancePercentage >= 30;
+                    const isMediumPriority = sub.relevancePercentage >= 15 && sub.relevancePercentage < 30;
+                    return (
+                      <div key={sub.id} className="p-3 rounded-2xl bg-slate-50 dark:bg-dark-surface border border-slate-200/70 dark:border-white/5 group hover:border-indigo-500/40 transition-all">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-snug">
+                              {sub.name}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                              <span
+                                className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+                                  sub.weight === 3
+                                    ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30'
+                                    : sub.weight === 2
+                                    ? 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/30'
+                                    : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10'
+                                }`}
+                              >
+                                Peso {sub.weight} • {sub.weight === 3 ? 'Alta' : sub.weight === 2 ? 'Média' : 'Básica'}
+                              </span>
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                                {sub.totalTopics} tópicos listados
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            <span className="text-base sm:text-lg font-black text-indigo-600 dark:text-indigo-400 font-mono">
+                              {sub.relevancePercentage}%
+                            </span>
+                            <span className="block text-[9px] uppercase tracking-wider text-slate-400 font-bold">
+                              da nota final
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                          <div
+                            className={`h-2.5 rounded-full transition-all duration-1000 ${
+                              isHighPriority
+                                ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 shadow-sm shadow-amber-500/20'
+                                : isMediumPriority
+                                ? 'bg-gradient-to-r from-blue-600 to-cyan-500 shadow-sm shadow-blue-500/20'
+                                : 'bg-gradient-to-r from-slate-400 to-slate-500'
+                            }`}
+                            style={{ width: `${Math.max(sub.relevancePercentage, 6)}%` }}
+                          />
+                        </div>
+
+                        {isHighPriority && (
+                          <div className="mt-1.5 flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 font-bold">
+                            <Flame className="w-3 h-3" />
+                            <span>Disciplina Crítica 80/20 — Maior peso na nota de corte</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3.5 border-t border-slate-200 dark:border-white/10 text-xs text-slate-600 dark:text-slate-400 flex items-center justify-between">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <span>Banca Alvo:</span>
+                  <strong className="text-slate-900 dark:text-white font-black">{selectedExam.banca}</strong>
+                </span>
+                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-black">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  100% Ponderado
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Chat do Copiloto Cognitivo Argus sobre o Edital */}
+        {!isProcessing && <EditalCopilotChat selectedExam={selectedExam} />}
+
+        {/* Search and Filter Topics in Edital */}
+        {!isProcessing && (
+          <EditalVerticalTree
+            filteredSubjects={filteredSubjects}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            expandedSubject={expandedSubject}
+            setExpandedSubject={setExpandedSubject}
+          />
+        )}
+
+        {/* Upload Custom Edital Modal */}
+        {showUploadModal && (
+          <EditalUploadModal
+            uploadedFile={uploadedFile}
+            setUploadedFile={setUploadedFile}
+            isDragging={isDragging}
+            examTitleInput={examTitleInput}
+            setExamTitleInput={setExamTitleInput}
+            bancaInput={bancaInput}
+            setBancaInput={setBancaInput}
+            roleInput={roleInput}
+            setRoleInput={setRoleInput}
+            salaryInput={salaryInput}
+            setSalaryInput={setSalaryInput}
+            vacanciesInput={vacanciesInput}
+            setVacanciesInput={setVacanciesInput}
+            uploadText={uploadText}
+            setUploadText={setUploadText}
+            setAsDefaultExam={setAsDefaultExam}
+            setSetAsDefaultExam={setSetAsDefaultExam}
+            uploadError={uploadError}
+            onClose={() => {
+              setShowUploadModal(false);
+              setUploadError(null);
+            }}
+            onFileSelect={handleFileSelect}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onSubmit={handleCustomSubmit}
+          />
+        )}
+      </div>
     </HardPaywallGate>
   );
 };

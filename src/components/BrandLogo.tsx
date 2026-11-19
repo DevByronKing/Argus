@@ -13,7 +13,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   className = '',
   showGlow = false,
 }) => {
-  const logoSrc = '/argus-iris-circle.png';
+  const logoSrc = '/argus-iris-circle.webp';
 
   return (
     <div
