@@ -215,7 +215,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     setActiveTab('checkout');
   };
 
-  // Confirmação de Pagamento (Pix ou Cartão) com Trava Antifraude
+  // Confirmação de Pagamento (Pix ou Cartão) com Verificação Estrita no Servidor / Asaas
   const handleConfirmPayment = async () => {
     setCardError(null);
 
@@ -228,17 +228,35 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       }
     }
 
+    if (!transactionId) {
+      setCardError('Aguarde a geração da cobrança oficial antes de verificar o pagamento.');
+      return;
+    }
+
     setIsProcessing(true);
-    const txId = transactionId || `tx_${Date.now()}`;
     try {
-      await fetch('/api/webhooks/payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          action: 'simulate_confirmation', 
-          transactionId: txId 
-        })
+      const token = useAuthStore.getState().token;
+      const headers: Record<string, string> = {};
+      if (token && !token.startsWith('jwt_mock_')) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      const checkRes = await fetch(`/api/checkout?txId=${encodeURIComponent(transactionId)}`, {
+        method: 'GET',
+        headers,
+        cache: 'no-store',
       });
+      const checkData = await checkRes.json().catch(() => null);
+
+      if (!checkRes.ok || !checkData?.success || checkData?.status !== 'confirmed') {
+        setIsProcessing(false);
+        setCardError(
+          paymentMethod === 'pix'
+            ? '⏳ Pagamento Pix ainda não confirmado pelo Banco Central / Asaas. Conclua o Pix no app do seu banco e aguarde alguns segundos.'
+            : '⏳ Pagamento ainda não confirmado pela operadora. Utilize o Pix para aprovação instantânea.'
+        );
+        return;
+      }
+
       setPaymentStatus('confirmed');
 
       const matchedExamObj = INITIAL_EXAMS.find(
@@ -246,8 +264,6 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           e.title.toLowerCase().includes(targetExamForLaunch.toLowerCase()) ||
           targetExamForLaunch.toLowerCase().includes(e.title.toLowerCase())
       ) || INITIAL_EXAMS[0];
-
-      // O acesso Edge/Middleware é validado estritamente por cookie HttpOnly assinado no servidor (/api/checkout ou /api/webhooks/payment)
 
       try {
         const randBuf = new Uint32Array(1);
@@ -288,7 +304,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
       analytics.track('subscription_activated', {
         planId: selectedPlanToBuy,
-        transactionId: txId,
+        transactionId,
         provider: paymentMethod === 'pix' ? 'pix_asaas' : 'stripe_direct_card',
         amount: finalAmount,
         isTrial: false,
@@ -300,6 +316,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       }, 1000);
     } catch {
       setIsProcessing(false);
+      setCardError('Não foi possível verificar o status do pagamento no momento. Tente novamente em instantes.');
     }
   };
 
@@ -993,6 +1010,12 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
                           <span>Aguardando confirmação automática do Pix ({formatPrice(finalAmount)})...</span>
                         </div>
+
+                        {cardError && (
+                          <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs font-bold leading-relaxed">
+                            {cardError}
+                          </div>
+                        )}
                       </div>
                     </div>
 

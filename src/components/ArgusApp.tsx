@@ -285,8 +285,8 @@ export function ArgusApp() {
   // Load from LocalStorage if available
   useEffect(() => {
     try {
-      // Limpeza automática única de mocks legados (incluindo plano PRO residual salvo no navegador antes de criar conta)
-      if (!localStorage.getItem('argus_clean_slate_v2')) {
+      // Limpeza automática única de mocks legados (incluindo plano liberado sem pagamento antes do bloqueio estrito)
+      if (!localStorage.getItem('argus_clean_slate_v3')) {
         localStorage.removeItem('argus_plan');
         localStorage.removeItem('aprovalens_plan');
         localStorage.removeItem('argus_metrics');
@@ -296,7 +296,7 @@ export function ArgusApp() {
         localStorage.removeItem('argus_achievements');
         localStorage.removeItem('argus_daily_missions');
         localStorage.removeItem('learning_ai_subscription_detail');
-        localStorage.setItem('argus_clean_slate_v2', 'true');
+        localStorage.setItem('argus_clean_slate_v3', 'true');
       }
 
       const savedPlan = localStorage.getItem('argus_plan') || localStorage.getItem('aprovalens_plan');

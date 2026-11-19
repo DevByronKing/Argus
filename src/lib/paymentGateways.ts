@@ -153,4 +153,47 @@ export class PaymentGateway {
       provider: 'simulated',
     };
   }
+
+  /**
+   * Consulta diretamente na API do Asaas o status real de uma cobrança Pix/Cartão.
+   * Só retorna 'confirmed' se o Asaas atestar RECEIVED, CONFIRMED ou RECEIVED_IN_CASH.
+   */
+  static async checkAsaasPaymentStatus(
+    paymentId: string
+  ): Promise<'confirmed' | 'pending_payment' | 'failed'> {
+    if (!paymentId || !paymentId.startsWith('pay_')) {
+      return 'pending_payment';
+    }
+    const asaasApiKey = getAsaasApiKey();
+    if (!asaasApiKey || asaasApiKey.includes('sua-chave')) {
+      return 'pending_payment';
+    }
+    const isAsaasProduction =
+      process.env.ASAAS_ENVIRONMENT === 'production' || asaasApiKey.includes('_prod_');
+    const asaasBaseUrl = isAsaasProduction
+      ? 'https://api.asaas.com/v3'
+      : 'https://sandbox.asaas.com/api/v3';
+
+    try {
+      const res = await fetch(`${asaasBaseUrl}/payments/${encodeURIComponent(paymentId)}`, {
+        method: 'GET',
+        headers: {
+          access_token: asaasApiKey,
+        },
+        cache: 'no-store',
+      });
+      if (!res.ok) return 'pending_payment';
+      const data = await res.json();
+      const status = String(data?.status || '').toUpperCase();
+      if (['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH'].includes(status)) {
+        return 'confirmed';
+      }
+      if (['OVERDUE', 'REFUNDED', 'DELETED'].includes(status)) {
+        return 'failed';
+      }
+      return 'pending_payment';
+    } catch {
+      return 'pending_payment';
+    }
+  }
 }

@@ -173,73 +173,51 @@ export const PostPaymentWelcomeTab: React.FC<PostPaymentWelcomeTabProps> = ({
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10 animate-fadeIn">
       
       {/* =========================================================================
-          HERO DE BOAS-VINDAS & CONFIRMAÇÃO DE MATRÍCULA
-          Design Luxury isolado com cores absolutas para eliminar 100% de conflito
-          entre Modo Claro e Modo Escuro.
+          HERO DE BOAS-VINDAS & CONFIRMAÇÃO DE MATRÍCULA (Alinhado ao Design System Claro/Escuro)
          ========================================================================= */}
-      <div 
-        style={{ backgroundColor: '#070b19', color: '#ffffff' }}
-        className="preserve-dark force-white relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#060919] via-[#0b102b] to-[#0d163a] border border-indigo-500/35 text-white p-6 sm:p-12 shadow-2xl shadow-indigo-950/60"
-      >
+      <div className="relative overflow-hidden rounded-[2rem] bg-white/95 dark:bg-[#0b1022]/95 border-2 border-emerald-500/30 text-slate-900 dark:text-white p-6 sm:p-10 shadow-xl shadow-emerald-500/5 backdrop-blur-xl">
         {/* Glows Decorativos de Fundo */}
-        <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/25 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-72 h-72 bg-emerald-500/12 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-3xl space-y-5">
-          
+        <div className="relative z-10 max-w-3xl space-y-4">
           {/* Badge Matrícula Confirmada */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-black uppercase tracking-wider shadow-sm">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span style={{ color: '#6ee7b7' }}>Matrícula Confirmada com Sucesso</span>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-black uppercase tracking-wider">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>Assinatura Confirmada com Sucesso</span>
           </div>
 
-          {/* Título Principal com Contraste Absoluto (estilos inline impedem sobreposição do globals.css) */}
-          <h1 
-            style={{ color: '#ffffff' }}
-            className="text-3xl sm:text-5xl font-black tracking-tight text-white !text-white leading-[1.15]"
-          >
-            <span style={{ color: '#ffffff' }} className="text-white block sm:inline">
-              Parabéns, Guerreiro(a)!
-            </span>{' '}
-            <br className="hidden sm:inline" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 inline-block">
-              Sua jornada rumo à posse começou.
+          <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+            <span>Bem-vindo(a) ao Argus! </span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 dark:from-emerald-400 dark:via-teal-300 dark:to-cyan-400">
+              Seu ambiente de estudos está liberado.
             </span>
           </h1>
 
-          <p 
-            style={{ color: '#cbd5e1' }}
-            className="text-slate-300 text-sm sm:text-base leading-relaxed font-medium"
-          >
-            Muito obrigado por confiar no <strong style={{ color: '#ffffff' }} className="text-white font-bold">Argus</strong> como seu copiloto cognitivo. A partir deste segundo, você não estuda mais no escuro: as pegadinhas psicométricas das bancas examinadoras serão desarmadas com rigor científico e IA de alta precisão.
+          <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
+            Todas as ferramentas do seu plano já estão ativas. Escolha abaixo por onde deseja começar seus estudos hoje.
           </p>
 
           {/* Card Resumo do Pedido / Plano Ativado */}
-          <div 
-            style={{ 
-              backgroundColor: 'rgba(255, 255, 255, 0.08)', 
-              borderColor: 'rgba(255, 255, 255, 0.16)' 
-            }}
-            className="mt-6 p-5 sm:p-6 rounded-2xl border shadow-inner backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-white"
-          >
-            <div className="space-y-1.5">
-              <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border shadow-sm ${currentPlanMeta.badgeColor}`}>
+          <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30">
                 {currentPlanMeta.name}
               </span>
-              <p style={{ color: '#e2e8f0' }} className="font-mono text-xs pt-1 flex items-center gap-1.5">
-                <span>Matrícula:</span>
-                <strong style={{ color: '#ffffff' }} className="text-white font-bold">#{orderId}</strong>
+              <p className="font-mono text-xs pt-1 flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                <span>Pedido:</span>
+                <strong className="text-slate-900 dark:text-white font-bold">#{orderId}</strong>
                 <span className="text-slate-400">&bull;</span>
                 <span>Status:</span>
-                <span style={{ color: '#34d399' }} className="text-emerald-400 font-bold flex items-center gap-1">
-                  <Check className="w-3 h-3" />
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                  <Check className="w-3.5 h-3.5" />
                   Ativo & Liberado
                 </span>
               </p>
               {plan === 'lancamento' && (
-                <p style={{ color: '#fcd34d' }} className="text-xs font-bold flex items-center gap-1.5 pt-0.5">
-                  <Target className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span>Edital Vinculado: <strong style={{ color: '#ffffff' }}>{lockedExamTitle}</strong> (Acesso até a prova)</span>
+                <p className="text-xs font-bold flex items-center gap-1.5 pt-0.5 text-amber-700 dark:text-amber-300">
+                  <Target className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>Edital Vinculado: <strong className="text-slate-900 dark:text-white">{lockedExamTitle}</strong></span>
                 </p>
               )}
             </div>
@@ -248,28 +226,22 @@ export const PostPaymentWelcomeTab: React.FC<PostPaymentWelcomeTabProps> = ({
               <button
                 type="button"
                 onClick={handleCopyReceipt}
-                style={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.12)', 
-                  borderColor: 'rgba(255, 255, 255, 0.22)',
-                  color: '#ffffff' 
-                }}
-                className="px-4 py-2.5 rounded-xl hover:bg-white/20 border font-bold text-xs flex items-center gap-2 transition-all active:scale-95 cursor-pointer shadow-sm"
+                className="px-4 py-2.5 rounded-xl bg-white dark:bg-white/10 hover:bg-slate-100 dark:hover:bg-white/15 border border-slate-200 dark:border-white/15 text-slate-700 dark:text-white font-bold text-xs flex items-center gap-2 transition-all active:scale-95 cursor-pointer shadow-2xs"
               >
-                {copiedLink ? <Check className="w-4 h-4 text-emerald-400 shrink-0" /> : <Share2 className="w-4 h-4 text-white shrink-0" />}
-                <span style={{ color: '#ffffff' }}>{copiedLink ? 'Copiado!' : 'Compartilhar Matrícula'}</span>
+                {copiedLink ? <Check className="w-4 h-4 text-emerald-500 shrink-0" /> : <Share2 className="w-4 h-4 shrink-0" />}
+                <span>{copiedLink ? 'Copiado!' : 'Copiar Comprovante'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => onNavigateTab('edital')}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/30 transition-all active:scale-95 cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs flex items-center gap-2 shadow-md shadow-blue-600/20 transition-all active:scale-95 cursor-pointer"
               >
                 <span>Acessar Meu Edital</span>
                 <ArrowRight className="w-4 h-4 shrink-0" />
               </button>
             </div>
           </div>
-
         </div>
       </div>
 

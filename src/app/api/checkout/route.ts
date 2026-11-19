@@ -280,7 +280,27 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ success: false, error: 'txId é obrigatório' }, { status: 400 });
       }
 
-      const tx = await TransactionManager.getAsync(txId);
+      let tx = await TransactionManager.getAsync(txId);
+
+      // Caso o Serverless tenha sofrido cold start mas o paymentId seja uma cobrança oficial Asaas (pay_...)
+      if (!tx && txId.startsWith('pay_')) {
+        const verifiedUser = await getAuthenticatedRequestUser(req);
+        const pollCookie = req.cookies.get('argus_checkout_tx')?.value;
+        const hasValidPollCookie = await verifyPollingToken(pollCookie, txId);
+        if (!hasValidPollCookie && !verifiedUser) {
+          return NextResponse.json(
+            { success: false, code: 'FORBIDDEN_TX_ACCESS', error: 'Acesso não autorizado a esta transação.' },
+            { status: 403 }
+          );
+        }
+        const liveStatus = await PaymentGateway.checkAsaasPaymentStatus(txId);
+        return NextResponse.json({
+          success: true,
+          transactionId: txId,
+          status: liveStatus,
+        });
+      }
+
       if (!tx) {
         return NextResponse.json(
           { success: false, code: 'TRANSACTION_NOT_FOUND', error: 'Transação não encontrada.' },
@@ -304,6 +324,15 @@ export async function GET(req: NextRequest) {
           { success: false, code: 'FORBIDDEN_TX_ACCESS', error: 'Acesso não autorizado a esta transação.' },
           { status: 403 }
         );
+      }
+
+      // Se ainda consta como pendente localmente, consulta em tempo real no Asaas para cobrir latência de webhook
+      if (tx.status !== 'confirmed' && (tx.provider === 'asaas' || tx.id.startsWith('pay_'))) {
+        const liveStatus = await PaymentGateway.checkAsaasPaymentStatus(tx.id);
+        if (liveStatus === 'confirmed') {
+          const confirmedTx = await TransactionManager.confirmAsync(tx.id);
+          if (confirmedTx) tx = confirmedTx;
+        }
       }
 
       const response = NextResponse.json({

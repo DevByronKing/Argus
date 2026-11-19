@@ -168,6 +168,8 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
   // Pix Code Real via Asaas ou Bacen EMVCo
   const [realPixCode, setRealPixCode] = useState<string>('');
   const [realQrCodeImg, setRealQrCodeImg] = useState<string | null>(null);
+  const [pixTransactionId, setPixTransactionId] = useState<string>('');
+  const [paymentPendingNotice, setPaymentPendingNotice] = useState<string | null>(null);
   const [isLoadingPix, setIsLoadingPix] = useState(false);
 
   // Pix Code Simulado de contingência
@@ -181,6 +183,7 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
     let isMounted = true;
     const fetchPix = async () => {
       setIsLoadingPix(true);
+      setPaymentPendingNotice(null);
       try {
         const token = useAuthStore.getState().token;
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -201,6 +204,7 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
         });
         const data = await res.json();
         if (isMounted && data.success && data.pix) {
+          setPixTransactionId(data.transactionId || '');
           setRealPixCode(data.pix.copyPasteCode);
           setRealQrCodeImg(data.pix.qrCodeUrl);
         }
@@ -214,6 +218,43 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
     fetchPix();
     return () => { isMounted = false; };
   }, [paymentMethod, selectedPlan, billingCycle, customerEmail, customerName, customerCpf]);
+
+  // Polling automático a cada 4 segundos para liberar o plano assim que o Pix for pago no Asaas
+  useEffect(() => {
+    if (paymentMethod !== 'pix' || !pixTransactionId || isPaymentConfirmed) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const token = useAuthStore.getState().token;
+        const headers: Record<string, string> = {};
+        if (token && !token.startsWith('jwt_mock_')) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        const res = await fetch(`/api/checkout?txId=${encodeURIComponent(pixTransactionId)}`, {
+          headers,
+          cache: 'no-store',
+        });
+        const data = await res.json().catch(() => null);
+        if (res.ok && data?.success && data?.status === 'confirmed') {
+          clearInterval(interval);
+          setIsPaymentConfirmed(true);
+          if (selectedPlan === 'lancamento') {
+            const matched = INITIAL_EXAMS.find((e) => e.title === targetExam) || INITIAL_EXAMS[0];
+            try {
+              localStorage.setItem('argus_locked_exam_id', matched.id);
+              localStorage.setItem('argus_locked_exam_title', matched.title);
+              localStorage.setItem('argus_target_exam', matched.title);
+            } catch {}
+          }
+          trackConversion.purchase(pixTransactionId, finalPrice, selectedPlan);
+          showToast(`Pagamento do ${planName} confirmado pelo Banco Central!`);
+          onPaymentSuccess(selectedPlan);
+        }
+      } catch {}
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [paymentMethod, pixTransactionId, isPaymentConfirmed, selectedPlan, targetExam, finalPrice, planName, showToast, onPaymentSuccess]);
 
   // Disparo de InitiateCheckout de Anúncios
   useEffect(() => {
@@ -260,7 +301,10 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
     }
   };
 
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = async () => {
+    setCustomerError(null);
+    setPaymentPendingNotice(null);
+
     if (!customerEmail || !customerEmail.includes('@')) {
       setCustomerError('Por favor, informe um e-mail válido para receber o acesso.');
       showToast('Informe seu e-mail de acesso antes de continuar.');
@@ -271,9 +315,35 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
       showToast('Informe seu nome completo.');
       return;
     }
-    setCustomerError(null);
+
+    if (!pixTransactionId) {
+      setPaymentPendingNotice('Aguarde a geração do QR Code Pix oficial antes de verificar o pagamento.');
+      return;
+    }
+
     setIsProcessing(true);
-    setTimeout(() => {
+    try {
+      const token = useAuthStore.getState().token;
+      const headers: Record<string, string> = {};
+      if (token && !token.startsWith('jwt_mock_')) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      const res = await fetch(`/api/checkout?txId=${encodeURIComponent(pixTransactionId)}`, {
+        method: 'GET',
+        headers,
+        cache: 'no-store',
+      });
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.success || data?.status !== 'confirmed') {
+        setIsProcessing(false);
+        setPaymentPendingNotice(
+          '⏳ Pagamento Pix ainda não confirmado pelo Banco Central / Asaas. Escaneie o QR Code ou copie o código Pix acima no aplicativo do seu banco e aguarde alguns segundos.'
+        );
+        showToast('⏳ Pix ainda aguarda confirmação do banco.');
+        return;
+      }
+
       setIsProcessing(false);
       setIsPaymentConfirmed(true);
       if (selectedPlan === 'lancamento') {
@@ -284,10 +354,13 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
           localStorage.setItem('argus_target_exam', matched.title);
         } catch {}
       }
-      trackConversion.purchase(`tx_asaas_${Date.now()}`, finalPrice, selectedPlan);
+      trackConversion.purchase(pixTransactionId, finalPrice, selectedPlan);
       showToast(`Pagamento do ${planName} confirmado! Bem-vindo(a) ao topo.`);
       onPaymentSuccess(selectedPlan);
-    }, 1800);
+    } catch {
+      setIsProcessing(false);
+      setPaymentPendingNotice('Não foi possível consultar o status da cobrança agora. Tente novamente em instantes.');
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -795,6 +868,13 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
                   </div>
                 </div>
 
+                {paymentPendingNotice && (
+                  <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs font-bold leading-relaxed flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <span>{paymentPendingNotice}</span>
+                  </div>
+                )}
+
                 <button
                   type="button"
                   disabled={isProcessing}
@@ -939,6 +1019,13 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
                     )}
                   </select>
                 </div>
+
+                {paymentPendingNotice && (
+                  <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs font-bold leading-relaxed flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <span>{paymentPendingNotice}</span>
+                  </div>
+                )}
 
                 <button
                   type="button"
