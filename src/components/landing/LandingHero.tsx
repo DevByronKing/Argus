@@ -50,9 +50,13 @@ interface TrapQuestion {
   };
 }
 
+const BANCAS_ORDER = ['CEBRASPE', 'FGV', 'VUNESP', 'FCC'] as const;
+type TrapBanca = (typeof BANCAS_ORDER)[number];
+
 const TRAP_QUESTIONS: TrapQuestion[] = [
+  // CEBRASPE — Questão 1
   {
-    id: 'cebraspe-penal',
+    id: 'cebraspe-penal-1',
     banca: 'CEBRASPE',
     discipline: 'Direito Penal • PRF & PF',
     difficulty: 'Pegadinha Clássica',
@@ -68,8 +72,27 @@ const TRAP_QUESTIONS: TrapQuestion[] = [
       rule: 'Súmula 599 e Temas Repetitivos do STJ: inaplicabilidade absoluta.'
     }
   },
+  // CEBRASPE — Questão 2
   {
-    id: 'fgv-admin',
+    id: 'cebraspe-const-2',
+    banca: 'CEBRASPE',
+    discipline: 'Direito Constitucional • PF & TCU',
+    difficulty: 'Extrema',
+    trapRate: '74.8% erram',
+    statement: 'A casa é asilo inviolável do indivíduo, razão pela qual a entrada forçada em domicílio sem mandado judicial em caso de flagrante delito exige prévia autorização do Ministério Público.',
+    options: [
+      { label: 'Certo', isCorrect: false },
+      { label: 'Errado', isCorrect: true },
+    ],
+    explanation: {
+      trapName: 'Exigência Inexistente na CF/88',
+      trapDetail: 'O Cebraspe inventa um requisito plausível ("prévia autorização do MP"). No flagrante delito, desastre ou para prestar socorro (art. 5º, XI, CF), o ingresso dispensa mandado e autorização do MP, exigindo apenas fundadas razões justificadas a posteriori (Tema 280 STF).',
+      rule: 'Art. 5º, XI, CF/88 + Tema 280/STF: sem exigência de aval prévio do MP.'
+    }
+  },
+  // FGV — Questão 1
+  {
+    id: 'fgv-admin-1',
     banca: 'FGV',
     discipline: 'Direito Administrativo • OAB & Tribunais',
     difficulty: 'Extrema',
@@ -85,8 +108,27 @@ const TRAP_QUESTIONS: TrapQuestion[] = [
       rule: 'Art. 54, § 2º da Lei 9.784/1999: exige notificação formal do administrado.'
     }
   },
+  // FGV — Questão 2
   {
-    id: 'vunesp-const',
+    id: 'fgv-port-2',
+    banca: 'FGV',
+    discipline: 'Direito Tributário • SEFAZ & Receita',
+    difficulty: 'Pegadinha Clássica',
+    trapRate: '81.5% erram',
+    statement: 'A concessão de isenção tributária por lei específica dispensa o beneficiário do cumprimento das obrigações acessórias dependentes da obrigação principal cujo crédito seja excluído.',
+    options: [
+      { label: 'Certo', isCorrect: false },
+      { label: 'Errado', isCorrect: true },
+    ],
+    explanation: {
+      trapName: 'Inversão da Autonomia das Obrigações',
+      trapDetail: 'Clássico da FGV! Pelo art. 175, parágrafo único do CTN, a exclusão do crédito tributário (isenção ou anistia) NÃO dispensa o cumprimento das obrigações acessórias dependentes da obrigação principal.',
+      rule: 'CTN, Art. 175, parágrafo único: obrigação acessória permanece exigível.'
+    }
+  },
+  // VUNESP — Questão 1
+  {
+    id: 'vunesp-const-1',
     banca: 'VUNESP',
     discipline: 'Direito Constitucional • TJ-SP',
     difficulty: 'Alta',
@@ -102,8 +144,27 @@ const TRAP_QUESTIONS: TrapQuestion[] = [
       rule: 'Classificação Clássica: Contida = Direta, Imediata e NÃO-Integral.'
     }
   },
+  // VUNESP — Questão 2
   {
-    id: 'fcc-procpenal',
+    id: 'vunesp-proc-2',
+    banca: 'VUNESP',
+    discipline: 'Processo Civil • TJ-SP Escrevente',
+    difficulty: 'Pegadinha Clássica',
+    trapRate: '75.3% erram',
+    statement: 'No processo civil, os prazos processuais contam-se em dias úteis, computando-se igualmente em dias úteis os prazos materiais de prescrição e decadência previstos no Código Civil.',
+    options: [
+      { label: 'Certo', isCorrect: false },
+      { label: 'Errado', isCorrect: true },
+    ],
+    explanation: {
+      trapName: 'Troca Cirúrgica: Processual vs Material',
+      trapDetail: 'A Vunesp adora a letra fria do art. 219, parágrafo único do CPC: a contagem em dias úteis aplica-se SOMENTE aos prazos processuais, jamais aos prazos de direito material (prescrição e decadência são em dias corridos).',
+      rule: 'Art. 219, parágrafo único do CPC: dias úteis = apenas prazos processuais.'
+    }
+  },
+  // FCC — Questão 1
+  {
+    id: 'fcc-procpenal-1',
     banca: 'FCC',
     discipline: 'Direito Proc. Penal • Tribunais & TRT',
     difficulty: 'Alta',
@@ -118,6 +179,24 @@ const TRAP_QUESTIONS: TrapQuestion[] = [
       trapDetail: 'A FCC tenta induzir o erro misturando falta de provas com atipicidade. O arquivamento fundado em atipicidade manifesta faz coisa julgada material e formal, impedindo a reabertura do inquérito mesmo se surgirem novas provas.',
       rule: 'Entendimento vinculante e pacificado do STF e STJ.'
     }
+  },
+  // FCC — Questão 2
+  {
+    id: 'fcc-admin-2',
+    banca: 'FCC',
+    discipline: 'Direito Administrativo • TRT & TRE',
+    difficulty: 'Pegadinha Clássica',
+    trapRate: '78.6% erram',
+    statement: 'Os atos administrativos vinculados podem ser revogados pela própria Administração Pública por razões de conveniência e oportunidade, respeitados os direitos adquiridos.',
+    options: [
+      { label: 'Certo', isCorrect: false },
+      { label: 'Errado', isCorrect: true },
+    ],
+    explanation: {
+      trapName: 'Armadilha Revogação de Ato Vinculado',
+      trapDetail: 'Pegadinha clássica da FCC! Atos vinculados NÃO comportam juízo de mérito (conveniência e oportunidade), portanto NÃO podem ser revogados — apenas anulados em caso de ilegalidade.',
+      rule: 'Súmula 473 STF + Doutrina Majoritária: somente atos discricionários são revogáveis.'
+    }
   }
 ];
 
@@ -128,21 +207,40 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
   onStartDiscursivas,
   onOpenFlashChallenge
 }) => {
-  const [activeTrapIdx, setActiveTrapIdx] = useState(0);
+  const [activeBanca, setActiveBanca] = useState<TrapBanca>('CEBRASPE');
+  const [questionSlot, setQuestionSlot] = useState<0 | 1>(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isRevealed, setIsRevealed] = useState(false);
 
-  const currentTrap = TRAP_QUESTIONS[activeTrapIdx];
+  const bancaQuestions = TRAP_QUESTIONS.filter((q) => q.banca === activeBanca);
+  const currentTrap = bancaQuestions[questionSlot] || TRAP_QUESTIONS[0];
 
   const handleSelectOption = (idx: number) => {
     setSelectedAnswer(idx);
     setIsRevealed(true);
   };
 
-  const handleReset = (newIdx: number) => {
-    setActiveTrapIdx(newIdx);
+  const handleSelectBanca = (banca: TrapBanca) => {
+    setActiveBanca(banca);
+    setQuestionSlot(0);
     setSelectedAnswer(null);
     setIsRevealed(false);
+  };
+
+  const handleSelectSlot = (slot: 0 | 1) => {
+    setQuestionSlot(slot);
+    setSelectedAnswer(null);
+    setIsRevealed(false);
+  };
+
+  const handleNextQuestion = () => {
+    if (questionSlot === 0 && bancaQuestions.length > 1) {
+      handleSelectSlot(1);
+    } else {
+      const currentBancaIdx = BANCAS_ORDER.indexOf(activeBanca);
+      const nextBanca = BANCAS_ORDER[(currentBancaIdx + 1) % BANCAS_ORDER.length];
+      handleSelectBanca(nextBanca);
+    }
   };
 
   return (
@@ -330,30 +428,55 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
 
                   {/* Seletor de Bancas (Tabs Interativas Ampliadas) */}
                   <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/90 p-1 rounded-xl">
-                    {TRAP_QUESTIONS.map((t, idx) => (
+                    {BANCAS_ORDER.map((banca) => (
                       <button
-                        key={t.id}
-                        onClick={() => handleReset(idx)}
+                        key={banca}
+                        type="button"
+                        onClick={() => handleSelectBanca(banca)}
                         className={`
                           px-2.5 py-1 rounded-lg text-xs font-black font-mono transition-all cursor-pointer
-                          ${activeTrapIdx === idx 
+                          ${activeBanca === banca 
                             ? 'bg-indigo-600 text-white shadow-sm' 
                             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                           }
                         `}
                       >
-                        {t.banca}
+                        {banca}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Informações da Questão em Destaque */}
+                {/* Informações da Questão em Destaque + Alternador Questão 1/2 e 2/2 */}
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="px-2.5 py-0.5 rounded-full font-black bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs">
                       {currentTrap.banca}
                     </span>
+                    <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectSlot(0)}
+                        className={`px-2 py-0.5 rounded-md text-[11px] font-black transition-all cursor-pointer ${
+                          questionSlot === 0
+                            ? 'bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white shadow-xs'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
+                        }`}
+                      >
+                        Questão 1/2
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSelectSlot(1)}
+                        className={`px-2 py-0.5 rounded-md text-[11px] font-black transition-all cursor-pointer ${
+                          questionSlot === 1
+                            ? 'bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white shadow-xs'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
+                        }`}
+                      >
+                        Questão 2/2
+                      </button>
+                    </div>
                     <span className="text-slate-600 dark:text-slate-400 font-bold text-xs sm:text-sm">{currentTrap.discipline}</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold font-mono text-xs sm:text-sm">
@@ -426,11 +549,12 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                         💡 {currentTrap.explanation.rule}
                       </span>
                       <button
-                        onClick={() => handleReset((activeTrapIdx + 1) % TRAP_QUESTIONS.length)}
+                        type="button"
+                        onClick={handleNextQuestion}
                         className="inline-flex items-center gap-1 text-xs font-black text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
-                        <span>Próxima Questão</span>
+                        <span>{questionSlot === 0 ? `Questão 2 da ${activeBanca}` : 'Próxima Banca'}</span>
                       </button>
                     </div>
                   </div>

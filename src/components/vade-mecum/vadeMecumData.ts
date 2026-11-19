@@ -1,4 +1,4 @@
-import { VadeMecumArticle } from '@/lib/types';
+import { VadeMecumArticle, MistakeEntry } from '@/lib/types';
 
 export interface TrapChallenge {
   id: string;
@@ -185,34 +185,54 @@ export const SAMPLE_MISSED_QUESTIONS: Record<string, ArticleMissedQuestion[]> = 
   ],
 };
 
-export function getMissedQuestionsForArticle(art: VadeMecumArticle): ArticleMissedQuestion[] {
-  if (SAMPLE_MISSED_QUESTIONS[art.id]) {
-    return SAMPLE_MISSED_QUESTIONS[art.id];
+export function getMissedQuestionsForArticle(
+  art: VadeMecumArticle,
+  userMistakes: MistakeEntry[] = []
+): ArticleMissedQuestion[] {
+  if (!userMistakes || userMistakes.length === 0) {
+    return [];
   }
-  return [
-    {
-      id: `mq-${art.id}-1`,
-      banca: 'FGV',
-      exam: 'Concurso Nacional Unificado (CNU)',
-      year: 2024,
-      snippet: `Aplicação prática dos preceitos do ${art.numberStr} (${art.diploma}) em caso hipotético de atuação administrativa.`,
-      userChose: 'Opção A (Induzido por exceção aparente)',
-      correctAnswer: `Opção C (Aplicação literal do ${art.numberStr})`,
-      distractorType: 'Distorção da Literalidade Legal',
-      explanation: `A FGV cobrou a regra expressa de ${art.title}, testando se o candidato conhecia as restrições normativas do dispositivo.`,
-    },
-    {
-      id: `mq-${art.id}-2`,
-      banca: 'Cebraspe',
-      exam: 'Polícia Federal (Escrivão)',
-      year: 2023,
-      snippet: `Interpretação restritiva versus extensiva dos efeitos do ${art.numberStr} da ${art.diploma}.`,
-      userChose: 'Certo (Considerou a interpretação extensiva válida)',
-      correctAnswer: 'Errado (O dispositivo exige interpretação estrita conforme a banca)',
-      distractorType: 'Interpretação Hermenêutica Indevida',
-      explanation: 'O Cebraspe explorou a literalidade estrita da norma para derrubar os candidatos que extrapolaram o texto da lei.',
-    },
-  ];
+  const artNum = art.numberStr.toLowerCase();
+  const artDiploma = art.diploma.toLowerCase();
+  const artTags = (art.tags || []).map((t) => t.toLowerCase());
+
+  const normalizeBanca = (raw: string): 'FGV' | 'Cebraspe' | 'FCC' | 'Vunesp' => {
+    const lower = (raw || '').toLowerCase();
+    if (lower.includes('fgv')) return 'FGV';
+    if (lower.includes('fcc')) return 'FCC';
+    if (lower.includes('vunesp')) return 'Vunesp';
+    return 'Cebraspe';
+  };
+
+  return userMistakes
+    .filter((m) => !m.isOvercome)
+    .filter((m) => {
+      const text = `${m.question.subjectName} ${m.question.topicName} ${m.question.statement} ${m.question.explanation || ''}`.toLowerCase();
+      return (
+        text.includes(artNum) ||
+        text.includes(artDiploma) ||
+        artTags.some((tag) => tag.length > 3 && text.includes(tag))
+      );
+    })
+    .map((m) => {
+      const userOpt =
+        m.question.options.find((o) => o.id === m.userSelectedOptionId)?.text ||
+        'Alternativa selecionada';
+      const correctOpt =
+        m.question.options.find((o) => o.isCorrect)?.text ||
+        'Alternativa correta';
+      return {
+        id: m.id,
+        banca: normalizeBanca(m.question.banca),
+        exam: m.question.subjectName,
+        year: m.question.year || 2026,
+        snippet: m.question.statement,
+        userChose: userOpt,
+        correctAnswer: correctOpt,
+        distractorType: m.errorType || 'Erro Registrado',
+        explanation: m.question.explanation || 'Revisão gerada a partir do seu Caderno de Erros.',
+      };
+    });
 }
 
 export function isCorrectWord(word: string, target: string): boolean {

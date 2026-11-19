@@ -440,19 +440,21 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               )}
 
-              {/* Botão Rápido: Escolher Focos de Estudo & Modo Foco */}
+              {/* Botão Rápido: Escolher Focos de Estudo & Modo Foco (Visível em Web e Mobile) */}
               <button
                 type="button"
                 onClick={() => window.dispatchEvent(new CustomEvent('open-focus-selector'))}
-                className={`hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-extrabold transition-all cursor-pointer shrink-0 ${
+                className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl border text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer shrink-0 active:scale-95 ${
                   isLight
                     ? 'bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-700 shadow-2xs'
                     : 'bg-rose-500/15 hover:bg-rose-500/25 border-rose-400/35 text-rose-300'
                 }`}
                 title="Escolher suas matérias em foco (uma ou mais) e ativar Modo Foco a qualquer hora"
+                aria-label="Escolher Meus Focos de Estudo"
               >
-                <Crosshair className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
-                <span>Meus Focos</span>
+                <Crosshair className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+                <span className="hidden sm:inline">Meus Focos</span>
+                <span className="inline sm:hidden">Focos</span>
               </button>
 
               {/* Tutor IA (Tire Dúvidas - Visível também no mobile de forma compacta) */}
@@ -762,6 +764,81 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             </div>
 
+          </div>
+
+          {/* Barra Unificada Mobile dos 4 Pilares (Paridade Total com Web) */}
+          <div className={`md:hidden border-t py-1.5 -mx-3 px-3 ${isLight ? 'border-slate-200/80 bg-slate-50/70' : 'border-white/10 bg-slate-900/50'}`}>
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              {PILLARS_CONFIG.map((pillar) => {
+                const PillarIcon = pillar.icon;
+                const isActivePillar = pillar.items.some((item) => item.id === activeTab);
+                const isOpen = openPillar === pillar.key;
+                return (
+                  <button
+                    key={pillar.key}
+                    type="button"
+                    onClick={() => setOpenPillar(isOpen ? null : pillar.key)}
+                    aria-expanded={isOpen}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-black transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+                      isActivePillar || isOpen
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : isLight
+                        ? 'bg-white text-slate-700 border border-slate-200'
+                        : 'bg-white/5 text-slate-200 border border-white/10'
+                    }`}
+                  >
+                    <PillarIcon className="w-3.5 h-3.5 shrink-0" />
+                    <span>{pillar.name}</span>
+                    <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Submenu Expansível do Pilar Selecionado no Mobile (Idêntico ao Web) */}
+            {openPillar && (() => {
+              const activeGroup = PILLARS_CONFIG.find((p) => p.key === openPillar);
+              if (!activeGroup) return null;
+              return (
+                <div className={`mt-2 p-2 rounded-2xl border shadow-xl grid grid-cols-1 gap-1 animate-fadeIn ${
+                  isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-[#0b1329] border-slate-700 text-white'
+                }`}>
+                  {activeGroup.items.map((subItem) => {
+                    const SubIcon = subItem.icon;
+                    const isItemActive = activeTab === subItem.id;
+                    return (
+                      <button
+                        key={subItem.id}
+                        type="button"
+                        onClick={() => {
+                          setOpenPillar(null);
+                          handleTabClick(subItem.id);
+                        }}
+                        className={`w-full flex items-center gap-2.5 p-2 rounded-xl text-left transition-all cursor-pointer ${
+                          isItemActive
+                            ? isLight
+                              ? 'bg-blue-50 text-blue-900 border border-blue-300 font-black'
+                              : 'bg-blue-600/30 text-white border border-blue-400 font-black'
+                            : isLight
+                            ? 'hover:bg-slate-100 text-slate-800'
+                            : 'hover:bg-white/10 text-slate-200'
+                        }`}
+                      >
+                        <div className={`p-1.5 rounded-lg shrink-0 ${
+                          isItemActive ? 'bg-blue-600 text-white' : isLight ? 'bg-slate-100 text-slate-700' : 'bg-white/10 text-slate-300'
+                        }`}>
+                          <SubIcon className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-xs font-extrabold block truncate">{subItem.label}</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 block truncate">{subItem.desc}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
 
         </div>

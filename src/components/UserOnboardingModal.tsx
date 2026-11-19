@@ -704,10 +704,10 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
         {/* ================================================================= */}
         {/* CORPO DO ONBOARDING: OS 5 PASSOS */}
         {/* ================================================================= */}
-        <div ref={bodyRef} className="p-4 sm:p-6 flex-1 overflow-y-auto overscroll-contain">
+        <div ref={bodyRef} className="px-4 pt-5 pb-6 sm:px-6 sm:pt-6 sm:pb-6 flex-1 overflow-y-auto overscroll-contain">
           {/* Regra 9: Explique em uma linha por que está perguntando aquilo */}
-          {QUESTION_VALUE_PROPOSITIONS[step] && (
-            <div className="flex items-center justify-center gap-1.5 py-1 px-3 mb-3 rounded-[var(--radius-md)] bg-[var(--brand-primary-subtle)] border border-[var(--brand-primary)]/20 text-[11px] font-medium text-[var(--brand-primary)] max-w-xl mx-auto text-center animate-fadeIn">
+          {QUESTION_VALUE_PROPOSITIONS[step] && !(step === 5 && isCompiling) && (
+            <div className="flex items-center justify-center gap-1.5 py-1.5 px-3 mb-4 rounded-[var(--radius-md)] bg-[var(--brand-primary-subtle)] border border-[var(--brand-primary)]/20 text-[11px] font-medium text-[var(--brand-primary)] max-w-xl mx-auto text-center animate-fadeIn">
               <Zap className="w-3.5 h-3.5 shrink-0" />
               <span><strong>Por que perguntamos:</strong> {QUESTION_VALUE_PROPOSITIONS[step].whyWeAsk}</span>
             </div>

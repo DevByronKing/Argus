@@ -141,7 +141,7 @@ export function ArgusApp() {
   const [exams, setExams] = useState<ExamNotice[]>(INITIAL_EXAMS);
   const [selectedExam, setSelectedExam] = useState<ExamNotice>(INITIAL_EXAMS[0]);
   const [metrics, setMetrics] = useState<UserMetrics>(INITIAL_METRICS);
-  const [flashcards, setFlashcards] = useState<Flashcard[]>(INITIAL_FLASHCARDS);
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [mistakes, setMistakes] = useState<MistakeEntry[]>([]);
   const [plan, setPlan] = useState<SubscriptionPlan>('aspirante');
   const [pendingCheckoutPlan, setPendingCheckoutPlan] = useState<SubscriptionPlan>('pro');
@@ -247,18 +247,16 @@ export function ArgusApp() {
   // Load from LocalStorage if available
   useEffect(() => {
     try {
-      // Limpeza automática única de mocks legados (incluindo plano liberado sem pagamento antes do bloqueio estrito)
-      if (!localStorage.getItem('argus_clean_slate_v3')) {
-        localStorage.removeItem('argus_plan');
-        localStorage.removeItem('aprovalens_plan');
+      // Limpeza automática única de mocks legados (zera erros, flashcards e métricas falsas)
+      if (!localStorage.getItem('argus_clean_slate_v4')) {
         localStorage.removeItem('argus_metrics');
         localStorage.removeItem('aprovalens_metrics');
         localStorage.removeItem('argus_mistakes');
         localStorage.removeItem('aprovalens_mistakes');
+        localStorage.removeItem('argus_flashcards');
         localStorage.removeItem('argus_achievements');
         localStorage.removeItem('argus_daily_missions');
-        localStorage.removeItem('learning_ai_subscription_detail');
-        localStorage.setItem('argus_clean_slate_v3', 'true');
+        localStorage.setItem('argus_clean_slate_v4', 'true');
       }
 
       const savedPlan = localStorage.getItem('argus_plan') || localStorage.getItem('aprovalens_plan');
@@ -271,6 +269,9 @@ export function ArgusApp() {
 
       const savedMistakes = localStorage.getItem('argus_mistakes') || localStorage.getItem('aprovalens_mistakes');
       if (savedMistakes) setMistakes(JSON.parse(savedMistakes));
+
+      const savedFlashcards = localStorage.getItem('argus_flashcards');
+      if (savedFlashcards) setFlashcards(JSON.parse(savedFlashcards));
 
       // Carregar Passaporte Cognitivo do Estudante
       const savedProfile = localStorage.getItem('argus_student_profile') || localStorage.getItem('aprovalens_student_profile');
@@ -572,6 +573,7 @@ export function ArgusApp() {
   const handleAddFlashcard = (newFlashcard: Flashcard) => {
     setFlashcards((prev) => {
       const updated = [newFlashcard, ...prev];
+      try { localStorage.setItem('argus_flashcards', JSON.stringify(updated)); } catch {}
       SupabaseService.syncFlashcards('user-demo', updated);
       return updated;
     });
@@ -581,6 +583,7 @@ export function ArgusApp() {
   const handleAddFlashcardsBatch = (newCards: Flashcard[]) => {
     setFlashcards((prev) => {
       const updated = [...newCards, ...prev];
+      try { localStorage.setItem('argus_flashcards', JSON.stringify(updated)); } catch {}
       SupabaseService.syncFlashcards('user-demo', updated);
       return updated;
     });
@@ -982,6 +985,7 @@ export function ArgusApp() {
           <SmartVadeMecum
             selectedExam={selectedExam}
             studentProfile={studentProfile}
+            mistakes={mistakes}
             onGoToSimulator={() => handleNavigateWithHistory('simulator')}
             onGoToQuestion={(qid) => {
               handleNavigateWithHistory('simulator');

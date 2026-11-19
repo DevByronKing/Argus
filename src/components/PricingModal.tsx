@@ -358,59 +358,60 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[110] argus-modal-backdrop flex items-center justify-center p-2 sm:p-6 overflow-hidden animate-fadeIn">
-      <div className="glass-panel w-full max-w-5xl max-h-[calc(100dvh-1rem)] sm:max-h-[92dvh] rounded-3xl border border-slate-200 dark:border-indigo-500/30 relative shadow-2xl my-auto overflow-hidden flex flex-col bg-white/95 dark:bg-dark-surface/95 transition-all">
+    <div className="fixed inset-0 z-[110] argus-modal-backdrop flex items-center justify-center p-0 sm:p-5 overflow-hidden animate-fadeIn">
+      <div className="glass-panel w-full max-w-5xl h-[100dvh] sm:h-auto sm:max-h-[92dvh] rounded-none sm:rounded-3xl border-0 sm:border border-slate-200 dark:border-indigo-500/30 relative shadow-2xl my-auto overflow-hidden flex flex-col bg-white dark:bg-dark-surface transition-all">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 sm:top-5 right-4 sm:right-5 text-slate-400 hover:text-slate-800 dark:hover:text-white p-2 rounded-xl bg-slate-100 dark:bg-dark-card border border-slate-200 dark:border-white/5 transition-colors z-20 cursor-pointer"
+          aria-label="Fechar janela de planos e pagamento"
+          className="absolute top-3 sm:top-4 right-3 sm:right-4 text-slate-500 hover:text-slate-900 dark:hover:text-white p-2 rounded-xl bg-slate-100 dark:bg-dark-card border border-slate-200 dark:border-white/10 transition-colors z-20 cursor-pointer"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
 
         {/* Modal Top Header with Segmented Navigation Tabs */}
-        <div className="px-4 sm:px-6 pt-5 pb-4 border-b border-slate-200 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pr-14 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400">
-              <Crown className="w-5 h-5 fill-amber-500" />
+        <div className="px-3.5 sm:px-6 pt-3.5 sm:pt-5 pb-3 sm:pb-4 border-b border-slate-200 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 pr-12 sm:pr-14 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+              <Crown className="w-4 h-4 sm:w-5 sm:h-5 fill-amber-500" />
             </div>
-            <div>
-              <h2 className="text-base sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-                Planos & Checkout Oficial (R$ BRL)
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-xl font-black text-slate-900 dark:text-white tracking-tight truncate">
+                Planos &amp; Checkout Oficial (R$ BRL)
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Liberação imediata via Pix (QR Code / Copia e Cola) ou Cartão de Crédito em até 12x
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                Liberação via Pix imediato ou Cartão em até 12x
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 self-start sm:self-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             {/* Tab Pill Switcher */}
-            <div className="inline-flex p-1 rounded-2xl bg-slate-100 dark:bg-dark-card border border-slate-200 dark:border-white/10">
+            <div className="grid grid-cols-2 sm:inline-flex w-full sm:w-auto p-1 rounded-xl sm:rounded-2xl bg-slate-100 dark:bg-dark-card border border-slate-200 dark:border-white/10">
               <button
                 onClick={() => setActiveTab('plans')}
-                className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   activeTab === 'plans'
                     ? 'bg-indigo-600 text-white shadow-md'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
                 <span>1. Escolher Plano</span>
               </button>
               <button
                 onClick={() => setActiveTab('checkout')}
-                className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   activeTab === 'checkout'
                     ? 'bg-indigo-600 text-white shadow-md'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                <BadgeCheck className="w-3.5 h-3.5" />
+                <BadgeCheck className="w-3.5 h-3.5 shrink-0" />
                 <span>2. Pagamento</span>
                 {selectedPlanToBuy !== 'aspirante' && (
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 )}
               </button>
             </div>
@@ -778,16 +779,16 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           />
         )}
 
-        {/* Security & Guarantee Footer */}
-        <div className="px-6 py-4 bg-slate-50/80 dark:bg-dark-card/50 border-t border-slate-200 dark:border-white/10 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 dark:text-slate-400">
-          <span className="flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-500" /> Garantia incondicional de 7 dias
+        {/* Security & Guarantee Footer (Compacto no Mobile e Desktop) */}
+        <div className="px-3 py-2 sm:px-6 sm:py-2.5 bg-slate-50/90 dark:bg-dark-card/70 border-t border-slate-200 dark:border-white/10 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:gap-x-5 text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-slate-400 shrink-0">
+          <span className="inline-flex items-center gap-1">
+            <ShieldCheck className="w-3 h-3 text-emerald-500 shrink-0" /> Garantia 7 dias
           </span>
-          <span className="flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-500" /> Pagamento via Pix ou Cartão em Reais (R$)
+          <span className="inline-flex items-center gap-1">
+            <ShieldCheck className="w-3 h-3 text-emerald-500 shrink-0" /> Pix ou Cartão (R$)
           </span>
-          <span className="flex items-center gap-1.5">
-            <Lock className="w-4 h-4 text-emerald-500" /> Criptografia de ponta a ponta 256-bit
+          <span className="inline-flex items-center gap-1">
+            <Lock className="w-3 h-3 text-emerald-500 shrink-0" /> Criptografia 256-bit
           </span>
         </div>
 

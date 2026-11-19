@@ -86,7 +86,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
       aria-live="polite"
       aria-label="Carregando Argus AI"
       onClick={triggerExit}
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden select-none cursor-pointer argus-modal-backdrop transition-all duration-500 ease-out ${
+      style={{ backgroundColor: '#060913' }}
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden select-none cursor-pointer bg-[#060913] text-white transition-all duration-500 ease-out ${
         phase === 'exit'
           ? 'opacity-0 scale-105 pointer-events-none'
           : 'opacity-100 scale-100'
@@ -124,18 +125,19 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[360px] h-[360px] rounded-full pointer-events-none"
         style={{
           background:
-            'radial-gradient(circle, rgba(37, 99, 235, 0.14) 0%, rgba(6, 182, 212, 0.06) 50%, transparent 75%)',
-          filter: 'blur(20px)',
+            'radial-gradient(circle, rgba(37, 99, 235, 0.22) 0%, rgba(6, 182, 212, 0.09) 50%, transparent 75%)',
+          filter: 'blur(24px)',
         }}
       />
 
-      {/* Centro Minimalista: Logo + Nome + Linha Sutil */}
-      <div className="relative z-10 flex flex-col items-center argus-clean-reveal">
+      {/* Centro Minimalista: Logo perfeitamente centralizada + Nome + Linha Sutil */}
+      <div className="relative z-10 flex flex-col items-center justify-center text-center argus-clean-reveal">
         <div className="relative w-40 h-40 flex items-center justify-center argus-clean-float">
-          {/* Anel Circular Fino e Elegante */}
+          {/* Anel Circular Fino e Concêntrico */}
           <svg
-            className="absolute inset-0 w-full h-full -rotate-90"
+            className="absolute inset-0 w-40 h-40 -rotate-90 block"
             viewBox="0 0 160 160"
+            aria-hidden="true"
           >
             <defs>
               <linearGradient id="argusCleanRing" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -148,8 +150,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
               cy="80"
               r={ringRadius}
               fill="none"
-              stroke="currentColor"
-              className="text-slate-200/70 dark:text-white/10"
+              stroke="rgba(255, 255, 255, 0.12)"
               strokeWidth="2.5"
             />
             <circle
@@ -166,24 +167,24 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
             />
           </svg>
 
-          {/* Medalhão da Logo Oficial */}
-          <div className="relative z-10 rounded-full p-2 bg-white dark:bg-slate-900 shadow-[0_16px_40px_-10px_rgba(37,99,235,0.28)] border border-slate-100 dark:border-white/10">
-            <BrandLogo size={108} showGlow />
+          {/* Medalhão Centralizado da Logo Oficial */}
+          <div className="relative z-10 w-[124px] h-[124px] rounded-full flex items-center justify-center bg-[#0b1120] shadow-[0_16px_40px_-10px_rgba(37,99,235,0.45)] border border-white/10">
+            <BrandLogo size={96} showGlow className="block" />
           </div>
         </div>
 
         {/* Marca Limpa Sem Excesso de Texto */}
-        <h1 className="mt-5 text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
-          <span>Argus</span>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">
+        <h1 className="mt-5 text-3xl sm:text-4xl font-black tracking-tight text-white flex items-center justify-center gap-1.5">
+          <span className="text-white">Argus</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
             AI
           </span>
         </h1>
 
         {/* Barra Ultrafina Minimalista */}
-        <div className="mt-5 w-32 h-1 rounded-full bg-slate-200/80 dark:bg-white/10 overflow-hidden">
+        <div className="mt-5 w-32 h-1 rounded-full bg-white/15 overflow-hidden">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-75 ease-out"
+            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-75 ease-out"
             style={{ width: `${Math.max(progress, 6)}%` }}
           />
         </div>

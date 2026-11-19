@@ -63,12 +63,15 @@ export const MistakesNotebook: React.FC<MistakesNotebookProps> = ({
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [tempNoteText, setTempNoteText] = useState<string>('');
 
-  // Revanche interactive mode
+  // Revanche interactive mode (usa snapshot fixo da fila para não sumir enquanto o aluno lê o feedback)
   const [isRevancheActive, setIsRevancheActive] = useState<boolean>(false);
+  const [revancheQueue, setRevancheQueue] = useState<MistakeEntry[]>([]);
   const [revancheIndex, setRevancheIndex] = useState<number>(0);
   const [revancheSelectedOption, setRevancheSelectedOption] = useState<string | null>(null);
   const [revancheSubmitted, setRevancheSubmitted] = useState<boolean>(false);
   const [revancheFeedbackCorrect, setRevancheFeedbackCorrect] = useState<boolean | null>(null);
+  const [revancheStats, setRevancheStats] = useState<{ correct: number; wrong: number }>({ correct: 0, wrong: 0 });
+  const [revancheCompleted, setRevancheCompleted] = useState<boolean>(false);
 
   // Expansion of question details
   const [expandedMistakeIds, setExpandedMistakeIds] = useState<Set<string>>(new Set());
@@ -126,19 +129,23 @@ export const MistakesNotebook: React.FC<MistakesNotebookProps> = ({
     setEditingNoteId(null);
   };
 
-  // Start Revanche Mode
+  // Start Revanche Mode (com snapshot imutável da sessão)
   const pendingListForRevanche = mistakes.filter(m => !m.isOvercome);
 
-  const startRevanche = () => {
-    if (pendingListForRevanche.length === 0) return;
-    setIsRevancheActive(true);
+  const startRevanche = (singleMistake?: MistakeEntry) => {
+    const queue = singleMistake ? [singleMistake] : pendingListForRevanche;
+    if (queue.length === 0) return;
+    setRevancheQueue(queue);
     setRevancheIndex(0);
     setRevancheSelectedOption(null);
     setRevancheSubmitted(false);
     setRevancheFeedbackCorrect(null);
+    setRevancheStats({ correct: 0, wrong: 0 });
+    setRevancheCompleted(false);
+    setIsRevancheActive(true);
   };
 
-  const currentRevancheMistake = pendingListForRevanche[revancheIndex];
+  const currentRevancheMistake = revancheQueue[revancheIndex];
 
   const handleRevancheAnswerSubmit = () => {
     if (!revancheSelectedOption || !currentRevancheMistake) return;
@@ -148,23 +155,22 @@ export const MistakesNotebook: React.FC<MistakesNotebookProps> = ({
 
     setRevancheSubmitted(true);
     setRevancheFeedbackCorrect(isCorrect);
+    setRevancheStats((prev) => ({
+      correct: prev.correct + (isCorrect ? 1 : 0),
+      wrong: prev.wrong + (isCorrect ? 0 : 1),
+    }));
 
-    if (isCorrect) {
-      onResolveMistakeInRevanche(currentRevancheMistake.id, true);
-    } else {
-      onResolveMistakeInRevanche(currentRevancheMistake.id, false);
-    }
+    onResolveMistakeInRevanche(currentRevancheMistake.id, isCorrect);
   };
 
   const handleNextRevancheQuestion = () => {
-    if (revancheIndex < pendingListForRevanche.length - 1) {
+    if (revancheIndex < revancheQueue.length - 1) {
       setRevancheIndex(prev => prev + 1);
       setRevancheSelectedOption(null);
       setRevancheSubmitted(false);
       setRevancheFeedbackCorrect(null);
     } else {
-      // Revanche completed
-      setIsRevancheActive(false);
+      setRevancheCompleted(true);
     }
   };
 
@@ -244,7 +250,7 @@ export const MistakesNotebook: React.FC<MistakesNotebookProps> = ({
 
           <div className="flex flex-wrap items-center gap-3">
             <button
-              onClick={startRevanche}
+              onClick={() => startRevanche()}
               disabled={pendingMistakes === 0}
               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-xs sm:text-sm tracking-wide transition-all shadow-xl ${
                 pendingMistakes > 0
@@ -638,130 +644,206 @@ export const MistakesNotebook: React.FC<MistakesNotebookProps> = ({
         </div>
       )}
 
-      {/* Interactive Revanche Modal View */}
-      {isRevancheActive && currentRevancheMistake && (
-        <div role="dialog" aria-modal="true" className="fixed inset-0 z-[110] flex items-center justify-center p-4 argus-modal-backdrop animate-fadeIn">
-          <div className="bg-white dark:bg-dark-surface border border-rose-500/30 rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl overflow-y-auto max-h-[90vh]">
-            
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-300 dark:border-white/10 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-indigo-600 flex items-center justify-center text-white font-black">
-                  <Flame className="w-5 h-5 text-amber-300" />
+      {/* Interactive Revanche Modal View (Redesenhado e Estável) */}
+      {isRevancheActive && (currentRevancheMistake || revancheCompleted) && (
+        <div role="dialog" aria-modal="true" aria-label="Modo Revanche do Caderno de Erros" className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 argus-modal-backdrop animate-fadeIn">
+          <div className="bg-white dark:bg-[#0c1322] border border-indigo-500/30 rounded-2xl sm:rounded-3xl max-w-3xl w-full p-4 sm:p-7 space-y-5 shadow-2xl overflow-y-auto max-h-[92dvh]">
+            {revancheCompleted ? (
+              <div className="py-6 text-center space-y-5 animate-fadeIn">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
+                  <Award className="w-9 h-9" />
                 </div>
-                <div>
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white">
-                    Modo Revanche — Questão {revancheIndex + 1} de {pendingListForRevanche.length}
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-mono font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                    Sessão de Revanche Concluída
+                  </span>
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white">
+                    {revancheStats.correct} de {revancheQueue.length} {revancheStats.correct === 1 ? 'erro superado' : 'erros superados'}!
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {currentRevancheMistake.question.subjectName} • {currentRevancheMistake.question.banca}
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-md mx-auto">
+                    {revancheStats.wrong === 0
+                      ? 'Excelente! Você neutralizou 100% das pegadinhas desta rodada.'
+                      : `Ainda restam ${revancheStats.wrong} questão(ões) pendente(s) no seu Caderno para nova revanche.`}
                   </p>
                 </div>
+
+                <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
+                  <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30">
+                    <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 block">{revancheStats.correct}</span>
+                    <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">Superados</span>
+                  </div>
+                  <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-500/30">
+                    <span className="text-2xl font-black text-rose-600 dark:text-rose-400 block">{revancheStats.wrong}</span>
+                    <span className="text-[11px] font-bold text-rose-700 dark:text-rose-300">Revisar Novamente</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsRevancheActive(false)}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-black text-xs uppercase tracking-wider shadow-lg cursor-pointer"
+                >
+                  Voltar ao Caderno de Erros
+                </button>
               </div>
+            ) : currentRevancheMistake ? (
+              <>
+                {/* Modal Header + Barra de Progresso */}
+                <div className="space-y-3 border-b border-slate-200 dark:border-white/10 pb-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 flex items-center justify-center text-white shrink-0 shadow-md">
+                        <Flame className="w-5 h-5 text-amber-300" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate">
+                          Modo Revanche • {revancheIndex + 1} de {revancheQueue.length}
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                          {currentRevancheMistake.question.subjectName} • {currentRevancheMistake.question.banca}
+                        </p>
+                      </div>
+                    </div>
 
-              <button
-                onClick={() => setIsRevancheActive(false)}
-                className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 transition-colors"
-              >
-                Encerrar
-              </button>
-            </div>
-
-            {/* Question Statement */}
-            <div className="space-y-4">
-              <div className="bg-slate-50 dark:bg-dark-bg p-4 rounded-2xl border border-slate-200 dark:border-white/5 shadow-inner">
-                <p className="text-sm text-slate-800 dark:text-slate-100 whitespace-pre-line leading-relaxed font-medium">
-                  {currentRevancheMistake.question.statement}
-                </p>
-              </div>
-
-              {/* Options */}
-              <div className="space-y-2.5">
-                {currentRevancheMistake.question.options.map((option) => {
-                  const isSelected = revancheSelectedOption === option.id;
-                  let optionStyles = 'bg-white dark:bg-dark-bg/60 border-slate-300 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:border-rose-400 dark:hover:border-white/20';
-
-                  if (revancheSubmitted) {
-                    if (option.isCorrect) {
-                      optionStyles = 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-400 dark:border-emerald-500 text-emerald-800 dark:text-emerald-200';
-                    } else if (isSelected && !option.isCorrect) {
-                      optionStyles = 'bg-rose-50 dark:bg-rose-950/40 border-rose-400 dark:border-rose-500 text-rose-800 dark:text-rose-200';
-                    }
-                  } else if (isSelected) {
-                    optionStyles = 'bg-rose-50 dark:bg-rose-600/20 border-rose-400 dark:border-rose-500 text-rose-800 dark:text-white';
-                  }
-
-                  return (
                     <button
-                      key={option.id}
-                      disabled={revancheSubmitted}
-                      onClick={() => setRevancheSelectedOption(option.id)}
-                      className={`w-full text-left p-4 rounded-xl border transition-all text-xs font-medium flex items-center justify-between gap-3 shadow-sm ${optionStyles}`}
+                      type="button"
+                      onClick={() => setIsRevancheActive(false)}
+                      className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 transition-colors cursor-pointer shrink-0"
                     >
-                      <span>{option.text}</span>
-                      {revancheSubmitted && option.isCorrect && (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
-                      )}
-                      {revancheSubmitted && isSelected && !option.isCorrect && (
-                        <XCircle className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0" />
-                      )}
+                      Fechar
                     </button>
-                  );
-                })}
-              </div>
-            </div>
+                  </div>
 
-            {/* Post submission feedback */}
-            {revancheSubmitted && (
-              <div className={`p-4 rounded-2xl border animate-fadeIn shadow-sm ${
-                revancheFeedbackCorrect
-                  ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-200'
-                  : 'bg-rose-50 dark:bg-rose-950/30 border-rose-300 dark:border-rose-500/40 text-rose-800 dark:text-rose-200'
-              }`}>
-                <div className="flex items-center gap-2 font-bold text-sm mb-1">
-                  {revancheFeedbackCorrect ? (
-                    <>
-                      <Award className="w-5 h-5 text-amber-500 dark:text-amber-300" />
-                      <span>🎉 EXCELENTE! ERRO SUPERADO COM SUCESSO!</span>
-                    </>
+                  <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-indigo-600 to-cyan-500 transition-all duration-300"
+                      style={{ width: `${Math.round(((revancheIndex + (revancheSubmitted ? 1 : 0.3)) / revancheQueue.length) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Question Statement */}
+                <div className="space-y-3.5">
+                  <div className="bg-slate-50 dark:bg-slate-900/90 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-white/10">
+                    <p className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 whitespace-pre-line leading-relaxed font-semibold">
+                      {currentRevancheMistake.question.statement}
+                    </p>
+                  </div>
+
+                  {/* Options com Letras A/B/C/D */}
+                  <div className="space-y-2">
+                    {currentRevancheMistake.question.options.map((option, optIdx) => {
+                      const isSelected = revancheSelectedOption === option.id;
+                      const letter = String.fromCharCode(65 + optIdx);
+                      let optionStyles =
+                        'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 hover:border-indigo-400';
+
+                      if (revancheSubmitted) {
+                        if (option.isCorrect) {
+                          optionStyles =
+                            'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-900 dark:text-emerald-200 ring-2 ring-emerald-500/20';
+                        } else if (isSelected && !option.isCorrect) {
+                          optionStyles =
+                            'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-900 dark:text-rose-200 ring-2 ring-rose-500/20';
+                        }
+                      } else if (isSelected) {
+                        optionStyles =
+                          'bg-indigo-50 dark:bg-indigo-600/20 border-indigo-500 text-indigo-950 dark:text-white ring-2 ring-indigo-500/25';
+                      }
+
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          disabled={revancheSubmitted}
+                          onClick={() => setRevancheSelectedOption(option.id)}
+                          className={`w-full text-left p-3.5 sm:p-4 rounded-xl border-2 transition-all text-xs sm:text-sm font-medium flex items-start justify-between gap-3 cursor-pointer ${optionStyles}`}
+                        >
+                          <div className="flex items-start gap-2.5">
+                            <span
+                              className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                                revancheSubmitted && option.isCorrect
+                                  ? 'bg-emerald-600 text-white'
+                                  : isSelected
+                                  ? 'bg-indigo-600 text-white'
+                                  : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'
+                              }`}
+                            >
+                              {letter}
+                            </span>
+                            <span className="leading-snug">{option.text}</span>
+                          </div>
+                          {revancheSubmitted && option.isCorrect && (
+                            <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          )}
+                          {revancheSubmitted && isSelected && !option.isCorrect && (
+                            <XCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Post submission feedback */}
+                {revancheSubmitted && (
+                  <div
+                    className={`p-4 rounded-2xl border animate-fadeIn shadow-sm space-y-2 ${
+                      revancheFeedbackCorrect
+                        ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-500/40 text-emerald-900 dark:text-emerald-200'
+                        : 'bg-rose-50 dark:bg-rose-950/30 border-rose-300 dark:border-rose-500/40 text-rose-900 dark:text-rose-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-black text-sm">
+                      {revancheFeedbackCorrect ? (
+                        <>
+                          <Award className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <span>Erro superado! Esta questão foi movida para &quot;Superados&quot;.</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
+                          <span>Você caiu novamente na armadilha. Revise o fundamento abaixo:</span>
+                        </>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed">
+                      {currentRevancheMistake.question.explanation}
+                    </p>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-200 dark:border-white/10">
+                  <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                    {!revancheSubmitted ? 'Selecione uma alternativa para validar' : 'Leia o fundamento antes de avançar'}
+                  </span>
+                  {!revancheSubmitted ? (
+                    <button
+                      type="button"
+                      disabled={!revancheSelectedOption}
+                      onClick={handleRevancheAnswerSubmit}
+                      className={`px-5 py-2.5 rounded-xl font-black text-xs tracking-wide transition-all cursor-pointer ${
+                        revancheSelectedOption
+                          ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/25'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                      }`}
+                    >
+                      Confirmar Resposta
+                    </button>
                   ) : (
-                    <>
-                      <AlertTriangle className="w-5 h-5 text-rose-500 dark:text-rose-400" />
-                      <span>Ainda não foi dessa vez. Revise a explicação abaixo:</span>
-                    </>
+                    <button
+                      type="button"
+                      onClick={handleNextRevancheQuestion}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs shadow-lg shadow-indigo-600/25 cursor-pointer"
+                    >
+                      <span>{revancheIndex < revancheQueue.length - 1 ? 'Próxima Questão' : 'Ver Resultado da Revanche'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
                   )}
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mt-2">
-                  {currentRevancheMistake.question.explanation}
-                </p>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-3 pt-2">
-              {!revancheSubmitted ? (
-                <button
-                  disabled={!revancheSelectedOption}
-                  onClick={handleRevancheAnswerSubmit}
-                  className={`px-6 py-3 rounded-xl font-bold text-xs tracking-wide transition-all ${
-                    revancheSelectedOption
-                      ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30'
-                      : 'bg-slate-100 dark:bg-dark-bg text-slate-400 border border-slate-200 dark:border-white/5 cursor-not-allowed'
-                  }`}
-                >
-                  Confirmar Resposta da Revanche
-                </button>
-              ) : (
-                <button
-                  onClick={handleNextRevancheQuestion}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30"
-                >
-                  <span>{revancheIndex < pendingListForRevanche.length - 1 ? 'Próxima Questão do Caderno' : 'Concluir Modo Revanche'}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
+              </>
+            ) : null}
           </div>
         </div>
       )}

@@ -45,7 +45,7 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
       </div>
 
       {/* BANNER VIP OFERTA FECHADA DE LANÇAMENTO (R$ 97) */}
-      <div className="preserve-dark force-white mb-14 relative overflow-hidden rounded-3xl p-6 sm:p-10 bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 text-white shadow-2xl shadow-orange-500/25 border border-orange-400/40">
+      <div className="preserve-dark mb-14 relative overflow-hidden rounded-3xl p-5 sm:p-10 bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 text-white shadow-2xl shadow-orange-500/25 border border-orange-400/40">
         <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
           <div className="space-y-3">
@@ -86,6 +86,7 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
                     } catch {}
                   }}
                   aria-label="Selecione o concurso para o Passe de R$ 97"
+                  style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
                   className="w-full appearance-none pl-4 pr-10 py-3 rounded-xl bg-white text-slate-900 font-extrabold text-sm shadow-lg border-2 border-yellow-300 focus:outline-none focus:ring-2 focus:ring-white cursor-pointer"
                 >
                   <optgroup label="🟢 Editais Abertos / Publicados">
@@ -153,10 +154,11 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({
                 } catch {}
                 onSelectPlan('lancamento');
               }}
-              className="w-full lg:w-auto px-5 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-white text-orange-600 hover:bg-orange-50 font-black text-sm sm:text-base tracking-wide shadow-xl shadow-black/25 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
+              style={{ backgroundColor: '#ffffff', color: '#ea580c' }}
+              className="w-full lg:w-auto px-5 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-white text-orange-600 hover:bg-orange-50 font-black text-sm sm:text-base tracking-wide shadow-xl shadow-black/25 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span className="truncate max-w-[260px] sm:max-w-none">Garantir Passe ({selectedLaunchExam.split(' - ')[0]}) por R$ 97</span>
-              <ArrowRight className="w-5 h-5 shrink-0" />
+              <span style={{ color: '#ea580c' }} className="truncate max-w-[260px] sm:max-w-none">Garantir Passe ({selectedLaunchExam.split(' - ')[0]}) por R$ 97</span>
+              <ArrowRight className="w-5 h-5 shrink-0" style={{ color: '#ea580c' }} />
             </button>
           </div>
         </div>

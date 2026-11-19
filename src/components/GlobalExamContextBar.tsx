@@ -290,11 +290,11 @@ export const GlobalExamContextBar: React.FC<GlobalExamContextBarProps> = ({
                 )}
               </button>
 
-              {/* Concurso Ativo */}
-              <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100/80 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 min-w-0">
+              {/* Concurso Ativo (Visível em Web e Mobile) */}
+              <div className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl bg-slate-100/80 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 min-w-0 shrink-0">
                 <Target className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <span
-                  className="font-black text-slate-900 dark:text-slate-100 text-xs truncate max-w-[160px]"
+                  className="font-black text-slate-900 dark:text-slate-100 text-[11px] sm:text-xs truncate max-w-[110px] sm:max-w-[160px]"
                   title={selectedExam.title}
                 >
                   {selectedExam.title}
@@ -303,7 +303,7 @@ export const GlobalExamContextBar: React.FC<GlobalExamContextBarProps> = ({
                   {selectedExam.banca}
                 </span>
                 <span
-                  className={`inline-flex items-center gap-1 text-[11px] pl-1 shrink-0 ${
+                  className={`hidden sm:inline-flex items-center gap-1 text-[11px] pl-1 shrink-0 ${
                     isUrgent
                       ? 'text-amber-700 dark:text-amber-300 font-bold'
                       : 'text-slate-500 dark:text-slate-400'

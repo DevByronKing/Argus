@@ -190,7 +190,19 @@ export const NavbarMobileNavigation: React.FC<NavbarMobileNavigationProps> = ({
                 </div>
               )}
 
-              {/* Ações de Retenção Rápida Mobile */}
+              {/* Ações de Retenção Rápida Mobile (Paridade com Web) */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  window.dispatchEvent(new CustomEvent('open-focus-selector'));
+                }}
+                className="w-full mb-2.5 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs font-black cursor-pointer hover:bg-rose-500/20 transition-all"
+              >
+                <Crosshair className="w-4 h-4 text-rose-500 shrink-0" />
+                <span>Escolher Meus Focos &amp; Modo Foco</span>
+              </button>
+
               <div className="grid grid-cols-2 gap-2 mb-4">
                 <button
                   onClick={() => {

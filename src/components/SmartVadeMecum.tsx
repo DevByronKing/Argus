@@ -27,7 +27,7 @@ import {
   Crosshair,
   Star
 } from 'lucide-react';
-import { VadeMecumArticle, ExamNotice, StudentProfile, SubscriptionPlan } from '@/lib/types';
+import { VadeMecumArticle, ExamNotice, StudentProfile, SubscriptionPlan, MistakeEntry } from '@/lib/types';
 import { INITIAL_VADE_MECUM } from '@/lib/mockData';
 import { HardPaywallGate } from './HardPaywallGate';
 import {
@@ -45,6 +45,7 @@ interface SmartVadeMecumProps {
   onGoToSimulator: (queryOrTopic?: string) => void;
   selectedExam?: ExamNotice;
   studentProfile?: StudentProfile;
+  mistakes?: MistakeEntry[];
   userPlan?: SubscriptionPlan;
   onOpenPricing?: () => void;
   onSelectPlan?: (plan: SubscriptionPlan) => void;
@@ -56,6 +57,7 @@ export const SmartVadeMecum: React.FC<SmartVadeMecumProps> = ({
   onGoToSimulator,
   selectedExam,
   studentProfile,
+  mistakes = [],
   userPlan = 'aspirante',
   onOpenPricing,
   onSelectPlan,
@@ -592,17 +594,23 @@ export const SmartVadeMecum: React.FC<SmartVadeMecumProps> = ({
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    {/* Bidirectional Backlink Badge (Notion / Obsidian style) */}
-                    <button
-                      type="button"
-                      onClick={() => setSelectedBacklinkArticle(art)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-600 dark:text-rose-400 transition-all hover:scale-105 active:scale-95 shadow-sm group"
-                      title="Abrir Caderno de Erros vinculado a este artigo"
-                    >
-                      <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                      <span className="font-mono font-bold">[ {getMissedQuestionsForArticle(art).length} Questões Erradas ]</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-rose-500 group-hover:translate-x-0.5 transition-transform" />
-                    </button>
+                    {/* Bidirectional Backlink Badge (Somente com erros reais do aluno) */}
+                    {(() => {
+                      const missedForArticle = getMissedQuestionsForArticle(art, mistakes);
+                      if (missedForArticle.length === 0) return null;
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedBacklinkArticle(art)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-600 dark:text-rose-400 transition-all hover:scale-105 active:scale-95 shadow-sm group cursor-pointer"
+                          title="Abrir Caderno de Erros vinculado a este artigo"
+                        >
+                          <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                          <span className="font-mono font-bold">[ {missedForArticle.length} {missedForArticle.length === 1 ? 'Questão Errada' : 'Questões Erradas'} ]</span>
+                          <ChevronRight className="w-3.5 h-3.5 text-rose-500 group-hover:translate-x-0.5 transition-transform" />
+                        </button>
+                      );
+                    })()}
 
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-50 dark:bg-rose-500/15 border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300">
                       🔥 {art.incidence.toUpperCase()} INCIDÊNCIA
@@ -692,6 +700,7 @@ export const SmartVadeMecum: React.FC<SmartVadeMecumProps> = ({
       {selectedBacklinkArticle && (
         <VadeMecumBacklinkDrawer
           article={selectedBacklinkArticle}
+          mistakes={mistakes}
           onClose={() => setSelectedBacklinkArticle(null)}
           onGoToSimulator={onGoToSimulator}
         />

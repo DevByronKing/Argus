@@ -51,31 +51,72 @@ export function buildCopilotPrompt(
   focusList: string[],
   history: any[]
 ): string {
-  const systemPrompt = `Você é o Tutor IA do Argus, especialista em concursos públicos e no Exame da OAB.
-REGRA DE OURO CONTRA ALUCINAÇÃO:
-1. Responda DIRETAMENTE e ESPECIFICAMENTE à pergunta feita pelo aluno: "${query}".
-2. NUNCA mude de assunto e NUNCA dê uma resposta genérica sobre o perfil do aluno se ele perguntou sobre uma matéria, lei, questão ou regra de edital.
-3. Use linguagem simples, clara, acolhedora e autoexplicativa (sem jargões difíceis).
-4. Cite apenas leis e súmulas reais do Direito Brasileiro (CF/88, Lei 8.112/90, Lei 14.133/21, Lei 14.230/21, CLT, CP, CPP, CPC, CTN). Se não tiver certeza de um número de artigo específico, explique o conceito com precisão sem inventar números.
-5. Contexto atual do aluno (use apenas se relevante para a pergunta): Concurso "${targetExam}", Banca "${banca}", Matérias em foco: "${focusList.join(', ')}".
+  const systemPrompt = `Você é o Tutor IA oficial do Argus, professor especialista em Direito, Concursos Públicos Brasileiros e Exame da OAB, conectado ao Google Gemini.
 
-Responda em JSON válido:
-{
-  "text": "Sua resposta direta e clara em Markdown...",
-  "quickAction": {
-    "label": "Texto do botão prático (ex: 'Treinar no Simulador de Questões')",
-    "actionTab": "simulator" | "cycle" | "mistakes" | "vademecum" | "summaries" | "questions"
-  }
-}`;
+DIRETRIZES OBRIGATÓRIAS:
+1. Responda DIRETAMENTE, COM PROFUNDIDADE E CLAREZA a QUALQUER pergunta feita pelo aluno: "${query}".
+2. NUNCA recuse uma dúvida de estudo, NUNCA desvie o assunto para falar do perfil do aluno e NUNCA dê respostas genéricas ou evasivas.
+3. Estruture sua resposta em Markdown limpo e didático:
+   - **Resposta Direta** logo na primeira frase (objetiva e precisa).
+   - **Fundamentação Legal / Doutrinária / Jurisprudencial** (cite artigos, leis, súmulas ou regras gramaticais/matemáticas reais — ex.: CF/88, Lei 9.784/99, Lei 8.112/90, Lei 14.133/21, CTN, CP, CPP, CPC, CLT, STF/STJ). Nunca invente número de artigo se não tiver certeza.
+   - **Como cai na prova / Pegadinha da banca (${banca})**: um alerta prático de 1-2 linhas.
+4. Use o contexto do aluno apenas para calibrar o exemplo (Concurso: "${targetExam}", Banca: "${banca}", Focos: "${focusList.join(', ')}").
+5. Na ÚLTIMA linha da resposta, adicione exatamente uma tag de ação recomendada no formato:
+   [[ACTION:simulator|Treinar Questões sobre o Tema]]
+   (escolha a aba mais útil entre: simulator, vademecum, mistakes, cycle, summaries, questions).`;
 
   const recentHistoryText = Array.isArray(history)
     ? history
-        .slice(-4)
+        .slice(-6)
         .map((h: any) => `${h.sender === 'user' ? 'Aluno' : 'Tutor IA'}: ${h.text}`)
         .join('\n')
     : '';
 
-  return `${systemPrompt}\n\nHISTÓRICO:\n${recentHistoryText}\n\nPERGUNTA DO ALUNO:\n"${query}"`;
+  return `${systemPrompt}\n\n${recentHistoryText ? `HISTÓRICO RECENTE:\n${recentHistoryText}\n\n` : ''}PERGUNTA DO ALUNO:\n${query}`;
+}
+
+function parseCopilotRawOutput(rawText: string): CopilotAnswer {
+  const trimmed = rawText.trim();
+
+  // Suporte caso o modelo devolva JSON mesmo em modo livre
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && typeof parsed.text === 'string' && parsed.text.trim()) {
+        return {
+          text: parsed.text.trim(),
+          quickAction: parsed.quickAction || {
+            label: 'Treinar no Simulador de Questões',
+            actionTab: 'simulator',
+          },
+        };
+      }
+    } catch {
+      // Continua para extração direta de Markdown
+    }
+  }
+
+  let cleanText = trimmed;
+  let quickAction: CopilotQuickAction = {
+    label: 'Treinar no Simulador de Questões',
+    actionTab: 'simulator',
+  };
+
+  const actionMatch = cleanText.match(/\[\[ACTION:([a-z]+)\|([^\]]+)\]\]\s*$/i);
+  if (actionMatch) {
+    const validTabs = new Set(['simulator', 'vademecum', 'mistakes', 'cycle', 'summaries', 'questions']);
+    const tab = actionMatch[1].toLowerCase();
+    const label = actionMatch[2].trim();
+    if (validTabs.has(tab) && label) {
+      quickAction = { label, actionTab: tab };
+    }
+    cleanText = cleanText.replace(actionMatch[0], '').trim();
+  }
+
+  return {
+    text: cleanText || 'Aqui está a explicação solicitada.',
+    quickAction,
+  };
 }
 
 export async function queryGeminiCopilot(
@@ -83,45 +124,58 @@ export async function queryGeminiCopilot(
   model: string,
   prompt: string
 ): Promise<CopilotAnswer | null> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 7000);
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.15,
-            maxOutputTokens: 700,
-            responseMimeType: 'application/json',
-          },
-        }),
-      }
-    );
-    clearTimeout(timeoutId);
+  const candidateModels = Array.from(
+    new Set(
+      [
+        model,
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-2.0-flash-lite',
+        'gemini-1.5-flash-latest',
+      ].filter((m): m is string => Boolean(m && m.trim()))
+    )
+  );
 
-    if (response.ok) {
-      const data = await response.json();
-      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (rawText) {
-        const parsed = JSON.parse(rawText);
-        return {
-          text: parsed.text || 'Aqui está a explicação solicitada.',
-          quickAction: parsed.quickAction || {
-            label: 'Treinar no Simulador de Questões',
-            actionTab: 'simulator',
-          },
-        };
+  for (const candidateModel of candidateModels) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 14000);
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${candidateModel}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.25,
+              maxOutputTokens: 2048,
+            },
+          }),
+        }
+      );
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        const parts = data?.candidates?.[0]?.content?.parts;
+        const rawText = Array.isArray(parts)
+          ? parts.map((p: any) => p?.text || '').join('').trim()
+          : '';
+        if (rawText) {
+          return parseCopilotRawOutput(rawText);
+        }
+      } else {
+        const errBody = await response.text().catch(() => '');
+        console.warn(`Gemini model ${candidateModel} returned ${response.status}:`, errBody.slice(0, 200));
       }
+    } catch (apiErr) {
+      clearTimeout(timeoutId);
+      console.warn(`Gemini model ${candidateModel} failed:`, apiErr);
     }
-  } catch (apiErr) {
-    clearTimeout(timeoutId);
-    console.warn('Fallback para motor de conhecimento local Argus:', apiErr);
   }
+
   return null;
 }
 
@@ -135,6 +189,21 @@ export function answerStudentQueryDirectly(
 ): CopilotAnswer {
   const qNorm = normalizeText(query);
   const keywords = extractKeywords(query);
+
+  // Referência jurídica rápida offline: Art. 54 da Lei 9.784/99 (Decadência Administrativa)
+  if (
+    qNorm.includes('9.784') ||
+    qNorm.includes('9784') ||
+    (qNorm.includes('decadencia') && (qNorm.includes('54') || qNorm.includes('administrativ')))
+  ) {
+    return {
+      text: `### Prazo de Decadência no Art. 54 da Lei 9.784/1999\n\n**Resposta Direta:** O direito da Administração Pública de anular os atos administrativos de que decorram efeitos favoráveis para os destinatários decai em **5 (cinco) anos**, contados da data em que foram praticados, **salvo comprovada má-fé**.\n\n**Pontos essenciais da Lei 9.784/99 (Art. 54):**\n- **Regra geral (caput):** 5 anos a partir da prática do ato favorável ao administrado.\n- **Exceção absoluta:** Se houver **comprovada má-fé** do beneficiário, o prazo decadencial não corre.\n- **Efeitos patrimoniais contínuos (§ 1º):** O prazo conta-se da percepção do **primeiro pagamento**.\n- **Impedimento da decadência (§ 2º):** Considera-se exercício do direito de anular **qualquer medida de autoridade administrativa que importe impugnação à validade do ato** (exigindo notificação válida do interessado; sindicância sigilosa não basta).\n\n⚠️ **Pegadinha clássica (${banca}):** As bancas costumam confundir esse prazo com **prescrição** (é *decadência*) ou afirmar que vale mesmo com má-fé (falso — a má-fé afasta a decadência).`,
+      quickAction: {
+        label: 'Consultar no Smart Vade Mecum',
+        actionTab: 'vademecum',
+      },
+    };
+  }
 
   const matchedExam = INITIAL_EXAMS.find((e) => {
     const titleNorm = normalizeText(`${e.title} ${e.institution} ${e.role}`);

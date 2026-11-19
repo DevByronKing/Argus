@@ -43,7 +43,7 @@ export async function POST(req: Request) {
         process.env.GEMINI_API_KEY ||
         process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
         process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-      const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+      const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
       const warName = studentProfile.warName || studentProfile.name || 'Estudante';
       const targetExam =

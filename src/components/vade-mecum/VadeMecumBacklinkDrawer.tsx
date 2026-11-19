@@ -2,21 +2,23 @@
 
 import React from 'react';
 import { X, Check, ShieldAlert, Zap } from 'lucide-react';
-import { VadeMecumArticle } from '@/lib/types';
+import { VadeMecumArticle, MistakeEntry } from '@/lib/types';
 import { getMissedQuestionsForArticle } from './vadeMecumData';
 
 interface VadeMecumBacklinkDrawerProps {
   article: VadeMecumArticle;
+  mistakes?: MistakeEntry[];
   onClose: () => void;
   onGoToSimulator: (queryOrTopic?: string) => void;
 }
 
 export const VadeMecumBacklinkDrawer: React.FC<VadeMecumBacklinkDrawerProps> = ({
   article,
+  mistakes = [],
   onClose,
   onGoToSimulator,
 }) => {
-  const missedList = getMissedQuestionsForArticle(article);
+  const missedList = getMissedQuestionsForArticle(article, mistakes);
 
   return (
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-[60] flex justify-end bg-black/70 backdrop-blur-sm animate-fadeIn">

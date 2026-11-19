@@ -504,11 +504,11 @@ export const DiscursiveStudio: React.FC<DiscursiveStudioProps> = ({
               <button
                 type="button"
                 onClick={handleFillSample}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-400 transition-colors flex items-center gap-1 shadow-sm"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-400 transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
                 title="Carregar redação modelo de exemplo para testar a correção imediata"
               >
-                <Zap className="w-3 h-3" />
-                <span className="hidden sm:inline">Exemplo Pronto</span>
+                <Zap className="w-3.5 h-3.5 shrink-0" />
+                <span>Inserir Rascunho Modelo</span>
               </button>
 
               {/* Clear button */}
@@ -602,7 +602,7 @@ export const DiscursiveStudio: React.FC<DiscursiveStudioProps> = ({
                 ) : (
                   <>
                     <Sparkles className={`w-4 h-4 ${isProcessing ? 'animate-spin' : ''}`} />
-                    <span>{isProcessing ? 'Avaliando com IA...' : 'Corrigir Redação com IA da Banca'}</span>
+                    <span>{isProcessing ? 'Corrigindo com IA...' : 'Avaliar com IA na Régua da Banca'}</span>
                   </>
                 )}
               </button>
@@ -614,24 +614,75 @@ export const DiscursiveStudio: React.FC<DiscursiveStudioProps> = ({
 
       </div>
 
-      {/* Progressive Processing Animation */}
+      {/* Overlay Proeminente de Carregamento em Tela Cheia enquanto a IA Corrige */}
       {isProcessing && (
-        <div className="mt-12 p-8 rounded-3xl glass-panel bg-white/85 dark:bg-dark-card/60 backdrop-blur-md shadow-sm border border-indigo-500/40 glow-brand text-center animate-fadeIn">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-500 dark:text-indigo-400 mb-4">
-            <Sparkles className="w-8 h-8 animate-spin" style={{ animationDuration: '3s' }} />
-          </div>
-          <h3 className="text-xl font-black text-slate-900 dark:text-white">
-            Banca Examinadora IA Analisando Sua Redação
-          </h3>
-          <p className="text-xs text-indigo-600 dark:text-indigo-300 mt-1 font-mono">
-            {stages[progressStage]}
-          </p>
+        <div
+          role="status"
+          aria-live="polite"
+          aria-label="Corrigindo redação com Inteligência Artificial"
+          className="fixed inset-0 z-[125] argus-modal-backdrop flex items-center justify-center p-4 animate-fadeIn"
+        >
+          <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-[#0c1322] border-2 border-indigo-500/40 shadow-2xl p-6 sm:p-8 text-center space-y-5">
+            <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20 border-t-indigo-600 animate-spin" />
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-600 flex items-center justify-center text-white shadow-lg">
+                <Sparkles className="w-7 h-7 animate-pulse" />
+              </div>
+            </div>
 
-          <div className="w-full max-w-md mx-auto mt-6 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 h-full transition-all duration-500"
-              style={{ width: `${((progressStage + 1) / 4) * 100}%` }}
-            />
+            <div className="space-y-1.5">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-cyan-300 text-[10px] font-black uppercase tracking-wider">
+                CORREÇÃO EM ANDAMENTO • BANCA {currentPrompt.banca}
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                IA Corrigindo Sua Redação...
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                Aguarde alguns segundos. Estamos aplicando os critérios oficiais da banca sem travar sua tela.
+              </p>
+            </div>
+
+            {/* Barra de Progresso */}
+            <div className="space-y-1.5">
+              <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-400 h-full transition-all duration-500 rounded-full"
+                  style={{ width: `${Math.min(95, ((progressStage + 1) / 4) * 100)}%` }}
+                />
+              </div>
+              <span className="text-[11px] font-mono font-bold text-indigo-600 dark:text-cyan-400 block">
+                Etapa {progressStage + 1} de {stages.length}
+              </span>
+            </div>
+
+            {/* Checklist Visual das 4 Etapas */}
+            <div className="space-y-2 text-left">
+              {stages.map((label, idx) => {
+                const isDone = idx < progressStage;
+                const isCurrent = idx === progressStage;
+                return (
+                  <div
+                    key={label}
+                    className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-xs transition-all ${
+                      isDone
+                        ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-200'
+                        : isCurrent
+                        ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-400 dark:border-indigo-500/50 text-indigo-900 dark:text-white font-bold'
+                        : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400'
+                    }`}
+                  >
+                    {isDone ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    ) : isCurrent ? (
+                      <div className="w-4 h-4 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin shrink-0 mt-0.5" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border-2 border-slate-300 dark:border-slate-700 shrink-0 mt-0.5" />
+                    )}
+                    <span className="leading-snug">{label}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
