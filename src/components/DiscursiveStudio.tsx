@@ -30,6 +30,7 @@ import {
 import { DiscursivePrompt, DiscursiveEvaluation, DiscursiveSubmission, SubscriptionPlan, ExamNotice, StudentProfile } from '@/lib/types';
 import { MOCK_DISCURSIVE_PROMPTS } from '@/lib/mockData';
 import { HardPaywallGate } from './HardPaywallGate';
+import { useAuthStore } from '@/store/useAuthStore';
 import {
   buildFallbackDiscursiveEvaluation,
   DiscursiveEvaluationReport,
@@ -166,9 +167,14 @@ export const DiscursiveStudio: React.FC<DiscursiveStudioProps> = ({
     let evalResult: DiscursiveEvaluation | null = null;
 
     try {
+      const token = useAuthStore.getState().token;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token && !token.startsWith('jwt_mock_')) {
+        headers.Authorization = `Bearer ${token}`;
+      }
       const response = await fetch('/api/discursive', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           essayText,
           promptTitle: currentPrompt.title,

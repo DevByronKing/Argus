@@ -112,62 +112,81 @@ Retorne ESTRITAMENTE um JSON Array válido com os itens:
 `;
           parts.push({ text: geminiPrompt });
 
-          const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts }],
-                generationConfig: {
-                  temperature: 0.1,
-                  maxOutputTokens: 3500,
-                  responseMimeType: 'application/json',
-                },
-              }),
-            }
+          const ingestModels = Array.from(
+            new Set(
+              [process.env.GEMINI_MODEL, 'gemini-2.5-flash', 'gemini-2.0-flash'].filter(
+                (m): m is string => Boolean(m && m.trim())
+              )
+            )
           );
 
-          if (response.ok) {
-            const data = await response.json();
-            const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (textResult) {
-              const aiItems = JSON.parse(textResult);
-              if (Array.isArray(aiItems) && aiItems.length > 0) {
-                rawQuestions = aiItems.map((item: any, idx: number) => ({
-                  id: `q-gemini-${metadata.year}-${item.questionNumber || idx + 1}`,
-                  questionNumber: item.questionNumber || idx + 1,
-                  subjectId: `sub-${(item.subjectName || 'geral').toLowerCase().replace(/\s+/g, '-')}`,
-                  subjectName: item.subjectName || 'Conhecimentos Específicos',
-                  topicId: `top-${idx + 1}`,
-                  topicName: item.topicName || 'Tópico Geral',
-                  banca: metadata.banca,
-                  year: metadata.year,
-                  institution: metadata.institution,
-                  statement: item.statement,
-                  options: (item.options || []).map((o: any) => ({
-                    id: o.id || `opt-${idx + 1}-${o.text}`,
-                    text: o.text,
-                    isCorrect: false,
-                  })),
-                  explanation: item.explanation || 'Item extraído e homologado pela banca.',
-                  lawArticles: item.lawArticles || [],
-                  codeCitation: item.codeCitation,
-                  cognitiveAnalysis: item.cognitiveAnalysis || {
-                    commonTrap: 'Análise de literalidade e jurisprudência consolidada.',
-                    keyConcept: item.topicName || 'Fundamento Geral',
-                    bancaTendency: 'Cobrança pontual e recorrente da banca.',
-                  },
-                  isOfficialAudited: true,
-                  auditSource: `${metadata.banca} - ${metadata.institution} (${metadata.year}) - ${metadata.role}`,
-                  legalStatus: 'atualizada',
-                  auditDetails: {
-                    bancaOfficialDocument: metadata.sourceUrl || 'Caderno de Prova Oficial',
-                    verifiedAt: new Date().toISOString(),
-                    humanAudited: false,
-                  },
-                }));
+          for (const ingestModel of ingestModels) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 25000);
+            try {
+              const response = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${ingestModel}:generateContent?key=${apiKey}`,
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  signal: controller.signal,
+                  body: JSON.stringify({
+                    contents: [{ parts }],
+                    generationConfig: {
+                      temperature: 0.1,
+                      maxOutputTokens: 3500,
+                      responseMimeType: 'application/json',
+                    },
+                  }),
+                }
+              );
+              clearTimeout(timeoutId);
+
+              if (response.ok) {
+                const data = await response.json();
+                const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (textResult) {
+                  const aiItems = JSON.parse(textResult);
+                  if (Array.isArray(aiItems) && aiItems.length > 0) {
+                    rawQuestions = aiItems.map((item: any, idx: number) => ({
+                      id: `q-gemini-${metadata.year}-${item.questionNumber || idx + 1}`,
+                      questionNumber: item.questionNumber || idx + 1,
+                      subjectId: `sub-${(item.subjectName || 'geral').toLowerCase().replace(/\s+/g, '-')}`,
+                      subjectName: item.subjectName || 'Conhecimentos Específicos',
+                      topicId: `top-${idx + 1}`,
+                      topicName: item.topicName || 'Tópico Geral',
+                      banca: metadata.banca,
+                      year: metadata.year,
+                      institution: metadata.institution,
+                      statement: item.statement,
+                      options: (item.options || []).map((o: any) => ({
+                        id: o.id || `opt-${idx + 1}-${o.text}`,
+                        text: o.text,
+                        isCorrect: false,
+                      })),
+                      explanation: item.explanation || 'Item extraído e homologado pela banca.',
+                      lawArticles: item.lawArticles || [],
+                      codeCitation: item.codeCitation,
+                      cognitiveAnalysis: item.cognitiveAnalysis || {
+                        commonTrap: 'Análise de literalidade e jurisprudência consolidada.',
+                        keyConcept: item.topicName || 'Fundamento Geral',
+                        bancaTendency: 'Cobrança pontual e recorrente da banca.',
+                      },
+                      isOfficialAudited: true,
+                      auditSource: `${metadata.banca} - ${metadata.institution} (${metadata.year}) - ${metadata.role}`,
+                      legalStatus: 'atualizada',
+                      auditDetails: {
+                        bancaOfficialDocument: metadata.sourceUrl || 'Caderno de Prova Oficial',
+                        verifiedAt: new Date().toISOString(),
+                        humanAudited: false,
+                      },
+                    }));
+                    break;
+                  }
+                }
               }
+            } catch {
+              clearTimeout(timeoutId);
             }
           }
         } catch (geminiErr) {

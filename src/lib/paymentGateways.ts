@@ -63,9 +63,11 @@ export class PaymentGateway {
       try {
         // Asaas exige CPF/CNPJ obrigatório em ambiente de produção para emitir Pix
         const rawCpf = params.cpfCnpj ? params.cpfCnpj.replace(/\D/g, '') : '';
-        const cleanCpf = rawCpf.length === 11 || rawCpf.length === 14 
-          ? rawCpf 
-          : '11144477735'; // CPF Mod-11 válido de homologação caso o usuário ainda não tenha preenchido
+        const hasValidDoc = rawCpf.length === 11 || rawCpf.length === 14;
+        if (isAsaasProduction && !hasValidDoc) {
+          throw new Error('Informe um CPF (11 dígitos) ou CNPJ válido para gerar a cobrança Pix oficial.');
+        }
+        const cleanCpf = hasValidDoc ? rawCpf : '11144477735';
 
         // Asaas em produção exige valor mínimo de R$ 5,00
         const chargeValue = isAsaasProduction ? Math.max(params.amount, 5.00) : params.amount;
@@ -133,12 +135,23 @@ export class PaymentGateway {
         } else if (customerData.errors) {
           console.error('[Asaas Customer Error]:', JSON.stringify(customerData.errors));
         }
-      } catch (err) {
-        console.warn('Asaas API falhou, usando gerador nativo:', err);
+      } catch (err: any) {
+        if (process.env.NODE_ENV === 'production' && isAsaasProduction) {
+          throw new Error(
+            err?.message?.includes('CPF')
+              ? err.message
+              : 'Gateway de pagamento temporariamente indisponível. Tente gerar o Pix novamente em alguns segundos.'
+          );
+        }
+        console.warn('Asaas API falhou, usando gerador nativo em desenvolvimento:', err);
       }
     }
 
-    // 2. Gerador Nativo de Pix (BACEN EMVCo BR Code padrão)
+    if (process.env.NODE_ENV === 'production' && isAsaasProduction) {
+      throw new Error('Não foi possível emitir o QR Code Pix oficial no Asaas. Verifique o CPF e tente novamente.');
+    }
+
+    // 2. Gerador Nativo de Pix (apenas desenvolvimento / homologação local)
     const txId = `tx_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
     const pixCopyPaste = `00020126580014br.gov.bcb.pix0136argus-payments-${txId}520400005303986540${params.amount.toFixed(2)}5802BR5914Argus6009Sao Paulo62070503***6304E8A9`;

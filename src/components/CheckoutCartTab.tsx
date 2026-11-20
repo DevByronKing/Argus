@@ -178,12 +178,17 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
   const fallbackPixCode = `00020126580014br.gov.bcb.pix0136argus-pagamentos-asaas-2026520400005303986540${finalPrice.toFixed(2).replace('.', '')}5802BR5920ARGUS SAAS LTDA6009SAO PAULO62070503***6304E8A9`;
   const pixCode = realPixCode || fallbackPixCode;
 
-  // Carregar Cobrança Pix Real via Asaas
+  // Carregar Cobrança Pix Real via Asaas (com debounce e validação de CPF/e-mail para evitar spam de cobranças)
   useEffect(() => {
     if (paymentMethod !== 'pix') return;
+    const cpfDigits = customerCpf.replace(/\D/g, '');
+    const emailClean = (customerEmail || '').trim();
+    if (cpfDigits.length < 11 || !emailClean.includes('@')) {
+      return;
+    }
 
     let isMounted = true;
-    const fetchPix = async () => {
+    const debounceTimer = setTimeout(async () => {
       setIsLoadingPix(true);
       setPaymentPendingNotice(null);
       try {
@@ -199,9 +204,10 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
             planId: selectedPlan,
             billingCycle,
             paymentMethod: 'pix',
-            userEmail: customerEmail || 'aluno@argus.app.br',
+            couponCode: selectedPlan === 'lancamento' ? undefined : appliedCoupon?.code,
+            userEmail: emailClean,
             userName: customerName || 'Aluno Argus',
-            cpfCnpj: customerCpf,
+            cpfCnpj: cpfDigits,
           }),
         });
         const data = await res.json();
@@ -209,17 +215,21 @@ export const CheckoutCartTab: React.FC<CheckoutCartTabProps> = ({
           setPixTransactionId(data.transactionId || '');
           setRealPixCode(data.pix.copyPasteCode);
           setRealQrCodeImg(data.pix.qrCodeUrl);
+        } else if (isMounted && !data.success && data.error) {
+          setPaymentPendingNotice(data.error);
         }
       } catch (err) {
         console.warn('Erro ao carregar Pix real do Asaas:', err);
       } finally {
         if (isMounted) setIsLoadingPix(false);
       }
-    };
+    }, 850);
 
-    fetchPix();
-    return () => { isMounted = false; };
-  }, [paymentMethod, selectedPlan, billingCycle, customerEmail, customerName, customerCpf]);
+    return () => {
+      isMounted = false;
+      clearTimeout(debounceTimer);
+    };
+  }, [paymentMethod, selectedPlan, billingCycle, appliedCoupon, customerEmail, customerName, customerCpf]);
 
   // Polling automático a cada 4 segundos para liberar o plano assim que o Pix for pago no Asaas
   useEffect(() => {

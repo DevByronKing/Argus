@@ -185,6 +185,21 @@ export async function POST(req: NextRequest) {
         amount = planConfig.monthly;
       }
 
+      // Cupons oficiais validados estritamente no servidor (nunca acumula no Passe R$ 97)
+      const SERVER_COUPONS: Record<string, number> = {
+        LANCAMENTO20: 20,
+        ARGUS15: 15,
+        APROVACAO10: 10,
+      };
+      const rawCoupon = typeof body.couponCode === 'string' ? body.couponCode.trim().toUpperCase() : '';
+      const serverDiscountPercent =
+        planId !== 'lancamento' && rawCoupon && SERVER_COUPONS[rawCoupon]
+          ? SERVER_COUPONS[rawCoupon]
+          : 0;
+      if (serverDiscountPercent > 0) {
+        amount = Math.round(amount * (1 - serverDiscountPercent / 100) * 100) / 100;
+      }
+
       if (!isFreemiumAllowed() && (planId === 'aspirante' || amount <= 0)) {
         return NextResponse.json(
           {
@@ -262,9 +277,14 @@ export async function POST(req: NextRequest) {
       return response;
     } catch (error: any) {
       console.error('Erro na API de checkout:', error);
+      const safeClientMsg =
+        typeof error?.message === 'string' &&
+        (error.message.includes('CPF') || error.message.includes('Gateway') || error.message.includes('Asaas'))
+          ? error.message
+          : 'Falha ao processar checkout. Tente novamente em instantes.';
       return NextResponse.json(
-        { success: false, error: error.message || 'Falha ao processar checkout' },
-        { status: 500 }
+        { success: false, error: safeClientMsg },
+        { status: safeClientMsg.includes('CPF') ? 400 : 503 }
       );
     }
   });

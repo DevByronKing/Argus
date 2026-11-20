@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server';
 import { AsyncJobManager } from '@/lib/queue/jobManager';
+import { resolveServerUserSession } from '@/lib/serverSession';
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await resolveServerUserSession(req, '/api/edital/jobs/[id]');
+    if (process.env.NODE_ENV === 'production' && !session.authenticated && !session.isPaid) {
+      return NextResponse.json(
+        { success: false, code: 'UNAUTHORIZED', error: 'Autenticação necessária para consultar status do job.' },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
     const job = AsyncJobManager.getJob(id);
 
@@ -29,9 +38,10 @@ export async function GET(
         error: job.error || null,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
+    console.error('Erro em GET /api/edital/jobs/[id]:', error);
     return NextResponse.json(
-      { success: false, error: error?.message || 'Erro ao consultar status do job.' },
+      { success: false, error: 'Erro interno ao consultar status do job.' },
       { status: 500 }
     );
   }

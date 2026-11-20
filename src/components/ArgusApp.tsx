@@ -259,10 +259,10 @@ export function ArgusApp() {
         localStorage.setItem('argus_clean_slate_v4', 'true');
       }
 
-      const savedPlan = localStorage.getItem('argus_plan') || localStorage.getItem('aprovalens_plan');
-      if (savedPlan && ['aspirante', 'lancamento', 'pro', 'elite', 'black'].includes(savedPlan)) {
-        setPlan(savedPlan as SubscriptionPlan);
-      }
+      // Segurança: nunca confia em argus_plan editável no localStorage para liberar HardPaywallGate.
+      // O plano ativo é sincronizado exclusivamente pelo servidor (useArgusSession / Supabase / checkout confirmado).
+      localStorage.removeItem('argus_plan');
+      localStorage.removeItem('aprovalens_plan');
 
       const savedMetrics = localStorage.getItem('argus_metrics') || localStorage.getItem('aprovalens_metrics');
       if (savedMetrics) setMetrics(JSON.parse(savedMetrics));

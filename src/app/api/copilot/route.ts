@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
+import { checkDistributedRateLimit, getClientIp } from '@/lib/rateLimiter';
 import { measureLatency } from '@/lib/logger';
 import {
   answerStudentQueryDirectly,
@@ -11,7 +11,12 @@ export async function POST(req: Request) {
   return measureLatency('/api/copilot', async () => {
     try {
       const ip = getClientIp(req);
-      const { allowed, resetTime } = checkRateLimit(ip, 30, 60000);
+      const { allowed, resetTime } = await checkDistributedRateLimit({
+        key: `copilot:ip:${ip}`,
+        limit: 20,
+        windowMs: 60000,
+        ip,
+      });
 
       if (!allowed) {
         return NextResponse.json(
@@ -25,19 +30,24 @@ export async function POST(req: Request) {
       }
 
       const body = await req.json();
-      const {
-        query = '',
-        studentProfile = {},
-        examContext = {},
-        history = [],
-      } = body;
+      const rawQuery = typeof body?.query === 'string' ? body.query.trim().slice(0, 1500) : '';
+      const studentProfile = body?.studentProfile && typeof body.studentProfile === 'object' ? body.studentProfile : {};
+      const examContext = body?.examContext && typeof body.examContext === 'object' ? body.examContext : {};
+      const history = Array.isArray(body?.history)
+        ? body.history.slice(-6).map((h: any) => ({
+            sender: h?.sender === 'user' ? 'user' : 'assistant',
+            text: String(h?.text || '').slice(0, 600),
+          }))
+        : [];
 
-      if (!query.trim()) {
+      if (!rawQuery) {
         return NextResponse.json(
           { success: false, error: 'Por favor, digite sua pergunta.' },
           { status: 400 }
         );
       }
+
+      const query = rawQuery;
 
       const apiKey =
         process.env.GEMINI_API_KEY ||

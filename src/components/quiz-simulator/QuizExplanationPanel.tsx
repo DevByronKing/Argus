@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Question, Flashcard } from '@/lib/types';
 import { AIFeedbackVote } from '@/components/AIFeedbackVote';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface CognitiveDiagnosisResult {
   diagnosisTitle?: string;
@@ -57,9 +58,14 @@ export const QuizExplanationPanel: React.FC<QuizExplanationPanelProps> = ({
   const handleGenerateDiagnosis = async () => {
     setIsGeneratingDiagnosis(true);
     try {
+      const token = useAuthStore.getState().token;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token && !token.startsWith('jwt_mock_')) {
+        headers.Authorization = `Bearer ${token}`;
+      }
       const response = await fetch('/api/diagnosis', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           questionId: currentQuestion.id,
           questionStatement: currentQuestion.statement,
@@ -71,7 +77,6 @@ export const QuizExplanationPanel: React.FC<QuizExplanationPanelProps> = ({
           knownLawArticle: currentQuestion.codeCitation,
           knownExplanation: currentQuestion.explanation,
           knownTrap: currentQuestion.cognitiveAnalysis?.commonTrap,
-          userPlan: 'pro',
         }),
       });
       const json = await response.json();

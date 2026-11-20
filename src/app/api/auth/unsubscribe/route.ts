@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
+import { sanitizeString } from '@/lib/securitySanitizer';
+
+const STRICT_EMAIL_REGEX = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
 
 // Memória local de opt-out (em produção sincroniza com CRM/Supabase)
 const unsubscribedEmails = new Set<string>();
@@ -9,11 +12,12 @@ const unsubscribedEmails = new Set<string>();
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const email = url.searchParams.get('email') || '';
-  const cleanEmail = email.trim().toLowerCase();
+  const rawEmail = (url.searchParams.get('email') || '').trim().toLowerCase().slice(0, 160);
+  const isValidEmail = STRICT_EMAIL_REGEX.test(rawEmail);
+  const safeEmailDisplay = isValidEmail ? sanitizeString(rawEmail) : '';
 
-  if (cleanEmail && cleanEmail.includes('@')) {
-    unsubscribedEmails.add(cleanEmail);
+  if (isValidEmail) {
+    unsubscribedEmails.add(rawEmail);
   }
 
   const html = `<!DOCTYPE html>
@@ -121,7 +125,7 @@ export async function GET(req: Request) {
     <p>
       Seu endereço de e-mail foi removido da nossa lista de comunicações de marketing e mensagens promocionais.
     </p>
-    ${cleanEmail ? `<div class="email-box">${cleanEmail}</div>` : ''}
+    ${safeEmailDisplay ? `<div class="email-box">${safeEmailDisplay}</div>` : ''}
     <p style="font-size: 12px; color: #64748b;">
       Você ainda poderá receber e-mails transacionais indispensáveis (como recuperação de senha ou confirmações de acesso à sua conta).
     </p>

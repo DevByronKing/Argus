@@ -105,18 +105,25 @@ export async function POST(req: Request) {
         if (serviceClient) {
           if (!isAdmin) {
             try {
-              const { data: allowRow } = await serviceClient
+              const { data: byUid } = await serviceClient
                 .from('admin_allowlist')
                 .select('is_active')
                 .eq('is_active', true)
-                .or(
-                  data.user.email && emailConfirmed
-                    ? `user_id.eq.${data.user.id},email.eq.${data.user.email.toLowerCase()}`
-                    : `user_id.eq.${data.user.id}`
-                )
+                .eq('user_id', data.user.id)
                 .limit(1)
                 .maybeSingle();
-              if (allowRow?.is_active) isAdmin = true;
+              if (byUid?.is_active) {
+                isAdmin = true;
+              } else if (data.user.email && emailConfirmed) {
+                const { data: byMail } = await serviceClient
+                  .from('admin_allowlist')
+                  .select('is_active')
+                  .eq('is_active', true)
+                  .eq('email', data.user.email.toLowerCase())
+                  .limit(1)
+                  .maybeSingle();
+                if (byMail?.is_active) isAdmin = true;
+              }
             } catch {}
           }
 

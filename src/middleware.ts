@@ -54,6 +54,8 @@ const SENSITIVE_EXTENSIONS = [
 ];
 
 function applySecurityHeaders(response: NextResponse): NextResponse {
+  const isProd = process.env.NODE_ENV === 'production';
+  const livePreviewHost = isProd ? '' : ' https://vercel.live https://*.vercel.live';
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-XSS-Protection', '1; mode=block');
@@ -62,7 +64,7 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(self)');
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://*.googleapis.com https://*.google.com https://*.gstatic.com https://connect.facebook.net https://*.facebook.net https://*.facebook.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline' https://vercel.live; font-src 'self' data: https://vercel.live https://assets.vercel.com; img-src 'self' data: blob: https: https://vercel.live https://vercel.com; connect-src 'self' https: wss: https://vercel.live https://*.pusher.com wss://*.pusher.com; frame-src 'self' https://challenges.cloudflare.com https://vercel.live; frame-ancestors 'none';"
+    `default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.googleapis.com https://*.google.com https://*.gstatic.com https://connect.facebook.net https://*.facebook.net https://*.facebook.com https://www.googletagmanager.com${livePreviewHost}; style-src 'self' 'unsafe-inline'${isProd ? '' : ' https://vercel.live'}; font-src 'self' data: https://assets.vercel.com${isProd ? '' : ' https://vercel.live'}; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-src 'self' https://challenges.cloudflare.com${isProd ? '' : ' https://vercel.live'}; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests;`
   );
   return response;
 }
@@ -328,13 +330,19 @@ export async function middleware(request: NextRequest) {
     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)) {
       const origin = request.headers.get('origin');
       const referer = request.headers.get('referer');
-      const allowedOrigins = [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'https://argus.app.br',
-        'https://argus.ia',
-        ...(process.env.NEXT_PUBLIC_APP_URL ? [process.env.NEXT_PUBLIC_APP_URL] : []),
-      ];
+      const allowedOrigins = Array.from(
+        new Set([
+          request.nextUrl.origin,
+          'http://localhost:3000',
+          'http://localhost:3001',
+          'https://argus.app.br',
+          'https://argus.ia',
+          'https://argus-edu.vercel.app',
+          ...(process.env.NEXT_PUBLIC_APP_URL
+            ? [process.env.NEXT_PUBLIC_APP_URL.trim().replace(/\/+$/, '')]
+            : []),
+        ])
+      );
       const csrfCheck = validateCsrfProtection({
         method: request.method,
         origin,

@@ -146,7 +146,11 @@ export async function POST(req: NextRequest) {
     // 2. Webhook Oficial Asaas
     if (body.event && body.payment) {
       const asaasToken = req.headers.get('asaas-access-token') || '';
-      const expectedToken = process.env.ASAAS_WEBHOOK_SECRET || '';
+      const expectedToken = (
+        process.env.ASAAS_WEBHOOK_SECRET ||
+        process.env.ASAAS_WEBHOOK_TOKEN ||
+        ''
+      ).trim();
       const mustVerifyAsaas = process.env.NODE_ENV === 'production' || Boolean(expectedToken);
 
       if (mustVerifyAsaas) {
@@ -341,6 +345,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Formato de webhook não reconhecido' }, { status: 400 });
   } catch (error: any) {
     console.error('Erro no processamento do webhook:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Erro interno ao processar webhook de pagamento.' },
+      { status: 500 }
+    );
   }
 }

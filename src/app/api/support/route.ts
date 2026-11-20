@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { assertServerAdmin } from '@/lib/adminAuth';
+import { resolveServerUserSession } from '@/lib/serverSession';
+import { checkDistributedRateLimit, getClientIp } from '@/lib/rateLimiter';
+import { inspectSafeInput } from '@/lib/securitySanitizer';
 
 export const dynamic = 'force-dynamic';
 
 export interface SupportTicket {
   id: string;
+  userId?: string;
   studentName: string;
   studentEmail: string;
   studentPhone?: string;
@@ -20,139 +25,184 @@ export interface SupportTicket {
   adminNotes?: string;
 }
 
-// In-memory persistent ticket store for the running instance
-let globalTickets: SupportTicket[] = [
-  {
-    id: 'ticket-1001',
-    studentName: 'Mariana Duarte',
-    studentEmail: 'mariana.duarte@gmail.com',
-    studentPhone: '(91) 98122-3344',
-    category: 'Dúvida no Edital',
-    message: 'Gostaria de saber se o simulador de psicometria TRI já cobre todas as disciplinas do edital da OAB 1ª Fase 2026.',
-    rating: 5,
-    currentTab: 'edital',
-    targetExam: 'OAB 1ª Fase (FGV)',
-    status: 'aberto',
-    prioritySla: 'alta_prioridade_1h',
-    isPayingOrCommitted: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-  },
-  {
-    id: 'ticket-1002',
-    studentName: 'Rodrigo Medeiros',
-    studentEmail: 'rodrigo.concurseiro@outlook.com',
-    studentPhone: '(91) 98455-6677',
-    category: 'Financeiro / Assinatura',
-    message: 'Acabei de efetuar o pagamento do Passe R$ 97 via Pix e gostaria de confirmar a liberação do meu edital INSS.',
-    rating: 5,
-    currentTab: 'checkout',
-    targetExam: 'INSS (Cebraspe)',
-    status: 'em_atendimento',
-    prioritySla: 'alta_prioridade_1h',
-    isPayingOrCommitted: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-    adminNotes: 'Comprovante Pix validado no Asaas, acesso ativo.',
-  },
-  {
-    id: 'ticket-1003',
-    studentName: 'Felipe Albuquerque',
-    studentEmail: 'felipe.albuquerque@yahoo.com.br',
-    studentPhone: '(11) 99123-4567',
-    category: 'Sugestão de Funcionalidade',
-    message: 'Seria excelente adicionar opção de exportar o Caderno de Erros diretamente para o Anki.',
-    rating: 4,
-    currentTab: 'mistakes',
-    targetExam: 'PRF - Policial Rodoviário Federal',
-    status: 'resolvido',
-    prioritySla: 'normal_24h',
-    isPayingOrCommitted: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    resolvedAt: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
-    adminNotes: 'Encaminhado para a equipe de produto na sprint de exportações.',
-  }
-];
+// Store em memória zerado (sem dados PII fictícios expostos)
+let globalTickets: SupportTicket[] = [];
+const MAX_TICKETS_MEMORY = 200;
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const adminCheck = await assertServerAdmin(req, '/api/support');
+
+  if (adminCheck.authorized) {
+    return NextResponse.json({
+      success: true,
+      tickets: globalTickets,
+      stats: {
+        total: globalTickets.length,
+        abertos: globalTickets.filter((t) => t.status === 'aberto').length,
+        emAtendimento: globalTickets.filter((t) => t.status === 'em_atendimento').length,
+        resolvidos: globalTickets.filter((t) => t.status === 'resolvido').length,
+      },
+    });
+  }
+
+  // Usuário autenticado comum visualiza APENAS os próprios chamados (sem vazar PII ou notas internas)
+  const session = await resolveServerUserSession(req, '/api/support');
+  if (!session.authenticated || !session.email) {
+    return NextResponse.json(
+      { success: false, code: 'UNAUTHORIZED', error: 'Autenticação necessária para consultar chamados.' },
+      { status: 401 }
+    );
+  }
+
+  const ownTickets = globalTickets
+    .filter(
+      (t) =>
+        (session.userId && t.userId === session.userId) ||
+        t.studentEmail.toLowerCase() === session.email!.toLowerCase()
+    )
+    .map(({ adminNotes: _hidden, ...publicTicket }) => publicTicket);
+
   return NextResponse.json({
     success: true,
-    tickets: globalTickets,
+    tickets: ownTickets,
     stats: {
-      total: globalTickets.length,
-      abertos: globalTickets.filter(t => t.status === 'aberto').length,
-      emAtendimento: globalTickets.filter(t => t.status === 'em_atendimento').length,
-      resolvidos: globalTickets.filter(t => t.status === 'resolvido').length,
-    }
+      total: ownTickets.length,
+      abertos: ownTickets.filter((t) => t.status === 'aberto').length,
+      emAtendimento: ownTickets.filter((t) => t.status === 'em_atendimento').length,
+      resolvidos: ownTickets.filter((t) => t.status === 'resolvido').length,
+    },
   });
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const {
-      studentName = 'Aluno Argus',
-      studentEmail = 'aluno@argus.app.br',
-      studentPhone = '',
-      category = 'Dúvida Geral',
-      message = '',
-      rating = 5,
-      currentTab = 'Geral',
-      targetExam = 'Concurso Público',
-      isPayingOrCommitted = false,
-      prioritySla = isPayingOrCommitted ? 'alta_prioridade_1h' : 'normal_24h'
-    } = body;
+    const ip = getClientIp(req);
+    const rateCheck = await checkDistributedRateLimit({
+      key: `support:ip:${ip}`,
+      limit: 5,
+      windowMs: 60000,
+      ip,
+    });
 
-    if (!message || message.trim().length === 0) {
-      return NextResponse.json({ success: false, error: 'Mensagem é obrigatória' }, { status: 400 });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { success: false, code: 'RATE_LIMIT_EXCEEDED', error: 'Muitos chamados enviados em sequência. Aguarde 1 minuto.' },
+        { status: 429 }
+      );
     }
+
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ success: false, error: 'Payload JSON inválido.' }, { status: 400 });
+    }
+
+    const safety = inspectSafeInput(body);
+    if (!safety.isSafe) {
+      return NextResponse.json(
+        { success: false, code: 'PAYLOAD_UNSAFE', error: `Conteúdo rejeitado por segurança (${safety.threatType}).` },
+        { status: 400 }
+      );
+    }
+
+    const session = await resolveServerUserSession(req, '/api/support');
+    const message = typeof body.message === 'string' ? body.message.trim().slice(0, 2000) : '';
+    if (!message || message.length < 5) {
+      return NextResponse.json(
+        { success: false, error: 'Descreva sua solicitação com pelo menos 5 caracteres.' },
+        { status: 400 }
+      );
+    }
+
+    const studentName =
+      typeof body.studentName === 'string' && body.studentName.trim()
+        ? body.studentName.trim().slice(0, 100)
+        : 'Aluno Argus';
+    const studentEmail =
+      session.email ||
+      (typeof body.studentEmail === 'string' && body.studentEmail.includes('@')
+        ? body.studentEmail.trim().toLowerCase().slice(0, 120)
+        : '');
+
+    if (!studentEmail) {
+      return NextResponse.json(
+        { success: false, error: 'Informe um e-mail válido para retorno do suporte.' },
+        { status: 400 }
+      );
+    }
+
+    // SLA e status pagante são derivados exclusivamente da sessão verificada no servidor
+    const isPaying = session.isPaid;
+    const prioritySla: SupportTicket['prioritySla'] = isPaying ? 'alta_prioridade_1h' : 'normal_24h';
 
     const newTicket: SupportTicket = {
       id: `ticket-${Date.now()}`,
-      studentName: studentName.trim(),
-      studentEmail: studentEmail.trim(),
-      studentPhone: studentPhone.trim(),
-      category,
-      message: message.trim(),
-      rating,
-      currentTab,
-      targetExam,
+      userId: session.userId,
+      studentName,
+      studentEmail,
+      studentPhone: typeof body.studentPhone === 'string' ? body.studentPhone.trim().slice(0, 25) : '',
+      category: typeof body.category === 'string' ? body.category.trim().slice(0, 60) : 'Dúvida Geral',
+      message,
+      rating: typeof body.rating === 'number' ? Math.min(5, Math.max(1, Math.round(body.rating))) : 5,
+      currentTab: typeof body.currentTab === 'string' ? body.currentTab.trim().slice(0, 40) : 'Geral',
+      targetExam: typeof body.targetExam === 'string' ? body.targetExam.trim().slice(0, 100) : 'Concurso Público',
       status: 'aberto',
       prioritySla,
-      isPayingOrCommitted: Boolean(isPayingOrCommitted),
+      isPayingOrCommitted: isPaying,
       createdAt: new Date().toISOString(),
     };
 
-    globalTickets = [newTicket, ...globalTickets];
+    globalTickets = [newTicket, ...globalTickets].slice(0, MAX_TICKETS_MEMORY);
 
     return NextResponse.json({
       success: true,
       ticket: newTicket,
-      message: 'Chamado de suporte aberto com sucesso! Nossa equipe entrará em contato.'
+      message: 'Chamado de suporte aberto com sucesso! Nossa equipe entrará em contato.',
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('Erro ao criar chamado de suporte:', error);
+    return NextResponse.json({ success: false, error: 'Falha interna ao abrir chamado.' }, { status: 500 });
   }
 }
 
 export async function PATCH(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { ticketId, status, adminNotes } = body;
+    const adminCheck = await assertServerAdmin(req, '/api/support');
+    if (!adminCheck.authorized) {
+      return NextResponse.json(
+        { success: false, error: adminCheck.error || 'Acesso administrativo negado.' },
+        { status: adminCheck.status }
+      );
+    }
+
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ success: false, error: 'Payload JSON inválido.' }, { status: 400 });
+    }
+
+    const ticketId = typeof body.ticketId === 'string' ? body.ticketId.trim() : '';
+    const status = body.status;
+    const adminNotes = typeof body.adminNotes === 'string' ? body.adminNotes.trim().slice(0, 1000) : undefined;
 
     if (!ticketId) {
       return NextResponse.json({ success: false, error: 'ticketId é obrigatório' }, { status: 400 });
     }
 
-    const ticket = globalTickets.find(t => t.id === ticketId);
+    const ticket = globalTickets.find((t) => t.id === ticketId);
     if (!ticket) {
       return NextResponse.json({ success: false, error: 'Chamado não encontrado' }, { status: 404 });
     }
 
-    if (status) {
+    if (status === 'aberto' || status === 'em_atendimento' || status === 'resolvido') {
       ticket.status = status;
       if (status === 'resolvido') {
         ticket.resolvedAt = new Date().toISOString();
       }
     }
+
     if (adminNotes !== undefined) {
       ticket.adminNotes = adminNotes;
     }
@@ -160,9 +210,10 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({
       success: true,
       ticket,
-      message: 'Status do chamado atualizado com sucesso.'
+      message: 'Chamado atualizado com sucesso!',
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('Erro ao atualizar chamado:', error);
+    return NextResponse.json({ success: false, error: 'Falha interna ao atualizar chamado.' }, { status: 500 });
   }
 }

@@ -6,6 +6,8 @@
  * maximizando a taxa de resposta (reply-rate), entregabilidade (zero spam) e descoberta de PMF.
  */
 
+import { sanitizeString } from '@/lib/securitySanitizer';
+
 export interface WelcomeEmailParams {
   name: string;
   email: string;
@@ -62,9 +64,9 @@ ${unsubscribeUrl}
  * Gera a versão em HTML Minimalista Responsivo (Estilo carta executiva elegante)
  */
 export function generateWelcomeEmailHtml(params: WelcomeEmailParams): string {
-  const firstName = params.name ? params.name.split(' ')[0] : 'Futuro(a) Aprovado(a)';
-  const exam = params.targetExam || 'seu concurso dos sonhos';
-  const guardian = params.guardianAnimal ? `(${params.guardianAnimal})` : '';
+  const firstName = sanitizeString((params.name ? params.name.split(' ')[0] : 'Futuro(a) Aprovado(a)').slice(0, 80));
+  const exam = sanitizeString((params.targetExam || 'seu concurso dos sonhos').slice(0, 140));
+  const guardian = params.guardianAnimal ? `(${sanitizeString(params.guardianAnimal.slice(0, 60))})` : '';
   const unsubscribeUrl = `https://argus.app.br/api/auth/unsubscribe?email=${encodeURIComponent(params.email)}`;
 
   return `<!DOCTYPE html>

@@ -131,19 +131,19 @@ export async function assertServerAdmin(req: Request, route = '/api/admin'): Pro
     };
   }
 
-  // 2b. Checa tabela server-only `public.admin_allowlist` via service_role
+  // 2b. Checa tabela server-only `public.admin_allowlist` via service_role (consultas parametrizadas sem .or() interpolado)
   const serviceClient = getSupabaseServiceRole();
   if (serviceClient) {
     try {
-      const { data: allowRow } = await serviceClient
+      const { data: byUserId } = await serviceClient
         .from('admin_allowlist')
         .select('id, role, is_active')
         .eq('is_active', true)
-        .or(email && emailConfirmed ? `user_id.eq.${userId},email.eq.${email}` : `user_id.eq.${userId}`)
+        .eq('user_id', userId)
         .limit(1)
         .maybeSingle();
 
-      if (allowRow && allowRow.is_active) {
+      if (byUserId && byUserId.is_active) {
         return {
           authorized: true,
           status: 200,
@@ -151,6 +151,26 @@ export async function assertServerAdmin(req: Request, route = '/api/admin'): Pro
           userId,
           email: verifiedUser.email || undefined,
         };
+      }
+
+      if (email && emailConfirmed) {
+        const { data: byEmail } = await serviceClient
+          .from('admin_allowlist')
+          .select('id, role, is_active')
+          .eq('is_active', true)
+          .eq('email', email)
+          .limit(1)
+          .maybeSingle();
+
+        if (byEmail && byEmail.is_active) {
+          return {
+            authorized: true,
+            status: 200,
+            method: 'server_allowlist_db',
+            userId,
+            email: verifiedUser.email || undefined,
+          };
+        }
       }
     } catch {
       // Falha fechada em erro de consulta

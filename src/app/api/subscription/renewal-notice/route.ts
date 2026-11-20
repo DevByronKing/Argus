@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getClientIp, checkRateLimit } from '@/lib/rateLimiter';
+import { getClientIp, checkDistributedRateLimit } from '@/lib/rateLimiter';
+import { assertServerAdmin } from '@/lib/adminAuth';
 
 export interface RenewalNoticePayload {
   userEmail: string;
@@ -21,8 +22,21 @@ export interface RenewalNoticePayload {
  */
 export async function POST(req: Request) {
   try {
+    const adminCheck = await assertServerAdmin(req, '/api/subscription/renewal-notice');
+    if (!adminCheck.authorized) {
+      return NextResponse.json(
+        { success: false, error: 'Disparo de aviso de renovação restrito a serviços administrativos autorizados.' },
+        { status: adminCheck.status }
+      );
+    }
+
     const ip = getClientIp(req);
-    const { allowed } = checkRateLimit(`renewal_notice_${ip}`, 20, 60000);
+    const { allowed } = await checkDistributedRateLimit({
+      key: `renewal_notice:ip:${ip}`,
+      limit: 20,
+      windowMs: 60000,
+      ip,
+    });
     if (!allowed) {
       return NextResponse.json(
         { success: false, error: 'Muitas requisições. Aguarde um instante.' },

@@ -1,36 +1,46 @@
 import { NextResponse } from 'next/server';
 import { getSupabase, isSupabaseConfigured } from '@/lib/supabase';
 
+const COOKIES_TO_CLEAR = [
+  'argus-session',
+  'learning-ai-session',
+  'sb-access-token',
+  'argus_user_access',
+  'learning_ai_user_access',
+  'argus_checkout_tx',
+];
+
 export async function POST() {
   try {
     if (isSupabaseConfigured()) {
       const client = getSupabase();
       if (client) {
-        await client.auth.signOut();
+        await client.auth.signOut().catch(() => {});
       }
     }
 
     const response = NextResponse.json({
       success: true,
-      message: 'Sessão encerrada com sucesso.',
+      message: 'Sessão e credenciais de acesso encerradas com sucesso.',
     });
 
-    // Limpar cookie de sessão
-    response.cookies.set('argus-session', '', {
-      httpOnly: true,
-      expires: new Date(0),
-      path: '/',
-    });
-    response.cookies.set('learning-ai-session', '', {
-      httpOnly: true,
-      expires: new Date(0),
-      path: '/',
-    });
+    const isProd = process.env.NODE_ENV === 'production';
+    for (const cookieName of COOKIES_TO_CLEAR) {
+      response.cookies.set(cookieName, '', {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: 'lax',
+        expires: new Date(0),
+        maxAge: 0,
+        path: '/',
+      });
+    }
 
     return response;
-  } catch (err: any) {
+  } catch (err) {
+    console.error('Erro ao encerrar sessão:', err);
     return NextResponse.json(
-      { success: false, error: err?.message || 'Erro ao encerrar sessão.' },
+      { success: false, error: 'Erro interno ao encerrar sessão.' },
       { status: 500 }
     );
   }
