@@ -75,9 +75,10 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
 
       onSuccess?.();
 
-      // Se a URL de autorização foi retornada e não houve redirecionamento automático
+      // Se a URL de autorização foi retornada, abre em Chrome Custom Tabs / Safari nativo no app mobile ou redireciona na web
       if (result.url) {
-        window.location.href = result.url;
+        const { openNativeBrowserUrl } = await import('@/lib/mobileBridge');
+        await openNativeBrowserUrl(result.url);
       }
     } catch (err: any) {
       console.error('Erro ao fazer login com Google:', err);

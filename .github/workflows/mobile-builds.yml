@@ -1,0 +1,104 @@
+name: Mobile Builds (Android APK/AAB + iOS Validation)
+
+on:
+  workflow_dispatch:
+    inputs:
+      server_url:
+        description: 'URL do servidor de produção para embutir no app'
+        required: false
+        default: 'https://argus-edu.vercel.app'
+  push:
+    branches:
+      - main
+    paths:
+      - 'capacitor.config.ts'
+      - 'capacitor-web/**'
+      - 'android/**'
+      - 'ios/**'
+      - 'resources/**'
+      - 'src/lib/mobileBridge.ts'
+      - 'src/components/NativeMobileBridge.tsx'
+      - '.github/workflows/mobile-builds.yml'
+
+jobs:
+  android-apk-aab:
+    name: Build Android (APK Instalável + AAB Play Store)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Configurar Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Instalar dependências npm
+        run: npm ci
+
+      - name: Sincronizar Capacitor Android
+        env:
+          CAPACITOR_SERVER_URL: ${{ github.event.inputs.server_url || 'https://argus-edu.vercel.app' }}
+        run: npx cap sync android
+
+      - name: Dar permissão ao Gradle Wrapper
+        run: chmod +x android/gradlew
+
+      - name: Compilar APK instalável (Debug)
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Compilar App Bundle Play Store (Release unsigned check)
+        working-directory: android
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Publicar APK para download direto no celular
+        uses: actions/upload-artifact@v4
+        with:
+          name: Argus-Android-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      - name: Publicar AAB (Play Store)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Argus-Android-AAB
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+  ios-xcode-validation:
+    name: Validar Build iOS (Xcode / App Store Ready)
+    runs-on: macos-15
+    steps:
+      - name: Checkout repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Instalar dependências npm
+        run: npm ci
+
+      - name: Sincronizar Capacitor iOS
+        env:
+          CAPACITOR_SERVER_URL: ${{ github.event.inputs.server_url || 'https://argus-edu.vercel.app' }}
+        run: npx cap sync ios
+
+      - name: Compilar projeto iOS (Simulador sem assinatura)
+        working-directory: ios/App
+        run: |
+          if [ -d "App.xcworkspace" ]; then
+            xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+          else
+            xcodebuild -project App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+          fi

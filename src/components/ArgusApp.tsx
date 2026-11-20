@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Navbar } from '@/components/Navbar';
+import { NativeMobileBridge } from '@/components/NativeMobileBridge';
 import { LandingPage } from '@/components/LandingPage';
 import {
   ONBOARDING_COMPLETED_KEY,
@@ -804,6 +805,13 @@ export function ArgusApp() {
     <div className={`min-h-screen flex flex-col items-center w-full selection:bg-blue-500/25 selection:text-blue-900 dark:selection:bg-blue-500/30 dark:selection:text-blue-100 transition-colors duration-300 relative overflow-x-hidden ${
       theme === 'light' ? 'app-bg-light text-slate-900' : 'app-bg-dark text-slate-100'
     }`}>
+      <NativeMobileBridge
+        theme={theme}
+        activeTab={activeTab}
+        onGoBack={handleGoBack}
+        onNavigateTab={handleNavigateWithHistory}
+        onNotify={showToast}
+      />
       
       {/* Ambient Background Glow Mesh Layer (Visível em ambos os modos) */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden w-full h-full">

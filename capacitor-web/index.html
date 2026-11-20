@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#060913" />
+  <title>Argus AI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: #060913;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: env(safe-area-inset-top) 24px env(safe-area-inset-bottom) 24px;
+    }
+    .card {
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 24px;
+      padding: 32px 24px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+    }
+    .ring {
+      width: 84px;
+      height: 84px;
+      margin: 0 auto 20px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.35), rgba(6, 182, 212, 0.1));
+      border: 2px solid #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 900;
+      color: #38bdf8;
+    }
+    h1 { font-size: 22px; font-weight: 800; margin-bottom: 10px; }
+    p { font-size: 14px; color: #94a3b8; line-height: 1.55; margin-bottom: 24px; }
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #ffffff;
+      background: linear-gradient(90deg, #2563eb, #06b6d4);
+      cursor: pointer;
+    }
+    button:active { opacity: 0.85; transform: scale(0.99); }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="ring">
+      <img src="icons/icon-192.webp" alt="Argus AI" style="width:68px;height:68px;border-radius:999px;object-fit:cover;" />
+    </div>
+    <h1>Argus AI</h1>
+    <p>Não foi possível conectar aos servidores do Argus. Verifique sua conexão Wi-Fi ou 4G/5G e tente novamente.</p>
+    <button type="button" onclick="window.location.replace('https://argus-edu.vercel.app')">
+      Tentar Reconectar
+    </button>
+  </main>
+</body>
+</html>

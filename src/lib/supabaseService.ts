@@ -268,12 +268,15 @@ export class SupabaseService {
       const client = getSupabase();
       if (!client) return { success: false, error: 'Cliente Supabase indisponível' };
 
-      const callbackUrl = redirectTo || (typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined);
+      const { getOAuthCallbackUrl, isNativeMobileApp } = await import('@/lib/mobileBridge');
+      const isNative = isNativeMobileApp();
+      const callbackUrl = getOAuthCallbackUrl(redirectTo);
 
       const { data, error } = await client.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: callbackUrl,
+          skipBrowserRedirect: isNative,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
